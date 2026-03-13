@@ -991,7 +991,7 @@ function EditEmployeeDialog({ employee, allEmployees, currentManagerIds, onSave 
           </div>
         </div>
         <Button className="w-full mt-2" onClick={() => {
-          onSave({ role, contract_start_date: contractDate || null, annual_vacation_days: parseInt(vacationDays) || 25 }, selectedManagers);
+          onSave({ role, employee_number: employeeNumber.trim() || null, contract_start_date: contractDate || null, annual_vacation_days: parseInt(vacationDays) || 25 }, selectedManagers);
           setOpen(false);
         }}>Save Changes</Button>
       </DialogContent>
