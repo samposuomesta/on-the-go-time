@@ -386,6 +386,7 @@ export type Database = {
           contract_start_date: string | null
           created_at: string
           email: string
+          employee_number: string | null
           id: string
           manager_id: string | null
           name: string
@@ -397,6 +398,7 @@ export type Database = {
           contract_start_date?: string | null
           created_at?: string
           email: string
+          employee_number?: string | null
           id?: string
           manager_id?: string | null
           name: string
@@ -408,6 +410,7 @@ export type Database = {
           contract_start_date?: string | null
           created_at?: string
           email?: string
+          employee_number?: string | null
           id?: string
           manager_id?: string | null
           name?: string
