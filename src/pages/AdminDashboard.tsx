@@ -1,12 +1,11 @@
 import { useState } from 'react';
 import { format, parseISO } from 'date-fns';
-import { 
-  ArrowLeft, Users, Briefcase, Car, Clock, CalendarOff, 
+import {
+  ArrowLeft, Users, Briefcase, Car, Clock, CalendarOff,
   CalendarDays, Plus, Pencil, MapPin, Bell, Building2, Trash2, CheckCircle2, XCircle
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAdminData } from '@/hooks/useAdminData';
-import { ApprovalCard } from '@/components/admin/ApprovalCard';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -16,85 +15,140 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Separator } from '@/components/ui/separator';
 
 const navItems = [
-  { key: 'employees', label: 'Employees', icon: Users },
-  { key: 'approvals', label: 'Approvals', icon: Clock },
-  { key: 'projects', label: 'Projects', icon: Briefcase },
-  { key: 'absences', label: 'Absences', icon: CalendarOff },
-  { key: 'vacation-approvals', label: 'Vacation Approvals', icon: CalendarDays },
-  { key: 'companies', label: 'Companies', icon: Building2 },
-  { key: 'workplaces', label: 'GPS Workplaces', icon: MapPin },
-  { key: 'reminders', label: 'Reminders', icon: Bell },
+  { key: 'employees', label: 'Employees', icon: Users, description: 'Manage team members' },
+  { key: 'approvals', label: 'Approvals', icon: Clock, description: 'Travel & project hours' },
+  { key: 'vacation-approvals', label: 'Vacation Approvals', icon: CalendarDays, description: 'Review vacation requests' },
+  { key: 'absences', label: 'Absences', icon: CalendarOff, description: 'Sick leave & absences' },
+  { key: 'projects', label: 'Projects', icon: Briefcase, description: 'Manage projects' },
+  { key: 'companies', label: 'Companies', icon: Building2, description: 'Company settings' },
+  { key: 'workplaces', label: 'GPS Workplaces', icon: MapPin, description: 'Geofence locations' },
+  { key: 'reminders', label: 'Reminders', icon: Bell, description: 'Notification rules' },
 ];
+
+function StatusBadge({ status }: { status: string }) {
+  const config: Record<string, string> = {
+    pending: 'bg-warning/15 text-warning border-warning/30',
+    approved: 'bg-success/15 text-success border-success/30',
+    rejected: 'bg-destructive/15 text-destructive border-destructive/30',
+  };
+  return <Badge variant="outline" className={cn("capitalize text-xs", config[status])}>{status}</Badge>;
+}
+
+function ApproveRejectButtons({ id, onApprove, isPending }: {
+  id: string;
+  onApprove: (id: string, status: 'approved' | 'rejected') => void;
+  isPending?: boolean;
+}) {
+  return (
+    <div className="flex gap-1.5">
+      <Button size="sm" variant="outline"
+        className="gap-1 text-xs h-8 text-success hover:text-success border-success/30 hover:bg-success/10"
+        disabled={isPending}
+        onClick={() => { onApprove(id, 'approved'); toast.success('Approved'); }}>
+        <CheckCircle2 className="h-3.5 w-3.5" /> Approve
+      </Button>
+      <Button size="sm" variant="outline"
+        className="gap-1 text-xs h-8 text-destructive hover:text-destructive border-destructive/30 hover:bg-destructive/10"
+        disabled={isPending}
+        onClick={() => { onApprove(id, 'rejected'); toast.success('Rejected'); }}>
+        <XCircle className="h-3.5 w-3.5" /> Reject
+      </Button>
+    </div>
+  );
+}
 
 export default function AdminDashboard() {
   const admin = useAdminData();
   const [activeTab, setActiveTab] = useState('employees');
 
+  const pendingCounts = {
+    approvals: (admin.pendingTravel.data?.length ?? 0) + (admin.pendingHours.data?.length ?? 0),
+    'vacation-approvals': admin.vacationRequests.data?.filter((v: any) => v.status === 'pending').length ?? 0,
+    absences: admin.absences.data?.filter((a: any) => a.status === 'pending').length ?? 0,
+  };
+
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-muted/30 flex flex-col">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-card border-b border-border px-4 lg:px-6 py-3 flex items-center gap-3">
+      <header className="sticky top-0 z-50 bg-card border-b border-border px-4 lg:px-6 h-14 flex items-center gap-3">
         <Link to="/" className="flex items-center justify-center rounded-lg hover:bg-muted p-2 -ml-2">
           <ArrowLeft className="h-5 w-5" />
         </Link>
-        <div>
-          <h1 className="text-lg lg:text-xl font-display font-bold">Admin Panel</h1>
-          <p className="text-xs lg:text-sm text-muted-foreground">Manage company settings and approvals</p>
-        </div>
+        <Separator orientation="vertical" className="h-6" />
+        <h1 className="text-base lg:text-lg font-display font-bold">Admin Panel</h1>
       </header>
 
       <div className="flex-1 flex">
-        {/* Sidebar nav — hidden on mobile, shown on md+ */}
-        <aside className="hidden md:flex flex-col w-56 lg:w-64 border-r border-border bg-card shrink-0">
-          <nav className="p-3 space-y-1">
-            {navItems.map((item) => (
-              <button
-                key={item.key}
-                onClick={() => setActiveTab(item.key)}
-                className={cn(
-                  "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-left",
-                  activeTab === item.key
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                )}
-              >
-                <item.icon className="h-4 w-4 shrink-0" />
-                {item.label}
-              </button>
-            ))}
+        {/* Desktop sidebar */}
+        <aside className="hidden md:flex flex-col w-60 lg:w-72 border-r border-border bg-card shrink-0 sticky top-14 h-[calc(100vh-3.5rem)] overflow-y-auto">
+          <nav className="p-2 space-y-0.5">
+            {navItems.map((item) => {
+              const count = (pendingCounts as any)[item.key] ?? 0;
+              return (
+                <button
+                  key={item.key}
+                  onClick={() => setActiveTab(item.key)}
+                  className={cn(
+                    "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors text-left group",
+                    activeTab === item.key
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  )}
+                >
+                  <item.icon className="h-4 w-4 shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <span className="font-medium block">{item.label}</span>
+                    <span className={cn(
+                      "text-[11px] block truncate",
+                      activeTab === item.key ? "text-primary-foreground/70" : "text-muted-foreground/70"
+                    )}>{item.description}</span>
+                  </div>
+                  {count > 0 && (
+                    <Badge variant={activeTab === item.key ? "secondary" : "default"} className="text-[10px] h-5 px-1.5 shrink-0">
+                      {count}
+                    </Badge>
+                  )}
+                </button>
+              );
+            })}
           </nav>
         </aside>
 
-        {/* Mobile tab bar — visible on mobile only */}
+        {/* Mobile tab bar */}
         <div className="md:hidden w-full">
-          <div className="flex overflow-x-auto border-b border-border bg-card px-2 gap-1">
-            {navItems.map((item) => (
-              <button
-                key={item.key}
-                onClick={() => setActiveTab(item.key)}
-                className={cn(
-                  "flex items-center gap-1.5 px-3 py-2.5 text-xs font-medium whitespace-nowrap border-b-2 transition-colors shrink-0",
-                  activeTab === item.key
-                    ? "border-primary text-primary"
-                    : "border-transparent text-muted-foreground"
-                )}
-              >
-                <item.icon className="h-3.5 w-3.5" />
-                {item.label}
-              </button>
-            ))}
+          <div className="flex overflow-x-auto border-b border-border bg-card px-2 gap-0.5">
+            {navItems.map((item) => {
+              const count = (pendingCounts as any)[item.key] ?? 0;
+              return (
+                <button
+                  key={item.key}
+                  onClick={() => setActiveTab(item.key)}
+                  className={cn(
+                    "flex items-center gap-1.5 px-3 py-2.5 text-xs font-medium whitespace-nowrap border-b-2 transition-colors shrink-0",
+                    activeTab === item.key
+                      ? "border-primary text-primary"
+                      : "border-transparent text-muted-foreground"
+                  )}
+                >
+                  <item.icon className="h-3.5 w-3.5" />
+                  {item.label}
+                  {count > 0 && <Badge variant="default" className="text-[10px] h-4 px-1 ml-0.5">{count}</Badge>}
+                </button>
+              );
+            })}
           </div>
           <main className="p-4">
             <AdminContent activeTab={activeTab} admin={admin} />
           </main>
         </div>
 
-        {/* Desktop content area */}
-        <main className="hidden md:block flex-1 p-6 lg:p-8 overflow-auto">
+        {/* Desktop content */}
+        <main className="hidden md:block flex-1 p-6 lg:p-8 overflow-auto max-w-6xl">
           <AdminContent activeTab={activeTab} admin={admin} />
         </main>
       </div>
@@ -116,145 +170,222 @@ function AdminContent({ activeTab, admin }: { activeTab: string; admin: any }) {
   }
 }
 
-/* ===== PANELS ===== */
+/* ===== EMPLOYEES ===== */
 
 function EmployeesPanel({ admin }: { admin: any }) {
   const employees = admin.employees.data ?? [];
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-        <CardTitle className="text-base lg:text-lg font-display">Employees ({employees.length})</CardTitle>
-        <AddEmployeeDialog onCreate={(data) => { admin.createEmployee.mutate(data); toast.success('Employee added'); }} />
-      </CardHeader>
-      <CardContent className="p-0">
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Contract Start</TableHead>
-                <TableHead>Vacation Days</TableHead>
-                <TableHead className="w-[80px]">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {employees.length === 0 ? (
-                <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">No employees found</TableCell></TableRow>
-              ) : employees.map((emp: any) => (
-                <TableRow key={emp.id}>
-                  <TableCell className="font-medium">{emp.name}</TableCell>
-                  <TableCell className="text-muted-foreground">{emp.email}</TableCell>
-                  <TableCell><Badge variant="outline" className="capitalize">{emp.role}</Badge></TableCell>
-                  <TableCell>{emp.contract_start_date ? format(parseISO(emp.contract_start_date), 'MMM d, yyyy') : '—'}</TableCell>
-                  <TableCell>{emp.annual_vacation_days ?? 25}</TableCell>
-                  <TableCell>
-                    <EditEmployeeDialog
-                      employee={emp}
-                      onSave={(data) => { admin.updateEmployee.mutate({ id: emp.id, ...data }); toast.success('Updated'); }}
-                    />
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-display font-bold">Employees</h2>
+          <p className="text-sm text-muted-foreground">{employees.length} team members</p>
         </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-function ApprovalsPanel({ admin }: { admin: any }) {
-  return (
-    <div className="space-y-6">
-      <ApprovalSection
-        icon={Car} label="Travel Expenses" count={admin.pendingTravel.data?.length ?? 0}
-        items={admin.pendingTravel.data ?? []}
-        renderItem={(t: any) => (
-          <ApprovalCard key={t.id} id={t.id}
-            title={`${t.users?.name ?? 'Unknown'} — ${t.kilometers ?? 0} km, €${Number(t.parking_cost ?? 0).toFixed(2)} parking`}
-            subtitle={`${t.projects?.name ?? 'No project'} · ${format(parseISO(t.date), 'MMM d, yyyy')}`}
-            detail={t.description} status={t.status}
-            onApprove={(id, status) => admin.approveTravel.mutate({ id, status })}
-            isPending={admin.approveTravel.isPending} />
-        )}
-      />
-      <ApprovalSection
-        icon={Clock} label="Project Hours" count={admin.pendingHours.data?.length ?? 0}
-        items={admin.pendingHours.data ?? []}
-        renderItem={(h: any) => (
-          <ApprovalCard key={h.id} id={h.id}
-            title={`${h.users?.name ?? 'Unknown'} — ${h.hours}h`}
-            subtitle={`${h.projects?.name ?? 'No project'} · ${format(parseISO(h.date), 'MMM d, yyyy')}`}
-            detail={h.description} status={h.status}
-            onApprove={(id, status) => admin.approveHours.mutate({ id, status })}
-            isPending={admin.approveHours.isPending} />
-        )}
-      />
+        <AddEmployeeDialog onCreate={(data) => { admin.createEmployee.mutate(data); toast.success('Employee added'); }} />
+      </div>
+      <Card>
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/50">
+                  <TableHead className="font-semibold">Name</TableHead>
+                  <TableHead className="font-semibold">Email</TableHead>
+                  <TableHead className="font-semibold">Role</TableHead>
+                  <TableHead className="font-semibold">Contract Start</TableHead>
+                  <TableHead className="font-semibold">Vacation Days</TableHead>
+                  <TableHead className="w-[60px]"></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {employees.length === 0 ? (
+                  <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-12">No employees found. Add your first team member above.</TableCell></TableRow>
+                ) : employees.map((emp: any) => (
+                  <TableRow key={emp.id} className="hover:bg-muted/30">
+                    <TableCell className="font-medium">{emp.name}</TableCell>
+                    <TableCell className="text-muted-foreground">{emp.email}</TableCell>
+                    <TableCell><Badge variant="outline" className="capitalize">{emp.role}</Badge></TableCell>
+                    <TableCell className="text-muted-foreground">{emp.contract_start_date ? format(parseISO(emp.contract_start_date), 'MMM d, yyyy') : '—'}</TableCell>
+                    <TableCell>{emp.annual_vacation_days ?? 25} days</TableCell>
+                    <TableCell>
+                      <EditEmployeeDialog employee={emp} onSave={(data) => { admin.updateEmployee.mutate({ id: emp.id, ...data }); toast.success('Updated'); }} />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
 
-function VacationApprovalsPanel({ admin }: { admin: any; }) {
-  const requests = admin.vacationRequests.data ?? [];
-  const pending = requests.filter((r: any) => r.status === 'pending');
-  const handled = requests.filter((r: any) => r.status !== 'pending');
+/* ===== APPROVALS (Travel + Project Hours) ===== */
 
-  const statusBadge = (status: string) => {
-    const config: Record<string, string> = {
-      pending: 'bg-warning/15 text-warning border-warning/30',
-      approved: 'bg-success/15 text-success border-success/30',
-      rejected: 'bg-destructive/15 text-destructive border-destructive/30',
-    };
-    return <Badge variant="outline" className={cn("capitalize", config[status])}>{status}</Badge>;
-  };
+function ApprovalsPanel({ admin }: { admin: any }) {
+  const travel = admin.pendingTravel.data ?? [];
+  const hours = admin.pendingHours.data ?? [];
 
   return (
     <div className="space-y-6">
+      <div>
+        <h2 className="text-xl font-display font-bold">Approvals</h2>
+        <p className="text-sm text-muted-foreground">Review pending travel expenses and project hours</p>
+      </div>
+
+      {/* Travel Expenses */}
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-base lg:text-lg font-display flex items-center gap-2">
-            <Clock className="h-5 w-5 text-warning" /> Pending Requests
-            <Badge variant="secondary" className="ml-auto">{pending.length}</Badge>
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Car className="h-5 w-5 text-muted-foreground" />
+              <CardTitle className="text-base font-display">Travel Expenses</CardTitle>
+            </div>
+            <Badge variant="secondary">{travel.length} pending</Badge>
+          </div>
         </CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>Employee</TableHead>
-                  <TableHead>Start Date</TableHead>
-                  <TableHead>End Date</TableHead>
-                  <TableHead>Comment</TableHead>
-                  <TableHead>Submitted</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                <TableRow className="bg-muted/50">
+                  <TableHead className="font-semibold">Employee</TableHead>
+                  <TableHead className="font-semibold">Project</TableHead>
+                  <TableHead className="font-semibold">Date</TableHead>
+                  <TableHead className="font-semibold">Kilometers</TableHead>
+                  <TableHead className="font-semibold">Parking</TableHead>
+                  <TableHead className="font-semibold">Description</TableHead>
+                  <TableHead className="font-semibold">Status</TableHead>
+                  <TableHead className="text-right font-semibold">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {travel.length === 0 ? (
+                  <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">No pending travel expenses</TableCell></TableRow>
+                ) : travel.map((t: any) => (
+                  <TableRow key={t.id} className="hover:bg-muted/30">
+                    <TableCell className="font-medium">{t.users?.name ?? 'Unknown'}</TableCell>
+                    <TableCell className="text-muted-foreground">{t.projects?.name ?? '—'}</TableCell>
+                    <TableCell>{format(parseISO(t.date), 'MMM d, yyyy')}</TableCell>
+                    <TableCell>{t.kilometers ?? 0} km</TableCell>
+                    <TableCell>€{Number(t.parking_cost ?? 0).toFixed(2)}</TableCell>
+                    <TableCell className="text-muted-foreground max-w-[200px] truncate">{t.description || '—'}</TableCell>
+                    <TableCell><StatusBadge status={t.status} /></TableCell>
+                    <TableCell className="text-right">
+                      {t.status === 'pending' && (
+                        <ApproveRejectButtons id={t.id} onApprove={(id, status) => admin.approveTravel.mutate({ id, status })} isPending={admin.approveTravel.isPending} />
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Project Hours */}
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Clock className="h-5 w-5 text-muted-foreground" />
+              <CardTitle className="text-base font-display">Project Hours</CardTitle>
+            </div>
+            <Badge variant="secondary">{hours.length} pending</Badge>
+          </div>
+        </CardHeader>
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/50">
+                  <TableHead className="font-semibold">Employee</TableHead>
+                  <TableHead className="font-semibold">Project</TableHead>
+                  <TableHead className="font-semibold">Date</TableHead>
+                  <TableHead className="font-semibold">Hours</TableHead>
+                  <TableHead className="font-semibold">Description</TableHead>
+                  <TableHead className="font-semibold">Status</TableHead>
+                  <TableHead className="text-right font-semibold">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {hours.length === 0 ? (
+                  <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">No pending project hours</TableCell></TableRow>
+                ) : hours.map((h: any) => (
+                  <TableRow key={h.id} className="hover:bg-muted/30">
+                    <TableCell className="font-medium">{h.users?.name ?? 'Unknown'}</TableCell>
+                    <TableCell className="text-muted-foreground">{h.projects?.name ?? '—'}</TableCell>
+                    <TableCell>{format(parseISO(h.date), 'MMM d, yyyy')}</TableCell>
+                    <TableCell className="font-medium">{h.hours}h</TableCell>
+                    <TableCell className="text-muted-foreground max-w-[200px] truncate">{h.description || '—'}</TableCell>
+                    <TableCell><StatusBadge status={h.status} /></TableCell>
+                    <TableCell className="text-right">
+                      {h.status === 'pending' && (
+                        <ApproveRejectButtons id={h.id} onApprove={(id, status) => admin.approveHours.mutate({ id, status })} isPending={admin.approveHours.isPending} />
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+/* ===== VACATION APPROVALS ===== */
+
+function VacationApprovalsPanel({ admin }: { admin: any }) {
+  const requests = admin.vacationRequests.data ?? [];
+  const pending = requests.filter((r: any) => r.status === 'pending');
+  const handled = requests.filter((r: any) => r.status !== 'pending');
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-xl font-display font-bold">Vacation Approvals</h2>
+        <p className="text-sm text-muted-foreground">Review and manage vacation requests</p>
+      </div>
+
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Clock className="h-5 w-5 text-warning" />
+              <CardTitle className="text-base font-display">Pending Requests</CardTitle>
+            </div>
+            <Badge variant="secondary">{pending.length} pending</Badge>
+          </div>
+        </CardHeader>
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/50">
+                  <TableHead className="font-semibold">Employee</TableHead>
+                  <TableHead className="font-semibold">Start Date</TableHead>
+                  <TableHead className="font-semibold">End Date</TableHead>
+                  <TableHead className="font-semibold">Comment</TableHead>
+                  <TableHead className="font-semibold">Submitted</TableHead>
+                  <TableHead className="text-right font-semibold">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {pending.length === 0 ? (
                   <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">No pending requests</TableCell></TableRow>
                 ) : pending.map((r: any) => (
-                  <TableRow key={r.id}>
+                  <TableRow key={r.id} className="hover:bg-muted/30">
                     <TableCell className="font-medium">{r.users?.name ?? 'Unknown'}</TableCell>
                     <TableCell>{format(parseISO(r.start_date), 'MMM d, yyyy')}</TableCell>
                     <TableCell>{format(parseISO(r.end_date), 'MMM d, yyyy')}</TableCell>
                     <TableCell className="text-muted-foreground max-w-[200px] truncate">{r.comment || '—'}</TableCell>
                     <TableCell className="text-muted-foreground">{format(new Date(r.created_at), 'MMM d')}</TableCell>
                     <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button size="sm" variant="outline" className="gap-1.5 text-success hover:text-success border-success/30 hover:bg-success/10"
-                          disabled={admin.approveVacation.isPending}
-                          onClick={() => admin.approveVacation.mutate({ id: r.id, status: 'approved' })}>
-                          <CheckCircle2 className="h-4 w-4" /> Approve
-                        </Button>
-                        <Button size="sm" variant="outline" className="gap-1.5 text-destructive hover:text-destructive border-destructive/30 hover:bg-destructive/10"
-                          disabled={admin.approveVacation.isPending}
-                          onClick={() => admin.approveVacation.mutate({ id: r.id, status: 'rejected' })}>
-                          <XCircle className="h-4 w-4" /> Reject
-                        </Button>
-                      </div>
+                      <ApproveRejectButtons id={r.id} onApprove={(id, status) => admin.approveVacation.mutate({ id, status })} isPending={admin.approveVacation.isPending} />
                     </TableCell>
                   </TableRow>
                 ))}
@@ -266,33 +397,36 @@ function VacationApprovalsPanel({ admin }: { admin: any; }) {
 
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-base lg:text-lg font-display flex items-center gap-2">
-            <CalendarDays className="h-5 w-5" /> History
-            <Badge variant="secondary" className="ml-auto">{handled.length}</Badge>
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <CalendarDays className="h-5 w-5 text-muted-foreground" />
+              <CardTitle className="text-base font-display">History</CardTitle>
+            </div>
+            <Badge variant="secondary">{handled.length} processed</Badge>
+          </div>
         </CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>Employee</TableHead>
-                  <TableHead>Start Date</TableHead>
-                  <TableHead>End Date</TableHead>
-                  <TableHead>Comment</TableHead>
-                  <TableHead>Status</TableHead>
+                <TableRow className="bg-muted/50">
+                  <TableHead className="font-semibold">Employee</TableHead>
+                  <TableHead className="font-semibold">Start Date</TableHead>
+                  <TableHead className="font-semibold">End Date</TableHead>
+                  <TableHead className="font-semibold">Comment</TableHead>
+                  <TableHead className="font-semibold">Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {handled.length === 0 ? (
                   <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">No history yet</TableCell></TableRow>
                 ) : handled.map((r: any) => (
-                  <TableRow key={r.id}>
+                  <TableRow key={r.id} className="hover:bg-muted/30">
                     <TableCell className="font-medium">{r.users?.name ?? 'Unknown'}</TableCell>
                     <TableCell>{format(parseISO(r.start_date), 'MMM d, yyyy')}</TableCell>
                     <TableCell>{format(parseISO(r.end_date), 'MMM d, yyyy')}</TableCell>
                     <TableCell className="text-muted-foreground max-w-[200px] truncate">{r.comment || '—'}</TableCell>
-                    <TableCell>{statusBadge(r.status)}</TableCell>
+                    <TableCell><StatusBadge status={r.status} /></TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -304,224 +438,300 @@ function VacationApprovalsPanel({ admin }: { admin: any; }) {
   );
 }
 
-function ApprovalSection({ icon: Icon, label, count, items, renderItem }: {
-  icon: any; label: string; count: number; items: any[]; renderItem: (item: any) => React.ReactNode;
-}) {
+/* ===== ABSENCES ===== */
+
+function AbsencesPanel({ admin }: { admin: any }) {
+  const absences = admin.absences.data ?? [];
+  const pending = absences.filter((a: any) => a.status === 'pending');
+  const handled = absences.filter((a: any) => a.status !== 'pending');
+
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-sm lg:text-base font-display flex items-center gap-2">
-          <Icon className="h-4 w-4" /> {label}
-          <Badge variant="secondary" className="ml-auto">{count} pending</Badge>
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        {items.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-6">No {label.toLowerCase()}</p>
-        ) : (
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">{items.map(renderItem)}</div>
-        )}
-      </CardContent>
-    </Card>
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-xl font-display font-bold">Absences & Sick Leave</h2>
+        <p className="text-sm text-muted-foreground">{absences.length} total records</p>
+      </div>
+
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base font-display">Pending Review</CardTitle>
+            <Badge variant="secondary">{pending.length} pending</Badge>
+          </div>
+        </CardHeader>
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/50">
+                  <TableHead className="font-semibold">Employee</TableHead>
+                  <TableHead className="font-semibold">Type</TableHead>
+                  <TableHead className="font-semibold">Start Date</TableHead>
+                  <TableHead className="font-semibold">End Date</TableHead>
+                  <TableHead className="font-semibold">Status</TableHead>
+                  <TableHead className="text-right font-semibold">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {pending.length === 0 ? (
+                  <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">No pending absences</TableCell></TableRow>
+                ) : pending.map((a: any) => (
+                  <TableRow key={a.id} className="hover:bg-muted/30">
+                    <TableCell className="font-medium">{a.users?.name ?? 'Unknown'}</TableCell>
+                    <TableCell><Badge variant="outline" className="capitalize">{a.type === 'sick' ? '🤒 Sick' : '📋 Absence'}</Badge></TableCell>
+                    <TableCell>{format(parseISO(a.start_date), 'MMM d, yyyy')}</TableCell>
+                    <TableCell>{format(parseISO(a.end_date), 'MMM d, yyyy')}</TableCell>
+                    <TableCell><StatusBadge status={a.status} /></TableCell>
+                    <TableCell className="text-right">
+                      <ApproveRejectButtons id={a.id} onApprove={(id, status) => admin.approveAbsence.mutate({ id, status })} isPending={admin.approveAbsence.isPending} />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+
+      {handled.length > 0 && (
+        <Card>
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base font-display">History</CardTitle>
+              <Badge variant="secondary">{handled.length} processed</Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/50">
+                    <TableHead className="font-semibold">Employee</TableHead>
+                    <TableHead className="font-semibold">Type</TableHead>
+                    <TableHead className="font-semibold">Start Date</TableHead>
+                    <TableHead className="font-semibold">End Date</TableHead>
+                    <TableHead className="font-semibold">Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {handled.map((a: any) => (
+                    <TableRow key={a.id} className="hover:bg-muted/30">
+                      <TableCell className="font-medium">{a.users?.name ?? 'Unknown'}</TableCell>
+                      <TableCell><Badge variant="outline" className="capitalize">{a.type === 'sick' ? '🤒 Sick' : '📋 Absence'}</Badge></TableCell>
+                      <TableCell>{format(parseISO(a.start_date), 'MMM d, yyyy')}</TableCell>
+                      <TableCell>{format(parseISO(a.end_date), 'MMM d, yyyy')}</TableCell>
+                      <TableCell><StatusBadge status={a.status} /></TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    </div>
   );
 }
+
+/* ===== PROJECTS ===== */
 
 function ProjectsPanel({ admin }: { admin: any }) {
   const projects = admin.projects.data ?? [];
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-        <CardTitle className="text-base lg:text-lg font-display">Projects ({projects.length})</CardTitle>
-        <AddProjectDialog onCreate={(data) => { admin.createProject.mutate(data); toast.success('Project added'); }} />
-      </CardHeader>
-      <CardContent className="p-0">
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Customer</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="w-[100px]">Active</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {projects.length === 0 ? (
-                <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-8">No projects</TableCell></TableRow>
-              ) : projects.map((p: any) => (
-                <TableRow key={p.id}>
-                  <TableCell className="font-medium">{p.name}</TableCell>
-                  <TableCell className="text-muted-foreground">{p.customer || '—'}</TableCell>
-                  <TableCell><Badge variant={p.active ? 'default' : 'secondary'}>{p.active ? 'Active' : 'Inactive'}</Badge></TableCell>
-                  <TableCell><Switch checked={p.active} onCheckedChange={(active) => admin.toggleProject.mutate({ id: p.id, active })} /></TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-display font-bold">Projects</h2>
+          <p className="text-sm text-muted-foreground">{projects.length} projects</p>
         </div>
-      </CardContent>
-    </Card>
+        <AddProjectDialog onCreate={(data) => { admin.createProject.mutate(data); toast.success('Project added'); }} />
+      </div>
+      <Card>
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/50">
+                  <TableHead className="font-semibold">Name</TableHead>
+                  <TableHead className="font-semibold">Customer</TableHead>
+                  <TableHead className="font-semibold">Status</TableHead>
+                  <TableHead className="font-semibold w-[100px]">Active</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {projects.length === 0 ? (
+                  <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-12">No projects yet</TableCell></TableRow>
+                ) : projects.map((p: any) => (
+                  <TableRow key={p.id} className="hover:bg-muted/30">
+                    <TableCell className="font-medium">{p.name}</TableCell>
+                    <TableCell className="text-muted-foreground">{p.customer || '—'}</TableCell>
+                    <TableCell><Badge variant={p.active ? 'default' : 'secondary'}>{p.active ? 'Active' : 'Inactive'}</Badge></TableCell>
+                    <TableCell><Switch checked={p.active} onCheckedChange={(active) => admin.toggleProject.mutate({ id: p.id, active })} /></TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
 
-function AbsencesPanel({ admin }: { admin: any }) {
-  const absences = admin.absences.data ?? [];
-  return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-base lg:text-lg font-display">Absences & Sick Leave ({absences.length})</CardTitle>
-      </CardHeader>
-      <CardContent>
-        {absences.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-8">No absences recorded</p>
-        ) : (
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-            {absences.map((a: any) => (
-              <ApprovalCard key={a.id} id={a.id}
-                title={`${a.users?.name ?? 'Unknown'} — ${a.type === 'sick' ? '🤒 Sick' : '📋 Absence'}`}
-                subtitle={`${format(parseISO(a.start_date), 'MMM d')} — ${format(parseISO(a.end_date), 'MMM d, yyyy')}`}
-                status={a.status}
-                onApprove={(id, status) => admin.approveAbsence.mutate({ id, status })}
-                isPending={admin.approveAbsence.isPending} />
-            ))}
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
+/* ===== COMPANIES ===== */
 
 function CompaniesPanel({ admin }: { admin: any }) {
   const companies = admin.companies.data ?? [];
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-        <CardTitle className="text-base lg:text-lg font-display">Companies ({companies.length})</CardTitle>
-        <AddCompanyDialog onCreate={(data) => { admin.createCompany.mutate(data); toast.success('Company added'); }} />
-      </CardHeader>
-      <CardContent className="p-0">
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>KM Rate</TableHead>
-                <TableHead>Created</TableHead>
-                <TableHead className="w-[80px]">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {companies.length === 0 ? (
-                <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-8">No companies</TableCell></TableRow>
-              ) : companies.map((c: any) => (
-                <TableRow key={c.id}>
-                  <TableCell className="font-medium">{c.name}</TableCell>
-                  <TableCell>€{Number(c.km_rate).toFixed(2)}/km</TableCell>
-                  <TableCell className="text-muted-foreground">{format(new Date(c.created_at), 'MMM d, yyyy')}</TableCell>
-                  <TableCell>
-                    <EditCompanyDialog company={c} onSave={(data) => { admin.updateCompany.mutate({ id: c.id, ...data }); toast.success('Updated'); }} />
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-display font-bold">Companies</h2>
+          <p className="text-sm text-muted-foreground">{companies.length} companies</p>
         </div>
-      </CardContent>
-    </Card>
+        <AddCompanyDialog onCreate={(data) => { admin.createCompany.mutate(data); toast.success('Company added'); }} />
+      </div>
+      <Card>
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/50">
+                  <TableHead className="font-semibold">Name</TableHead>
+                  <TableHead className="font-semibold">KM Rate</TableHead>
+                  <TableHead className="font-semibold">Created</TableHead>
+                  <TableHead className="w-[60px]"></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {companies.length === 0 ? (
+                  <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-12">No companies</TableCell></TableRow>
+                ) : companies.map((c: any) => (
+                  <TableRow key={c.id} className="hover:bg-muted/30">
+                    <TableCell className="font-medium">{c.name}</TableCell>
+                    <TableCell>€{Number(c.km_rate).toFixed(2)}/km</TableCell>
+                    <TableCell className="text-muted-foreground">{format(new Date(c.created_at), 'MMM d, yyyy')}</TableCell>
+                    <TableCell>
+                      <EditCompanyDialog company={c} onSave={(data) => { admin.updateCompany.mutate({ id: c.id, ...data }); toast.success('Updated'); }} />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
+
+/* ===== GPS WORKPLACES ===== */
 
 function WorkplacesPanel({ admin }: { admin: any }) {
   const workplaces = admin.workplaces.data ?? [];
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-        <CardTitle className="text-base lg:text-lg font-display">GPS Workplace Locations ({workplaces.length})</CardTitle>
-        <AddWorkplaceDialog onCreate={(data) => { admin.createWorkplace.mutate(data); toast.success('Workplace added'); }} />
-      </CardHeader>
-      <CardContent className="p-0">
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Latitude</TableHead>
-                <TableHead>Longitude</TableHead>
-                <TableHead>Radius</TableHead>
-                <TableHead className="w-[60px]"></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {workplaces.length === 0 ? (
-                <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">No workplace locations configured</TableCell></TableRow>
-              ) : workplaces.map((w: any) => (
-                <TableRow key={w.id}>
-                  <TableCell className="font-medium flex items-center gap-2"><MapPin className="h-4 w-4 text-primary" />{w.name}</TableCell>
-                  <TableCell>{w.latitude.toFixed(5)}</TableCell>
-                  <TableCell>{w.longitude.toFixed(5)}</TableCell>
-                  <TableCell>{w.radius_meters}m</TableCell>
-                  <TableCell>
-                    <Button size="icon" variant="ghost" className="text-destructive hover:text-destructive h-8 w-8"
-                      onClick={() => { admin.deleteWorkplace.mutate(w.id); toast.success('Deleted'); }}>
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-display font-bold">GPS Workplace Locations</h2>
+          <p className="text-sm text-muted-foreground">{workplaces.length} locations configured</p>
         </div>
-      </CardContent>
-    </Card>
+        <AddWorkplaceDialog onCreate={(data) => { admin.createWorkplace.mutate(data); toast.success('Workplace added'); }} />
+      </div>
+      <Card>
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/50">
+                  <TableHead className="font-semibold">Name</TableHead>
+                  <TableHead className="font-semibold">Latitude</TableHead>
+                  <TableHead className="font-semibold">Longitude</TableHead>
+                  <TableHead className="font-semibold">Radius</TableHead>
+                  <TableHead className="w-[60px]"></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {workplaces.length === 0 ? (
+                  <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-12">No workplace locations configured</TableCell></TableRow>
+                ) : workplaces.map((w: any) => (
+                  <TableRow key={w.id} className="hover:bg-muted/30">
+                    <TableCell className="font-medium">
+                      <div className="flex items-center gap-2"><MapPin className="h-4 w-4 text-primary shrink-0" />{w.name}</div>
+                    </TableCell>
+                    <TableCell className="font-mono text-sm">{w.latitude.toFixed(5)}</TableCell>
+                    <TableCell className="font-mono text-sm">{w.longitude.toFixed(5)}</TableCell>
+                    <TableCell>{w.radius_meters}m</TableCell>
+                    <TableCell>
+                      <Button size="icon" variant="ghost" className="text-destructive hover:text-destructive h-8 w-8"
+                        onClick={() => { admin.deleteWorkplace.mutate(w.id); toast.success('Deleted'); }}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
+
+/* ===== REMINDERS ===== */
 
 function RemindersPanel({ admin }: { admin: any }) {
   const reminders = admin.reminderRules.data ?? [];
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-        <CardTitle className="text-base lg:text-lg font-display">Reminder Rules ({reminders.length})</CardTitle>
-        <AddReminderDialog onCreate={(data) => { admin.createReminder.mutate(data); toast.success('Reminder added'); }} />
-      </CardHeader>
-      <CardContent className="p-0">
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Type</TableHead>
-                <TableHead>Time</TableHead>
-                <TableHead>Message</TableHead>
-                <TableHead>Enabled</TableHead>
-                <TableHead className="w-[60px]"></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {reminders.length === 0 ? (
-                <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">No reminder rules configured</TableCell></TableRow>
-              ) : reminders.map((r: any) => (
-                <TableRow key={r.id}>
-                  <TableCell className="font-medium capitalize">{r.type.replace('_', ' ')}</TableCell>
-                  <TableCell>{r.time}</TableCell>
-                  <TableCell className="text-muted-foreground max-w-[300px] truncate">{r.message}</TableCell>
-                  <TableCell><Switch checked={r.enabled} onCheckedChange={(enabled) => admin.toggleReminder.mutate({ id: r.id, enabled })} /></TableCell>
-                  <TableCell>
-                    <Button size="icon" variant="ghost" className="text-destructive hover:text-destructive h-8 w-8"
-                      onClick={() => { admin.deleteReminder.mutate(r.id); toast.success('Deleted'); }}>
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-display font-bold">Reminder Rules</h2>
+          <p className="text-sm text-muted-foreground">{reminders.length} rules configured</p>
         </div>
-      </CardContent>
-    </Card>
+        <AddReminderDialog onCreate={(data) => { admin.createReminder.mutate(data); toast.success('Reminder added'); }} />
+      </div>
+      <Card>
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/50">
+                  <TableHead className="font-semibold">Type</TableHead>
+                  <TableHead className="font-semibold">Time</TableHead>
+                  <TableHead className="font-semibold">Message</TableHead>
+                  <TableHead className="font-semibold">Enabled</TableHead>
+                  <TableHead className="w-[60px]"></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {reminders.length === 0 ? (
+                  <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-12">No reminder rules configured</TableCell></TableRow>
+                ) : reminders.map((r: any) => (
+                  <TableRow key={r.id} className="hover:bg-muted/30">
+                    <TableCell className="font-medium capitalize">{r.type.replace('_', ' ')}</TableCell>
+                    <TableCell className="font-mono">{r.time}</TableCell>
+                    <TableCell className="text-muted-foreground max-w-[300px] truncate">{r.message}</TableCell>
+                    <TableCell><Switch checked={r.enabled} onCheckedChange={(enabled) => admin.toggleReminder.mutate({ id: r.id, enabled })} /></TableCell>
+                    <TableCell>
+                      <Button size="icon" variant="ghost" className="text-destructive hover:text-destructive h-8 w-8"
+                        onClick={() => { admin.deleteReminder.mutate(r.id); toast.success('Deleted'); }}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
 
-/* --- Sub-dialogs --- */
+/* ===== SUB-DIALOGS ===== */
 
 function AddEmployeeDialog({ onCreate }: { onCreate: (data: any) => void }) {
   const [open, setOpen] = useState(false);
@@ -534,8 +744,8 @@ function AddEmployeeDialog({ onCreate }: { onCreate: (data: any) => void }) {
 
   return (
     <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) reset(); }}>
-      <DialogTrigger asChild><Button size="sm" className="gap-1.5"><Plus className="h-4 w-4" /> Add Employee</Button></DialogTrigger>
-      <DialogContent>
+      <DialogTrigger asChild><Button className="gap-1.5"><Plus className="h-4 w-4" /> Add Employee</Button></DialogTrigger>
+      <DialogContent className="sm:max-w-md">
         <DialogHeader><DialogTitle className="font-display">Add Employee</DialogTitle></DialogHeader>
         <div className="grid gap-4 mt-2 sm:grid-cols-2">
           <div className="space-y-1.5 sm:col-span-2"><Label>Name</Label><Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Full name" /></div>
@@ -567,7 +777,7 @@ function EditEmployeeDialog({ employee, onSave }: { employee: any; onSave: (data
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild><Button size="icon" variant="ghost" className="h-8 w-8"><Pencil className="h-3.5 w-3.5" /></Button></DialogTrigger>
-      <DialogContent>
+      <DialogContent className="sm:max-w-md">
         <DialogHeader><DialogTitle className="font-display">Edit {employee.name}</DialogTitle></DialogHeader>
         <div className="grid gap-4 mt-2 sm:grid-cols-2">
           <div className="space-y-1.5"><Label>Role</Label>
@@ -595,8 +805,8 @@ function AddProjectDialog({ onCreate }: { onCreate: (data: { name: string; custo
 
   return (
     <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setName(''); setCustomer(''); } }}>
-      <DialogTrigger asChild><Button size="sm" className="gap-1.5"><Plus className="h-4 w-4" /> Add Project</Button></DialogTrigger>
-      <DialogContent>
+      <DialogTrigger asChild><Button className="gap-1.5"><Plus className="h-4 w-4" /> Add Project</Button></DialogTrigger>
+      <DialogContent className="sm:max-w-md">
         <DialogHeader><DialogTitle className="font-display">Add Project</DialogTitle></DialogHeader>
         <div className="space-y-4 mt-2">
           <div className="space-y-1.5"><Label>Project Name</Label><Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Project name" /></div>
@@ -618,8 +828,8 @@ function AddCompanyDialog({ onCreate }: { onCreate: (data: { name: string; km_ra
 
   return (
     <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setName(''); setKmRate('0.25'); } }}>
-      <DialogTrigger asChild><Button size="sm" className="gap-1.5"><Plus className="h-4 w-4" /> Add Company</Button></DialogTrigger>
-      <DialogContent>
+      <DialogTrigger asChild><Button className="gap-1.5"><Plus className="h-4 w-4" /> Add Company</Button></DialogTrigger>
+      <DialogContent className="sm:max-w-md">
         <DialogHeader><DialogTitle className="font-display">Add Company</DialogTitle></DialogHeader>
         <div className="space-y-4 mt-2">
           <div className="space-y-1.5"><Label>Company Name</Label><Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Company name" /></div>
@@ -642,7 +852,7 @@ function EditCompanyDialog({ company, onSave }: { company: any; onSave: (data: a
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild><Button size="icon" variant="ghost" className="h-8 w-8"><Pencil className="h-3.5 w-3.5" /></Button></DialogTrigger>
-      <DialogContent>
+      <DialogContent className="sm:max-w-md">
         <DialogHeader><DialogTitle className="font-display">Edit {company.name}</DialogTitle></DialogHeader>
         <div className="space-y-4 mt-2">
           <div className="space-y-1.5"><Label>Company Name</Label><Input value={name} onChange={(e) => setName(e.target.value)} /></div>
@@ -674,8 +884,8 @@ function AddWorkplaceDialog({ onCreate }: { onCreate: (data: { name: string; lat
 
   return (
     <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setName(''); setLat(''); setLng(''); setRadius('200'); } }}>
-      <DialogTrigger asChild><Button size="sm" className="gap-1.5"><Plus className="h-4 w-4" /> Add Workplace</Button></DialogTrigger>
-      <DialogContent>
+      <DialogTrigger asChild><Button className="gap-1.5"><Plus className="h-4 w-4" /> Add Workplace</Button></DialogTrigger>
+      <DialogContent className="sm:max-w-md">
         <DialogHeader><DialogTitle className="font-display">Add Workplace Location</DialogTitle></DialogHeader>
         <div className="space-y-4 mt-2">
           <div className="space-y-1.5"><Label>Name</Label><Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Office, Warehouse..." /></div>
@@ -712,8 +922,8 @@ function AddReminderDialog({ onCreate }: { onCreate: (data: { type: string; time
 
   return (
     <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setType('clock_in'); setTime('08:30'); setMessage(''); } }}>
-      <DialogTrigger asChild><Button size="sm" className="gap-1.5"><Plus className="h-4 w-4" /> Add Reminder</Button></DialogTrigger>
-      <DialogContent>
+      <DialogTrigger asChild><Button className="gap-1.5"><Plus className="h-4 w-4" /> Add Reminder</Button></DialogTrigger>
+      <DialogContent className="sm:max-w-md">
         <DialogHeader><DialogTitle className="font-display">Add Reminder Rule</DialogTitle></DialogHeader>
         <div className="space-y-4 mt-2">
           <div className="space-y-1.5">
