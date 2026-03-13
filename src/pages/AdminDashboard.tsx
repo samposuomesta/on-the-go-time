@@ -430,12 +430,14 @@ function EmployeesPanel({ admin }: { admin: any }) {
                   <TableHead className="font-semibold">Managers</TableHead>
                   <TableHead className="font-semibold">Contract Start</TableHead>
                   <TableHead className="font-semibold">Vacation Days</TableHead>
+                  <TableHead className="font-semibold">Daily Hours</TableHead>
+                  <TableHead className="font-semibold">Lunch Break</TableHead>
                   <TableHead className="w-[60px]"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {employees.length === 0 ? (
-                  <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-12">No employees found. Add your first team member above.</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={10} className="text-center text-muted-foreground py-12">No employees found. Add your first team member above.</TableCell></TableRow>
                 ) : employees.map((emp: any) => {
                   const mgrs = managerNames(emp.id);
                   return (
@@ -453,6 +455,12 @@ function EmployeesPanel({ admin }: { admin: any }) {
                       </TableCell>
                       <TableCell className="text-muted-foreground">{emp.contract_start_date ? format(parseISO(emp.contract_start_date), 'MMM d, yyyy') : '—'}</TableCell>
                       <TableCell>{emp.annual_vacation_days ?? 25} days</TableCell>
+                      <TableCell className="font-mono text-sm">{emp.daily_work_hours ?? 7.5}h</TableCell>
+                      <TableCell>
+                        {emp.auto_subtract_lunch ? (
+                          <Badge variant="outline" className="text-[10px] border-success/30 text-success">30min &gt;{emp.lunch_threshold_hours ?? 5}h</Badge>
+                        ) : <span className="text-muted-foreground text-xs">—</span>}
+                      </TableCell>
                       <TableCell>
                         <EditEmployeeDialog
                           employee={emp}
