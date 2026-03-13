@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { format, parseISO, differenceInBusinessDays, differenceInHours, differenceInMinutes, eachDayOfInterval, isWeekend, startOfYear, subMonths, startOfMonth, endOfMonth, isWithinInterval, isAfter, isBefore } from 'date-fns';
 import {
   ArrowLeft, Users, Briefcase, Car, Clock, CalendarOff,
-  CalendarDays, Plus, Pencil, MapPin, Bell, Building2, Trash2, CheckCircle2, XCircle, X, BarChart3, CalendarIcon
+  CalendarDays, Plus, Pencil, MapPin, Bell, Building2, Trash2, CheckCircle2, XCircle, X, BarChart3, CalendarIcon, FileText
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAdminData } from '@/hooks/useAdminData';
@@ -35,6 +35,7 @@ const navItems = [
   { key: 'reminders', label: 'Reminders', icon: Bell, description: 'Notification rules' },
   { key: 'employees', label: 'Employees', icon: Users, description: 'Manage team members' },
   { key: 'companies', label: 'Companies', icon: Building2, description: 'Company settings' },
+  { key: 'audit', label: 'Audit Trail', icon: FileText, description: 'Change history' },
 ];
 
 function StatusBadge({ status }: { status: string }) {
@@ -174,6 +175,7 @@ function AdminContent({ activeTab, admin }: { activeTab: string; admin: any }) {
     case 'companies': return <CompaniesPanel admin={admin} />;
     case 'workplaces': return <WorkplacesPanel admin={admin} />;
     case 'reminders': return <RemindersPanel admin={admin} />;
+    case 'audit': return <AuditTrailPanel admin={admin} />;
     default: return null;
   }
 }
@@ -1295,5 +1297,130 @@ function AddReminderDialog({ onCreate }: { onCreate: (data: { type: string; time
         </div>
       </DialogContent>
     </Dialog>
+  );
+}
+
+/* ===== AUDIT TRAIL ===== */
+
+function AuditTrailPanel({ admin }: { admin: any }) {
+  const [tableFilter, setTableFilter] = useState('all');
+  const [actionFilter, setActionFilter] = useState('all');
+  const logs = admin.auditLog.data ?? [];
+  const employees = admin.employees.data ?? [];
+
+  const nameMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    employees.forEach((e: any) => { map[e.id] = e.name; });
+    return map;
+  }, [employees]);
+
+  const tables = useMemo(() => {
+    const set = new Set(logs.map((l: any) => l.table_name));
+    return Array.from(set).sort() as string[];
+  }, [logs]);
+
+  const filtered = useMemo(() => {
+    return logs.filter((l: any) => {
+      if (tableFilter !== 'all' && l.table_name !== tableFilter) return false;
+      if (actionFilter !== 'all' && l.action !== actionFilter) return false;
+      return true;
+    });
+  }, [logs, tableFilter, actionFilter]);
+
+  const formatChanges = (log: any) => {
+    if (log.action === 'INSERT') {
+      const d = log.new_data;
+      if (d?.name) return `Created "${d.name}"`;
+      if (d?.status) return `Status: ${d.status}`;
+      return 'New record';
+    }
+    if (log.action === 'DELETE') {
+      const d = log.old_data;
+      if (d?.name) return `Deleted "${d.name}"`;
+      return 'Record deleted';
+    }
+    if (log.action === 'UPDATE' && log.old_data && log.new_data) {
+      const changes: string[] = [];
+      for (const key of Object.keys(log.new_data)) {
+        if (key === 'created_at' || key === 'id') continue;
+        if (JSON.stringify(log.old_data[key]) !== JSON.stringify(log.new_data[key])) {
+          const oldVal = log.old_data[key];
+          const newVal = log.new_data[key];
+          changes.push(`${key}: ${oldVal} → ${newVal}`);
+        }
+      }
+      return changes.length > 0 ? changes.join(', ') : 'No visible changes';
+    }
+    return '';
+  };
+
+  const actionColor: Record<string, string> = {
+    INSERT: 'bg-success/15 text-success border-success/30',
+    UPDATE: 'bg-warning/15 text-warning border-warning/30',
+    DELETE: 'bg-destructive/15 text-destructive border-destructive/30',
+  };
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-xl font-display font-bold">Audit Trail</h2>
+        <p className="text-sm text-muted-foreground">Track all changes across the system</p>
+      </div>
+
+      <div className="flex flex-wrap gap-3">
+        <Select value={tableFilter} onValueChange={setTableFilter}>
+          <SelectTrigger className="w-[180px]"><SelectValue placeholder="All tables" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All tables</SelectItem>
+            {tables.map(t => <SelectItem key={t} value={t}>{t.replace(/_/g, ' ')}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={actionFilter} onValueChange={setActionFilter}>
+          <SelectTrigger className="w-[140px]"><SelectValue placeholder="All actions" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All actions</SelectItem>
+            <SelectItem value="INSERT">Insert</SelectItem>
+            <SelectItem value="UPDATE">Update</SelectItem>
+            <SelectItem value="DELETE">Delete</SelectItem>
+          </SelectContent>
+        </Select>
+        <span className="text-xs text-muted-foreground self-center ml-auto">{filtered.length} entries</span>
+      </div>
+
+      <Card>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Time</TableHead>
+                <TableHead>Table</TableHead>
+                <TableHead>Action</TableHead>
+                <TableHead>Changes</TableHead>
+                <TableHead>By</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filtered.length === 0 ? (
+                <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">No audit entries found</TableCell></TableRow>
+              ) : filtered.slice(0, 100).map((log: any) => (
+                <TableRow key={log.id}>
+                  <TableCell className="text-xs whitespace-nowrap text-muted-foreground">
+                    {format(parseISO(log.created_at), 'dd.MM.yyyy HH:mm')}
+                  </TableCell>
+                  <TableCell className="text-xs">{log.table_name.replace(/_/g, ' ')}</TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className={cn("text-[10px]", actionColor[log.action])}>
+                      {log.action}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-xs max-w-[300px] truncate">{formatChanges(log)}</TableCell>
+                  <TableCell className="text-xs text-muted-foreground">{log.changed_by === 'system' ? 'System' : log.changed_by}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

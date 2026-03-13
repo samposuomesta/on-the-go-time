@@ -156,6 +156,19 @@ export function useAdminData() {
     },
   });
 
+  const auditLog = useQuery({
+    queryKey: ['admin-audit-log'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('audit_log' as any)
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(500);
+      if (error) throw error;
+      return data as any[];
+    },
+  });
+
   const vacationRequests = useQuery({
     queryKey: ['admin-vacation'],
     queryFn: async () => {
@@ -335,7 +348,7 @@ export function useAdminData() {
   });
 
   return {
-    employees, projects, companies, workplaces, reminderRules, userManagers, absenceReasons,
+    employees, projects, companies, workplaces, reminderRules, userManagers, absenceReasons, auditLog,
     pendingTravel, pendingHours, absences, vacationRequests,
     allTimeEntries, allWorkBank,
     approveTravel, approveHours, approveAbsence, approveVacation,
