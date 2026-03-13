@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { format, parseISO } from 'date-fns';
 import { 
   ArrowLeft, Users, Briefcase, Car, Clock, CalendarOff, 
-  CalendarDays, Plus, Pencil, MapPin, Bell, Building2, Trash2
+  CalendarDays, Plus, Pencil, MapPin, Bell, Building2, Trash2, ExternalLink
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAdminData } from '@/hooks/useAdminData';
