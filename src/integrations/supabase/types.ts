@@ -472,36 +472,45 @@ export type Database = {
       users: {
         Row: {
           annual_vacation_days: number
+          auto_subtract_lunch: boolean
           company_id: string
           contract_start_date: string | null
           created_at: string
+          daily_work_hours: number
           email: string
           employee_number: string | null
           id: string
+          lunch_threshold_hours: number
           manager_id: string | null
           name: string
           role: Database["public"]["Enums"]["user_role"]
         }
         Insert: {
           annual_vacation_days?: number
+          auto_subtract_lunch?: boolean
           company_id: string
           contract_start_date?: string | null
           created_at?: string
+          daily_work_hours?: number
           email: string
           employee_number?: string | null
           id?: string
+          lunch_threshold_hours?: number
           manager_id?: string | null
           name: string
           role?: Database["public"]["Enums"]["user_role"]
         }
         Update: {
           annual_vacation_days?: number
+          auto_subtract_lunch?: boolean
           company_id?: string
           contract_start_date?: string | null
           created_at?: string
+          daily_work_hours?: number
           email?: string
           employee_number?: string | null
           id?: string
+          lunch_threshold_hours?: number
           manager_id?: string | null
           name?: string
           role?: Database["public"]["Enums"]["user_role"]
