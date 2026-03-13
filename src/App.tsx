@@ -7,6 +7,7 @@ import Index from "./pages/Index.tsx";
 import MyEntries from "./pages/MyEntries.tsx";
 import VacationRequests from "./pages/VacationRequests.tsx";
 import AdminDashboard from "./pages/AdminDashboard.tsx";
+import AdminVacationApprovals from "./pages/AdminVacationApprovals.tsx";
 import LongSickLeave from "./pages/LongSickLeave.tsx";
 import TravelExpenses from "./pages/TravelExpenses.tsx";
 import MyStatistics from "./pages/MyStatistics.tsx";
