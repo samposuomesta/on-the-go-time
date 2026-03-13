@@ -709,14 +709,34 @@ function AddEmployeeDialog({ onCreate }: { onCreate: (data: any) => void }) {
   );
 }
 
-function EditEmployeeDialog({ employee, onSave }: { employee: any; onSave: (data: any) => void }) {
+function EditEmployeeDialog({ employee, allEmployees, currentManagerIds, onSave }: {
+  employee: any;
+  allEmployees: any[];
+  currentManagerIds: string[];
+  onSave: (data: any, managerIds: string[]) => void;
+}) {
   const [open, setOpen] = useState(false);
   const [role, setRole] = useState(employee.role);
   const [contractDate, setContractDate] = useState(employee.contract_start_date || '');
   const [vacationDays, setVacationDays] = useState(String(employee.annual_vacation_days ?? 25));
+  const [selectedManagers, setSelectedManagers] = useState<string[]>(currentManagerIds);
+
+  // Available managers: anyone who is manager/admin and not this employee
+  const availableManagers = allEmployees.filter(
+    (e: any) => (e.role === 'manager' || e.role === 'admin') && e.id !== employee.id
+  );
+
+  const toggleManager = (id: string) => {
+    setSelectedManagers(prev =>
+      prev.includes(id) ? prev.filter(m => m !== id) : [...prev, id]
+    );
+  };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={(o) => {
+      setOpen(o);
+      if (o) setSelectedManagers(currentManagerIds); // Reset on open
+    }}>
       <DialogTrigger asChild><Button size="icon" variant="ghost" className="h-8 w-8"><Pencil className="h-3.5 w-3.5" /></Button></DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader><DialogTitle className="font-display">Edit {employee.name}</DialogTitle></DialogHeader>
@@ -729,9 +749,41 @@ function EditEmployeeDialog({ employee, onSave }: { employee: any; onSave: (data
           </div>
           <div className="space-y-1.5"><Label>Contract Start</Label><Input type="date" value={contractDate} onChange={(e) => setContractDate(e.target.value)} /></div>
           <div className="space-y-1.5"><Label>Vacation Days/Year</Label><Input type="number" value={vacationDays} onChange={(e) => setVacationDays(e.target.value)} min="0" max="50" /></div>
+          <div className="space-y-1.5 sm:col-span-2">
+            <Label>Managers</Label>
+            {availableManagers.length === 0 ? (
+              <p className="text-xs text-muted-foreground">No managers/admins available</p>
+            ) : (
+              <div className="space-y-2 max-h-[120px] overflow-y-auto border border-border rounded-lg p-2">
+                {availableManagers.map((mgr: any) => (
+                  <label key={mgr.id} className="flex items-center gap-2 cursor-pointer hover:bg-muted/50 rounded px-1 py-0.5">
+                    <Checkbox
+                      checked={selectedManagers.includes(mgr.id)}
+                      onCheckedChange={() => toggleManager(mgr.id)}
+                    />
+                    <span className="text-sm">{mgr.name}</span>
+                    <Badge variant="outline" className="text-[10px] capitalize ml-auto">{mgr.role}</Badge>
+                  </label>
+                ))}
+              </div>
+            )}
+            {selectedManagers.length > 0 && (
+              <div className="flex flex-wrap gap-1 mt-1">
+                {selectedManagers.map(id => {
+                  const mgr = allEmployees.find((e: any) => e.id === id);
+                  return mgr ? (
+                    <Badge key={id} variant="secondary" className="text-xs gap-1">
+                      {mgr.name}
+                      <button onClick={() => toggleManager(id)} className="hover:text-destructive"><X className="h-3 w-3" /></button>
+                    </Badge>
+                  ) : null;
+                })}
+              </div>
+            )}
+          </div>
         </div>
         <Button className="w-full mt-2" onClick={() => {
-          onSave({ role, contract_start_date: contractDate || null, annual_vacation_days: parseInt(vacationDays) || 25 });
+          onSave({ role, contract_start_date: contractDate || null, annual_vacation_days: parseInt(vacationDays) || 25 }, selectedManagers);
           setOpen(false);
         }}>Save Changes</Button>
       </DialogContent>
