@@ -6,6 +6,7 @@ import {
   BarChart3, Receipt, Settings, LogOut, AlertTriangle, Shield
 } from 'lucide-react';
 import { useTimeTracking } from '@/hooks/useTimeTracking';
+import { useWorkBank } from '@/hooks/useWorkBank';
 import { StatusCard } from './StatusCard';
 import { ActionButton } from './ActionButton';
 import { AddProjectHoursDialog } from './AddProjectHoursDialog';
