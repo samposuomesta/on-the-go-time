@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { format, parseISO } from 'date-fns';
 import { 
   ArrowLeft, Users, Briefcase, Car, Clock, CalendarOff, 
-  CalendarDays, Plus, Pencil, MapPin, Bell, Building2, Trash2
+  CalendarDays, Plus, Pencil, MapPin, Bell, Building2, Trash2, ExternalLink
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAdminData } from '@/hooks/useAdminData';
@@ -24,6 +24,7 @@ const navItems = [
   { key: 'approvals', label: 'Approvals', icon: Clock },
   { key: 'projects', label: 'Projects', icon: Briefcase },
   { key: 'absences', label: 'Absences', icon: CalendarOff },
+  { key: 'vacation-approvals', label: 'Vacation Approvals', icon: CalendarDays, href: '/admin/vacation-approvals' },
   { key: 'companies', label: 'Companies', icon: Building2 },
   { key: 'workplaces', label: 'GPS Workplaces', icon: MapPin },
   { key: 'reminders', label: 'Reminders', icon: Bell },
@@ -50,42 +51,65 @@ export default function AdminDashboard() {
         {/* Sidebar nav — hidden on mobile, shown on md+ */}
         <aside className="hidden md:flex flex-col w-56 lg:w-64 border-r border-border bg-card shrink-0">
           <nav className="p-3 space-y-1">
-            {navItems.map((item) => (
-              <button
-                key={item.key}
-                onClick={() => setActiveTab(item.key)}
-                className={cn(
-                  "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-left",
-                  activeTab === item.key
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                )}
-              >
-                <item.icon className="h-4 w-4 shrink-0" />
-                {item.label}
-              </button>
-            ))}
+            {navItems.map((item) => 
+              'href' in item && item.href ? (
+                <Link
+                  key={item.key}
+                  to={item.href}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-left text-muted-foreground hover:bg-muted hover:text-foreground"
+                >
+                  <item.icon className="h-4 w-4 shrink-0" />
+                  {item.label}
+                  <ExternalLink className="h-3 w-3 ml-auto opacity-50" />
+                </Link>
+              ) : (
+                <button
+                  key={item.key}
+                  onClick={() => setActiveTab(item.key)}
+                  className={cn(
+                    "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-left",
+                    activeTab === item.key
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  )}
+                >
+                  <item.icon className="h-4 w-4 shrink-0" />
+                  {item.label}
+                </button>
+              )
+            )}
           </nav>
         </aside>
 
         {/* Mobile tab bar — visible on mobile only */}
         <div className="md:hidden w-full">
           <div className="flex overflow-x-auto border-b border-border bg-card px-2 gap-1">
-            {navItems.map((item) => (
-              <button
-                key={item.key}
-                onClick={() => setActiveTab(item.key)}
-                className={cn(
-                  "flex items-center gap-1.5 px-3 py-2.5 text-xs font-medium whitespace-nowrap border-b-2 transition-colors shrink-0",
-                  activeTab === item.key
-                    ? "border-primary text-primary"
-                    : "border-transparent text-muted-foreground"
-                )}
-              >
-                <item.icon className="h-3.5 w-3.5" />
-                {item.label}
-              </button>
-            ))}
+            {navItems.map((item) => 
+              'href' in item && item.href ? (
+                <Link
+                  key={item.key}
+                  to={item.href}
+                  className="flex items-center gap-1.5 px-3 py-2.5 text-xs font-medium whitespace-nowrap border-b-2 border-transparent text-muted-foreground shrink-0"
+                >
+                  <item.icon className="h-3.5 w-3.5" />
+                  {item.label}
+                </Link>
+              ) : (
+                <button
+                  key={item.key}
+                  onClick={() => setActiveTab(item.key)}
+                  className={cn(
+                    "flex items-center gap-1.5 px-3 py-2.5 text-xs font-medium whitespace-nowrap border-b-2 transition-colors shrink-0",
+                    activeTab === item.key
+                      ? "border-primary text-primary"
+                      : "border-transparent text-muted-foreground"
+                  )}
+                >
+                  <item.icon className="h-3.5 w-3.5" />
+                  {item.label}
+                </button>
+              )
+            )}
           </div>
           <main className="p-4">
             <AdminContent activeTab={activeTab} admin={admin} />
@@ -190,19 +214,22 @@ function ApprovalsPanel({ admin }: { admin: any }) {
             isPending={admin.approveHours.isPending} />
         )}
       />
-      <ApprovalSection
-        icon={CalendarDays} label="Vacation Requests"
-        count={admin.vacationRequests.data?.filter((v: any) => v.status === 'pending').length ?? 0}
-        items={admin.vacationRequests.data ?? []}
-        renderItem={(v: any) => (
-          <ApprovalCard key={v.id} id={v.id}
-            title={`${v.users?.name ?? 'Unknown'}`}
-            subtitle={`${format(parseISO(v.start_date), 'MMM d')} — ${format(parseISO(v.end_date), 'MMM d, yyyy')}`}
-            detail={v.comment} status={v.status}
-            onApprove={(id, status) => admin.approveVacation.mutate({ id, status })}
-            isPending={admin.approveVacation.isPending} />
-        )}
-      />
+      <Card className="border-dashed">
+        <CardContent className="py-6 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <CalendarDays className="h-5 w-5 text-muted-foreground" />
+            <div>
+              <p className="text-sm font-medium">Vacation Requests</p>
+              <p className="text-xs text-muted-foreground">Managed on a dedicated page</p>
+            </div>
+          </div>
+          <Link to="/admin/vacation-approvals">
+            <Button variant="outline" size="sm" className="gap-1.5">
+              <ExternalLink className="h-3.5 w-3.5" /> Open
+            </Button>
+          </Link>
+        </CardContent>
+      </Card>
     </div>
   );
 }
