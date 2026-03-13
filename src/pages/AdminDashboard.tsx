@@ -73,6 +73,7 @@ function ApproveRejectButtons({ id, onApprove, isPending }: {
 
 export default function AdminDashboard() {
   const admin = useAdminData();
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState('statistics');
 
   const pendingCounts = {
