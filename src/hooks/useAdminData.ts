@@ -300,6 +300,7 @@ export function useAdminData() {
   return {
     employees, projects, companies, workplaces, reminderRules, userManagers,
     pendingTravel, pendingHours, absences, vacationRequests,
+    allTimeEntries, allWorkBank,
     approveTravel, approveHours, approveAbsence, approveVacation,
     updateEmployee, toggleProject, createProject, createEmployee,
     createCompany, updateCompany,
