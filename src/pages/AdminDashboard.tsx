@@ -162,6 +162,7 @@ export default function AdminDashboard() {
 
 function AdminContent({ activeTab, admin }: { activeTab: string; admin: any }) {
   switch (activeTab) {
+    case 'statistics': return <StatisticsPanel admin={admin} />;
     case 'employees': return <EmployeesPanel admin={admin} />;
     case 'approvals': return <ApprovalsPanel admin={admin} />;
     case 'projects': return <ProjectsPanel admin={admin} />;
