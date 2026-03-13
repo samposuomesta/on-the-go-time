@@ -743,19 +743,27 @@ function CompaniesPanel({ admin }: { admin: any }) {
               <TableHeader>
                 <TableRow className="bg-muted/50">
                   <TableHead className="font-semibold">Name</TableHead>
+                  <TableHead className="font-semibold">Company ID</TableHead>
+                  <TableHead className="font-semibold">Address</TableHead>
+                  <TableHead className="font-semibold">Country</TableHead>
                   <TableHead className="font-semibold">KM Rate</TableHead>
-                  <TableHead className="font-semibold">Created</TableHead>
                   <TableHead className="w-[60px]"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {companies.length === 0 ? (
-                  <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-12">No companies</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-12">No companies</TableCell></TableRow>
                 ) : companies.map((c: any) => (
                   <TableRow key={c.id} className="hover:bg-muted/30">
                     <TableCell className="font-medium">{c.name}</TableCell>
+                    <TableCell className="font-mono text-sm text-muted-foreground">{c.company_id_code || '—'}</TableCell>
+                    <TableCell className="text-muted-foreground max-w-[200px] truncate">{c.address || '—'}</TableCell>
+                    <TableCell>
+                      {c.country ? (
+                        <Badge variant="outline" className="text-xs">{c.country}</Badge>
+                      ) : '—'}
+                    </TableCell>
                     <TableCell>€{Number(c.km_rate).toFixed(2)}/km</TableCell>
-                    <TableCell className="text-muted-foreground">{format(new Date(c.created_at), 'MMM d, yyyy')}</TableCell>
                     <TableCell>
                       <EditCompanyDialog company={c} onSave={(data) => { admin.updateCompany.mutate({ id: c.id, ...data }); toast.success('Updated'); }} />
                     </TableCell>
