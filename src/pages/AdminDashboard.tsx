@@ -176,6 +176,12 @@ function AdminContent({ activeTab, admin }: { activeTab: string; admin: any }) {
 
 function EmployeesPanel({ admin }: { admin: any }) {
   const employees = admin.employees.data ?? [];
+  const userManagers = admin.userManagers.data ?? [];
+  const managerNames = (userId: string) => {
+    const mgrIds = userManagers.filter((um: any) => um.user_id === userId).map((um: any) => um.manager_id);
+    return employees.filter((e: any) => mgrIds.includes(e.id)).map((e: any) => e.name);
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -194,6 +200,7 @@ function EmployeesPanel({ admin }: { admin: any }) {
                   <TableHead className="font-semibold">Name</TableHead>
                   <TableHead className="font-semibold">Email</TableHead>
                   <TableHead className="font-semibold">Role</TableHead>
+                  <TableHead className="font-semibold">Managers</TableHead>
                   <TableHead className="font-semibold">Contract Start</TableHead>
                   <TableHead className="font-semibold">Vacation Days</TableHead>
                   <TableHead className="w-[60px]"></TableHead>
@@ -201,19 +208,38 @@ function EmployeesPanel({ admin }: { admin: any }) {
               </TableHeader>
               <TableBody>
                 {employees.length === 0 ? (
-                  <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-12">No employees found. Add your first team member above.</TableCell></TableRow>
-                ) : employees.map((emp: any) => (
-                  <TableRow key={emp.id} className="hover:bg-muted/30">
-                    <TableCell className="font-medium">{emp.name}</TableCell>
-                    <TableCell className="text-muted-foreground">{emp.email}</TableCell>
-                    <TableCell><Badge variant="outline" className="capitalize">{emp.role}</Badge></TableCell>
-                    <TableCell className="text-muted-foreground">{emp.contract_start_date ? format(parseISO(emp.contract_start_date), 'MMM d, yyyy') : '—'}</TableCell>
-                    <TableCell>{emp.annual_vacation_days ?? 25} days</TableCell>
-                    <TableCell>
-                      <EditEmployeeDialog employee={emp} onSave={(data) => { admin.updateEmployee.mutate({ id: emp.id, ...data }); toast.success('Updated'); }} />
-                    </TableCell>
-                  </TableRow>
-                ))}
+                  <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-12">No employees found. Add your first team member above.</TableCell></TableRow>
+                ) : employees.map((emp: any) => {
+                  const mgrs = managerNames(emp.id);
+                  return (
+                    <TableRow key={emp.id} className="hover:bg-muted/30">
+                      <TableCell className="font-medium">{emp.name}</TableCell>
+                      <TableCell className="text-muted-foreground">{emp.email}</TableCell>
+                      <TableCell><Badge variant="outline" className="capitalize">{emp.role}</Badge></TableCell>
+                      <TableCell>
+                        {mgrs.length > 0 ? (
+                          <div className="flex flex-wrap gap-1">
+                            {mgrs.map((n: string) => <Badge key={n} variant="secondary" className="text-[10px]">{n}</Badge>)}
+                          </div>
+                        ) : <span className="text-muted-foreground text-xs">—</span>}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">{emp.contract_start_date ? format(parseISO(emp.contract_start_date), 'MMM d, yyyy') : '—'}</TableCell>
+                      <TableCell>{emp.annual_vacation_days ?? 25} days</TableCell>
+                      <TableCell>
+                        <EditEmployeeDialog
+                          employee={emp}
+                          allEmployees={employees}
+                          currentManagerIds={userManagers.filter((um: any) => um.user_id === emp.id).map((um: any) => um.manager_id)}
+                          onSave={(data, managerIds) => {
+                            admin.updateEmployee.mutate({ id: emp.id, ...data });
+                            admin.setEmployeeManagers.mutate({ userId: emp.id, managerIds });
+                            toast.success('Updated');
+                          }}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </div>
