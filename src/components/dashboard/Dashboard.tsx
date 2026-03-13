@@ -12,6 +12,7 @@ import { useWorkplaceDetection } from '@/hooks/useWorkplaceDetection';
 import { StatusCard } from './StatusCard';
 import { ActionButton } from './ActionButton';
 import { AddProjectHoursDialog } from './AddProjectHoursDialog';
+import { AbsenceReasonDialog } from './AbsenceReasonDialog';
 import { AddExpenseDialog } from './AddExpenseDialog';
 import { supabase } from '@/integrations/supabase/client';
 import { DEMO_USER_ID } from '@/lib/demo-user';
