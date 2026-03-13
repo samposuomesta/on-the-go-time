@@ -68,7 +68,7 @@ function ApproveRejectButtons({ id, onApprove, isPending }: {
 
 export default function AdminDashboard() {
   const admin = useAdminData();
-  const [activeTab, setActiveTab] = useState('employees');
+  const [activeTab, setActiveTab] = useState('statistics');
 
   const pendingCounts = {
     approvals: (admin.pendingTravel.data?.length ?? 0) + (admin.pendingHours.data?.length ?? 0),
