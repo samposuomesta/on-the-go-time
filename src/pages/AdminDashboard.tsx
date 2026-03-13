@@ -24,14 +24,14 @@ import { Progress } from '@/components/ui/progress';
 
 const navItems = [
   { key: 'statistics', label: 'Statistics', icon: BarChart3, description: 'Overview & metrics' },
-  { key: 'employees', label: 'Employees', icon: Users, description: 'Manage team members' },
   { key: 'approvals', label: 'Approvals', icon: Clock, description: 'Travel & project hours' },
   { key: 'vacation-approvals', label: 'Vacation Approvals', icon: CalendarDays, description: 'Review vacation requests' },
   { key: 'absences', label: 'Absences', icon: CalendarOff, description: 'Sick leave & absences' },
   { key: 'projects', label: 'Projects', icon: Briefcase, description: 'Manage projects' },
-  { key: 'companies', label: 'Companies', icon: Building2, description: 'Company settings' },
   { key: 'workplaces', label: 'GPS Workplaces', icon: MapPin, description: 'Geofence locations' },
   { key: 'reminders', label: 'Reminders', icon: Bell, description: 'Notification rules' },
+  { key: 'employees', label: 'Employees', icon: Users, description: 'Manage team members' },
+  { key: 'companies', label: 'Companies', icon: Building2, description: 'Company settings' },
 ];
 
 function StatusBadge({ status }: { status: string }) {
