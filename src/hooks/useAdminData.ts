@@ -376,11 +376,11 @@ export function useAdminData() {
     pendingTravel, pendingHours, absences, vacationRequests,
     allTimeEntries, allWorkBank,
     approveTravel, approveHours, approveAbsence, approveVacation,
-    updateEmployee, toggleProject, createProject, createEmployee,
+    updateEmployee, toggleProject, createProject, updateProject, createEmployee,
     createCompany, updateCompany,
     createWorkplace, deleteWorkplace,
-    createReminder, toggleReminder, deleteReminder,
-    createAbsenceReason, toggleAbsenceReason, deleteAbsenceReason,
+    createReminder, updateReminder, toggleReminder, deleteReminder,
+    createAbsenceReason, updateAbsenceReason, toggleAbsenceReason, deleteAbsenceReason,
     setEmployeeManagers,
   };
 }
