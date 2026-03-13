@@ -948,6 +948,7 @@ function EditEmployeeDialog({ employee, allEmployees, currentManagerIds, onSave 
       <DialogContent className="sm:max-w-md">
         <DialogHeader><DialogTitle className="font-display">Edit {employee.name}</DialogTitle></DialogHeader>
         <div className="grid gap-4 mt-2 sm:grid-cols-2">
+          <div className="space-y-1.5"><Label>Employee Number</Label><Input value={employeeNumber} onChange={(e) => setEmployeeNumber(e.target.value)} placeholder="EMP-001" /></div>
           <div className="space-y-1.5"><Label>Role</Label>
             <Select value={role} onValueChange={(v: any) => setRole(v)}>
               <SelectTrigger><SelectValue /></SelectTrigger>
