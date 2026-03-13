@@ -609,8 +609,15 @@ function VacationApprovalsPanel({ admin }: { admin: any }) {
 
 function AbsencesPanel({ admin }: { admin: any }) {
   const absences = admin.absences.data ?? [];
+  const absenceReasons = admin.absenceReasons.data ?? [];
   const pending = absences.filter((a: any) => a.status === 'pending');
   const handled = absences.filter((a: any) => a.status !== 'pending');
+
+  const reasonLabel = (reasonId: string | null) => {
+    if (!reasonId) return null;
+    const r = absenceReasons.find((ar: any) => ar.id === reasonId);
+    return r?.label ?? null;
+  };
 
   return (
     <div className="space-y-6">
@@ -618,6 +625,50 @@ function AbsencesPanel({ admin }: { admin: any }) {
         <h2 className="text-xl font-display font-bold">Absences & Sick Leave</h2>
         <p className="text-sm text-muted-foreground">{absences.length} total records</p>
       </div>
+
+      {/* Absence Reasons Management */}
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-base font-display">Absence Reasons</CardTitle>
+              <CardDescription>Custom reasons employees can select when marking absence</CardDescription>
+            </div>
+            <AddAbsenceReasonDialog onCreate={(data) => { admin.createAbsenceReason.mutate(data); toast.success('Reason added'); }} />
+          </div>
+        </CardHeader>
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/50">
+                  <TableHead className="font-semibold">Reason</TableHead>
+                  <TableHead className="font-semibold">Status</TableHead>
+                  <TableHead className="font-semibold w-[100px]">Active</TableHead>
+                  <TableHead className="w-[60px]"></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {absenceReasons.length === 0 ? (
+                  <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-8">No custom absence reasons. Add reasons above so employees can select them.</TableCell></TableRow>
+                ) : absenceReasons.map((r: any) => (
+                  <TableRow key={r.id} className="hover:bg-muted/30">
+                    <TableCell className="font-medium">{r.label}</TableCell>
+                    <TableCell><Badge variant={r.active ? 'default' : 'secondary'}>{r.active ? 'Active' : 'Inactive'}</Badge></TableCell>
+                    <TableCell><Switch checked={r.active} onCheckedChange={(active) => admin.toggleAbsenceReason.mutate({ id: r.id, active })} /></TableCell>
+                    <TableCell>
+                      <Button size="icon" variant="ghost" className="text-destructive hover:text-destructive h-8 w-8"
+                        onClick={() => { admin.deleteAbsenceReason.mutate(r.id); toast.success('Deleted'); }}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader className="pb-3">
@@ -633,6 +684,7 @@ function AbsencesPanel({ admin }: { admin: any }) {
                 <TableRow className="bg-muted/50">
                   <TableHead className="font-semibold">Employee</TableHead>
                   <TableHead className="font-semibold">Type</TableHead>
+                  <TableHead className="font-semibold">Reason</TableHead>
                   <TableHead className="font-semibold">Start Date</TableHead>
                   <TableHead className="font-semibold">End Date</TableHead>
                   <TableHead className="font-semibold">Status</TableHead>
@@ -641,11 +693,12 @@ function AbsencesPanel({ admin }: { admin: any }) {
               </TableHeader>
               <TableBody>
                 {pending.length === 0 ? (
-                  <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">No pending absences</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">No pending absences</TableCell></TableRow>
                 ) : pending.map((a: any) => (
                   <TableRow key={a.id} className="hover:bg-muted/30">
                     <TableCell className="font-medium">{a.users?.name ?? 'Unknown'}</TableCell>
                     <TableCell><Badge variant="outline" className="capitalize">{a.type === 'sick' ? '🤒 Sick' : '📋 Absence'}</Badge></TableCell>
+                    <TableCell className="text-muted-foreground">{reasonLabel(a.reason_id) || '—'}</TableCell>
                     <TableCell>{format(parseISO(a.start_date), 'MMM d, yyyy')}</TableCell>
                     <TableCell>{format(parseISO(a.end_date), 'MMM d, yyyy')}</TableCell>
                     <TableCell><StatusBadge status={a.status} /></TableCell>
@@ -675,6 +728,7 @@ function AbsencesPanel({ admin }: { admin: any }) {
                   <TableRow className="bg-muted/50">
                     <TableHead className="font-semibold">Employee</TableHead>
                     <TableHead className="font-semibold">Type</TableHead>
+                    <TableHead className="font-semibold">Reason</TableHead>
                     <TableHead className="font-semibold">Start Date</TableHead>
                     <TableHead className="font-semibold">End Date</TableHead>
                     <TableHead className="font-semibold">Status</TableHead>
@@ -685,6 +739,7 @@ function AbsencesPanel({ admin }: { admin: any }) {
                     <TableRow key={a.id} className="hover:bg-muted/30">
                       <TableCell className="font-medium">{a.users?.name ?? 'Unknown'}</TableCell>
                       <TableCell><Badge variant="outline" className="capitalize">{a.type === 'sick' ? '🤒 Sick' : '📋 Absence'}</Badge></TableCell>
+                      <TableCell className="text-muted-foreground">{reasonLabel(a.reason_id) || '—'}</TableCell>
                       <TableCell>{format(parseISO(a.start_date), 'MMM d, yyyy')}</TableCell>
                       <TableCell>{format(parseISO(a.end_date), 'MMM d, yyyy')}</TableCell>
                       <TableCell><StatusBadge status={a.status} /></TableCell>
@@ -697,6 +752,27 @@ function AbsencesPanel({ admin }: { admin: any }) {
         </Card>
       )}
     </div>
+  );
+}
+
+function AddAbsenceReasonDialog({ onCreate }: { onCreate: (data: { label: string }) => void }) {
+  const [open, setOpen] = useState(false);
+  const [label, setLabel] = useState('');
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) setLabel(''); }}>
+      <DialogTrigger asChild><Button className="gap-1.5"><Plus className="h-4 w-4" /> Add Reason</Button></DialogTrigger>
+      <DialogContent className="sm:max-w-sm">
+        <DialogHeader><DialogTitle className="font-display">Add Absence Reason</DialogTitle></DialogHeader>
+        <div className="space-y-4 mt-2">
+          <div className="space-y-1.5"><Label>Reason Label</Label><Input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="e.g. Doctor appointment, Personal leave..." /></div>
+          <Button className="w-full" disabled={!label.trim()} onClick={() => {
+            onCreate({ label: label.trim() });
+            setOpen(false); setLabel('');
+          }}>Add Reason</Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
