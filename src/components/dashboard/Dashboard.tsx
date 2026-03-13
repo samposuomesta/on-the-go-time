@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { useTimeTracking } from '@/hooks/useTimeTracking';
 import { useWorkBank } from '@/hooks/useWorkBank';
+import { useOfflineSync } from '@/hooks/useOfflineSync';
 import { StatusCard } from './StatusCard';
 import { ActionButton } from './ActionButton';
 import { AddProjectHoursDialog } from './AddProjectHoursDialog';
