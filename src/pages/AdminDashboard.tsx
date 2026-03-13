@@ -923,6 +923,7 @@ function EditEmployeeDialog({ employee, allEmployees, currentManagerIds, onSave 
 }) {
   const [open, setOpen] = useState(false);
   const [role, setRole] = useState(employee.role);
+  const [employeeNumber, setEmployeeNumber] = useState(employee.employee_number || '');
   const [contractDate, setContractDate] = useState(employee.contract_start_date || '');
   const [vacationDays, setVacationDays] = useState(String(employee.annual_vacation_days ?? 25));
   const [selectedManagers, setSelectedManagers] = useState<string[]>(currentManagerIds);
