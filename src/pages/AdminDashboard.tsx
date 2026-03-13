@@ -1,11 +1,12 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { format, parseISO } from 'date-fns';
 import {
   ArrowLeft, Users, Briefcase, Car, Clock, CalendarOff,
-  CalendarDays, Plus, Pencil, MapPin, Bell, Building2, Trash2, CheckCircle2, XCircle
+  CalendarDays, Plus, Pencil, MapPin, Bell, Building2, Trash2, CheckCircle2, XCircle, X
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAdminData } from '@/hooks/useAdminData';
+import { VacationTimeline } from '@/components/admin/VacationTimeline';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -174,6 +176,12 @@ function AdminContent({ activeTab, admin }: { activeTab: string; admin: any }) {
 
 function EmployeesPanel({ admin }: { admin: any }) {
   const employees = admin.employees.data ?? [];
+  const userManagers = admin.userManagers.data ?? [];
+  const managerNames = (userId: string) => {
+    const mgrIds = userManagers.filter((um: any) => um.user_id === userId).map((um: any) => um.manager_id);
+    return employees.filter((e: any) => mgrIds.includes(e.id)).map((e: any) => e.name);
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -192,6 +200,7 @@ function EmployeesPanel({ admin }: { admin: any }) {
                   <TableHead className="font-semibold">Name</TableHead>
                   <TableHead className="font-semibold">Email</TableHead>
                   <TableHead className="font-semibold">Role</TableHead>
+                  <TableHead className="font-semibold">Managers</TableHead>
                   <TableHead className="font-semibold">Contract Start</TableHead>
                   <TableHead className="font-semibold">Vacation Days</TableHead>
                   <TableHead className="w-[60px]"></TableHead>
@@ -199,19 +208,38 @@ function EmployeesPanel({ admin }: { admin: any }) {
               </TableHeader>
               <TableBody>
                 {employees.length === 0 ? (
-                  <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-12">No employees found. Add your first team member above.</TableCell></TableRow>
-                ) : employees.map((emp: any) => (
-                  <TableRow key={emp.id} className="hover:bg-muted/30">
-                    <TableCell className="font-medium">{emp.name}</TableCell>
-                    <TableCell className="text-muted-foreground">{emp.email}</TableCell>
-                    <TableCell><Badge variant="outline" className="capitalize">{emp.role}</Badge></TableCell>
-                    <TableCell className="text-muted-foreground">{emp.contract_start_date ? format(parseISO(emp.contract_start_date), 'MMM d, yyyy') : '—'}</TableCell>
-                    <TableCell>{emp.annual_vacation_days ?? 25} days</TableCell>
-                    <TableCell>
-                      <EditEmployeeDialog employee={emp} onSave={(data) => { admin.updateEmployee.mutate({ id: emp.id, ...data }); toast.success('Updated'); }} />
-                    </TableCell>
-                  </TableRow>
-                ))}
+                  <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-12">No employees found. Add your first team member above.</TableCell></TableRow>
+                ) : employees.map((emp: any) => {
+                  const mgrs = managerNames(emp.id);
+                  return (
+                    <TableRow key={emp.id} className="hover:bg-muted/30">
+                      <TableCell className="font-medium">{emp.name}</TableCell>
+                      <TableCell className="text-muted-foreground">{emp.email}</TableCell>
+                      <TableCell><Badge variant="outline" className="capitalize">{emp.role}</Badge></TableCell>
+                      <TableCell>
+                        {mgrs.length > 0 ? (
+                          <div className="flex flex-wrap gap-1">
+                            {mgrs.map((n: string) => <Badge key={n} variant="secondary" className="text-[10px]">{n}</Badge>)}
+                          </div>
+                        ) : <span className="text-muted-foreground text-xs">—</span>}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">{emp.contract_start_date ? format(parseISO(emp.contract_start_date), 'MMM d, yyyy') : '—'}</TableCell>
+                      <TableCell>{emp.annual_vacation_days ?? 25} days</TableCell>
+                      <TableCell>
+                        <EditEmployeeDialog
+                          employee={emp}
+                          allEmployees={employees}
+                          currentManagerIds={userManagers.filter((um: any) => um.user_id === emp.id).map((um: any) => um.manager_id)}
+                          onSave={(data, managerIds) => {
+                            admin.updateEmployee.mutate({ id: emp.id, ...data });
+                            admin.setEmployeeManagers.mutate({ userId: emp.id, managerIds });
+                            toast.success('Updated');
+                          }}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </div>
@@ -340,101 +368,14 @@ function ApprovalsPanel({ admin }: { admin: any }) {
 /* ===== VACATION APPROVALS ===== */
 
 function VacationApprovalsPanel({ admin }: { admin: any }) {
-  const requests = admin.vacationRequests.data ?? [];
-  const pending = requests.filter((r: any) => r.status === 'pending');
-  const handled = requests.filter((r: any) => r.status !== 'pending');
-
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-xl font-display font-bold">Vacation Approvals</h2>
-        <p className="text-sm text-muted-foreground">Review and manage vacation requests</p>
-      </div>
-
-      <Card>
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Clock className="h-5 w-5 text-warning" />
-              <CardTitle className="text-base font-display">Pending Requests</CardTitle>
-            </div>
-            <Badge variant="secondary">{pending.length} pending</Badge>
-          </div>
-        </CardHeader>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-muted/50">
-                  <TableHead className="font-semibold">Employee</TableHead>
-                  <TableHead className="font-semibold">Start Date</TableHead>
-                  <TableHead className="font-semibold">End Date</TableHead>
-                  <TableHead className="font-semibold">Comment</TableHead>
-                  <TableHead className="font-semibold">Submitted</TableHead>
-                  <TableHead className="text-right font-semibold">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {pending.length === 0 ? (
-                  <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">No pending requests</TableCell></TableRow>
-                ) : pending.map((r: any) => (
-                  <TableRow key={r.id} className="hover:bg-muted/30">
-                    <TableCell className="font-medium">{r.users?.name ?? 'Unknown'}</TableCell>
-                    <TableCell>{format(parseISO(r.start_date), 'MMM d, yyyy')}</TableCell>
-                    <TableCell>{format(parseISO(r.end_date), 'MMM d, yyyy')}</TableCell>
-                    <TableCell className="text-muted-foreground max-w-[200px] truncate">{r.comment || '—'}</TableCell>
-                    <TableCell className="text-muted-foreground">{format(new Date(r.created_at), 'MMM d')}</TableCell>
-                    <TableCell className="text-right">
-                      <ApproveRejectButtons id={r.id} onApprove={(id, status) => admin.approveVacation.mutate({ id, status })} isPending={admin.approveVacation.isPending} />
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <CalendarDays className="h-5 w-5 text-muted-foreground" />
-              <CardTitle className="text-base font-display">History</CardTitle>
-            </div>
-            <Badge variant="secondary">{handled.length} processed</Badge>
-          </div>
-        </CardHeader>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-muted/50">
-                  <TableHead className="font-semibold">Employee</TableHead>
-                  <TableHead className="font-semibold">Start Date</TableHead>
-                  <TableHead className="font-semibold">End Date</TableHead>
-                  <TableHead className="font-semibold">Comment</TableHead>
-                  <TableHead className="font-semibold">Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {handled.length === 0 ? (
-                  <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">No history yet</TableCell></TableRow>
-                ) : handled.map((r: any) => (
-                  <TableRow key={r.id} className="hover:bg-muted/30">
-                    <TableCell className="font-medium">{r.users?.name ?? 'Unknown'}</TableCell>
-                    <TableCell>{format(parseISO(r.start_date), 'MMM d, yyyy')}</TableCell>
-                    <TableCell>{format(parseISO(r.end_date), 'MMM d, yyyy')}</TableCell>
-                    <TableCell className="text-muted-foreground max-w-[200px] truncate">{r.comment || '—'}</TableCell>
-                    <TableCell><StatusBadge status={r.status} /></TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+    <VacationTimeline
+      employees={admin.employees.data ?? []}
+      vacationRequests={admin.vacationRequests.data ?? []}
+      userManagers={admin.userManagers.data ?? []}
+      onApprove={(id, status) => admin.approveVacation.mutate({ id, status })}
+      isPending={admin.approveVacation.isPending}
+    />
   );
 }
 
@@ -768,14 +709,34 @@ function AddEmployeeDialog({ onCreate }: { onCreate: (data: any) => void }) {
   );
 }
 
-function EditEmployeeDialog({ employee, onSave }: { employee: any; onSave: (data: any) => void }) {
+function EditEmployeeDialog({ employee, allEmployees, currentManagerIds, onSave }: {
+  employee: any;
+  allEmployees: any[];
+  currentManagerIds: string[];
+  onSave: (data: any, managerIds: string[]) => void;
+}) {
   const [open, setOpen] = useState(false);
   const [role, setRole] = useState(employee.role);
   const [contractDate, setContractDate] = useState(employee.contract_start_date || '');
   const [vacationDays, setVacationDays] = useState(String(employee.annual_vacation_days ?? 25));
+  const [selectedManagers, setSelectedManagers] = useState<string[]>(currentManagerIds);
+
+  // Available managers: anyone who is manager/admin and not this employee
+  const availableManagers = allEmployees.filter(
+    (e: any) => (e.role === 'manager' || e.role === 'admin') && e.id !== employee.id
+  );
+
+  const toggleManager = (id: string) => {
+    setSelectedManagers(prev =>
+      prev.includes(id) ? prev.filter(m => m !== id) : [...prev, id]
+    );
+  };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={(o) => {
+      setOpen(o);
+      if (o) setSelectedManagers(currentManagerIds); // Reset on open
+    }}>
       <DialogTrigger asChild><Button size="icon" variant="ghost" className="h-8 w-8"><Pencil className="h-3.5 w-3.5" /></Button></DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader><DialogTitle className="font-display">Edit {employee.name}</DialogTitle></DialogHeader>
@@ -788,9 +749,41 @@ function EditEmployeeDialog({ employee, onSave }: { employee: any; onSave: (data
           </div>
           <div className="space-y-1.5"><Label>Contract Start</Label><Input type="date" value={contractDate} onChange={(e) => setContractDate(e.target.value)} /></div>
           <div className="space-y-1.5"><Label>Vacation Days/Year</Label><Input type="number" value={vacationDays} onChange={(e) => setVacationDays(e.target.value)} min="0" max="50" /></div>
+          <div className="space-y-1.5 sm:col-span-2">
+            <Label>Managers</Label>
+            {availableManagers.length === 0 ? (
+              <p className="text-xs text-muted-foreground">No managers/admins available</p>
+            ) : (
+              <div className="space-y-2 max-h-[120px] overflow-y-auto border border-border rounded-lg p-2">
+                {availableManagers.map((mgr: any) => (
+                  <label key={mgr.id} className="flex items-center gap-2 cursor-pointer hover:bg-muted/50 rounded px-1 py-0.5">
+                    <Checkbox
+                      checked={selectedManagers.includes(mgr.id)}
+                      onCheckedChange={() => toggleManager(mgr.id)}
+                    />
+                    <span className="text-sm">{mgr.name}</span>
+                    <Badge variant="outline" className="text-[10px] capitalize ml-auto">{mgr.role}</Badge>
+                  </label>
+                ))}
+              </div>
+            )}
+            {selectedManagers.length > 0 && (
+              <div className="flex flex-wrap gap-1 mt-1">
+                {selectedManagers.map(id => {
+                  const mgr = allEmployees.find((e: any) => e.id === id);
+                  return mgr ? (
+                    <Badge key={id} variant="secondary" className="text-xs gap-1">
+                      {mgr.name}
+                      <button onClick={() => toggleManager(id)} className="hover:text-destructive"><X className="h-3 w-3" /></button>
+                    </Badge>
+                  ) : null;
+                })}
+              </div>
+            )}
+          </div>
         </div>
         <Button className="w-full mt-2" onClick={() => {
-          onSave({ role, contract_start_date: contractDate || null, annual_vacation_days: parseInt(vacationDays) || 25 });
+          onSave({ role, contract_start_date: contractDate || null, annual_vacation_days: parseInt(vacationDays) || 25 }, selectedManagers);
           setOpen(false);
         }}>Save Changes</Button>
       </DialogContent>
