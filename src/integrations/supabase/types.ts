@@ -191,6 +191,44 @@ export type Database = {
           },
         ]
       }
+      reminder_rules: {
+        Row: {
+          company_id: string
+          created_at: string
+          enabled: boolean
+          id: string
+          message: string
+          time: string
+          type: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          message?: string
+          time?: string
+          type?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          message?: string
+          time?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reminder_rules_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       time_entries: {
         Row: {
           break_minutes: number | null
