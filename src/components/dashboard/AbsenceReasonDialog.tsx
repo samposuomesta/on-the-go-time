@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { DEMO_USER_ID, DEMO_COMPANY_ID } from '@/lib/demo-user';
+import { useTranslation, getLocalizedField } from '@/lib/i18n';
 import { toast } from 'sonner';
 import {
   Dialog,
@@ -19,6 +20,7 @@ interface AbsenceReasonDialogProps {
 
 export function AbsenceReasonDialog({ open, onOpenChange }: AbsenceReasonDialogProps) {
   const [submitting, setSubmitting] = useState(false);
+  const { language, t } = useTranslation();
 
   const { data: reasons } = useQuery({
     queryKey: ['absence-reasons', DEMO_COMPANY_ID],
@@ -58,19 +60,19 @@ export function AbsenceReasonDialog({ open, onOpenChange }: AbsenceReasonDialogP
         <DialogHeader>
           <DialogTitle className="font-display flex items-center gap-2">
             <UserX className="h-5 w-5 text-muted-foreground" />
-            Select Absence Reason
+            {t('absenceReasons.selectReason')}
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-2 mt-2">
           {activeReasons.length === 0 ? (
             <div className="text-center py-4">
-              <p className="text-sm text-muted-foreground mb-3">No custom reasons configured.</p>
+              <p className="text-sm text-muted-foreground mb-3">{t('absenceReasons.noCustomReasons')}</p>
               <Button
                 className="w-full"
                 disabled={submitting}
                 onClick={() => submit(null)}
               >
-                Mark Absent Today
+                {t('absenceReasons.markAbsent')}
               </Button>
             </div>
           ) : (
@@ -83,7 +85,7 @@ export function AbsenceReasonDialog({ open, onOpenChange }: AbsenceReasonDialogP
                   disabled={submitting}
                   onClick={() => submit(reason.id)}
                 >
-                  {reason.label}
+                  {getLocalizedField(reason, 'label', language)}
                 </Button>
               ))}
               <Button
@@ -92,7 +94,7 @@ export function AbsenceReasonDialog({ open, onOpenChange }: AbsenceReasonDialogP
                 disabled={submitting}
                 onClick={() => submit(null)}
               >
-                Other / No specific reason
+                {t('absenceReasons.otherReason')}
               </Button>
             </>
           )}
