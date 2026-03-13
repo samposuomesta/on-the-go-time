@@ -768,21 +768,48 @@ function AbsencesPanel({ admin }: { admin: any }) {
   );
 }
 
-function AddAbsenceReasonDialog({ onCreate }: { onCreate: (data: { label: string }) => void }) {
+function AddAbsenceReasonDialog({ onCreate }: { onCreate: (data: { label: string; label_fi?: string }) => void }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [label, setLabel] = useState('');
+  const [labelFi, setLabelFi] = useState('');
 
   return (
-    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) setLabel(''); }}>
-      <DialogTrigger asChild><Button className="gap-1.5"><Plus className="h-4 w-4" /> Add Reason</Button></DialogTrigger>
+    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setLabel(''); setLabelFi(''); } }}>
+      <DialogTrigger asChild><Button className="gap-1.5"><Plus className="h-4 w-4" /> {t('absenceReasons.add')}</Button></DialogTrigger>
       <DialogContent className="sm:max-w-sm">
-        <DialogHeader><DialogTitle className="font-display">Add Absence Reason</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle className="font-display">{t('absenceReasons.add')}</DialogTitle></DialogHeader>
         <div className="space-y-4 mt-2">
-          <div className="space-y-1.5"><Label>Reason Label</Label><Input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="e.g. Doctor appointment, Personal leave..." /></div>
+          <div className="space-y-1.5"><Label>{t('absenceReasons.labelEn')}</Label><Input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="e.g. Doctor appointment, Personal leave..." /></div>
+          <div className="space-y-1.5"><Label>{t('absenceReasons.labelFi')}</Label><Input value={labelFi} onChange={(e) => setLabelFi(e.target.value)} placeholder="esim. Lääkärikäynti, Henkilökohtainen vapaa..." /></div>
           <Button className="w-full" disabled={!label.trim()} onClick={() => {
-            onCreate({ label: label.trim() });
-            setOpen(false); setLabel('');
-          }}>Add Reason</Button>
+            onCreate({ label: label.trim(), label_fi: labelFi.trim() || undefined });
+            setOpen(false); setLabel(''); setLabelFi('');
+          }}>{t('absenceReasons.add')}</Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function EditAbsenceReasonDialog({ reason, onSave }: { reason: any; onSave: (data: { label?: string; label_fi?: string | null }) => void }) {
+  const { t } = useTranslation();
+  const [open, setOpen] = useState(false);
+  const [label, setLabel] = useState(reason.label);
+  const [labelFi, setLabelFi] = useState(reason.label_fi || '');
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (o) { setLabel(reason.label); setLabelFi(reason.label_fi || ''); } }}>
+      <DialogTrigger asChild><Button size="icon" variant="ghost" className="h-8 w-8"><Pencil className="h-3.5 w-3.5" /></Button></DialogTrigger>
+      <DialogContent className="sm:max-w-sm">
+        <DialogHeader><DialogTitle className="font-display">{t('absenceReasons.edit')}</DialogTitle></DialogHeader>
+        <div className="space-y-4 mt-2">
+          <div className="space-y-1.5"><Label>{t('absenceReasons.labelEn')}</Label><Input value={label} onChange={(e) => setLabel(e.target.value)} /></div>
+          <div className="space-y-1.5"><Label>{t('absenceReasons.labelFi')}</Label><Input value={labelFi} onChange={(e) => setLabelFi(e.target.value)} placeholder="Suomenkielinen nimi" /></div>
+          <Button className="w-full" disabled={!label.trim()} onClick={() => {
+            onSave({ label: label.trim(), label_fi: labelFi.trim() || null });
+            setOpen(false);
+          }}>{t('common.save')}</Button>
         </div>
       </DialogContent>
     </Dialog>
