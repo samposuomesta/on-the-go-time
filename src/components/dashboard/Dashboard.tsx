@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { 
   Play, Square, Clock, Car, ParkingCircle, Camera, 
   Thermometer, UserX, Menu, CalendarDays, FileText, 
-  BarChart3, Receipt, Settings, LogOut, AlertTriangle
+  BarChart3, Receipt, Settings, LogOut, AlertTriangle, Shield
 } from 'lucide-react';
 import { useTimeTracking } from '@/hooks/useTimeTracking';
 import { StatusCard } from './StatusCard';
@@ -67,6 +67,7 @@ export function Dashboard() {
                 { icon: FileText, label: 'My Entries', path: '/my-entries' },
                 { icon: BarChart3, label: 'My Statistics', path: null },
                 { icon: Receipt, label: 'Travel Expenses', path: null },
+                { icon: Shield, label: 'Admin Panel', path: '/admin' },
                 { icon: Settings, label: 'Settings', path: null },
                 { icon: LogOut, label: 'Logout', path: null },
               ].map(({ icon: Icon, label, path }) => (
