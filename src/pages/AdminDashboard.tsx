@@ -590,11 +590,15 @@ function ApprovalsPanel({ admin }: { admin: any }) {
 /* ===== VACATION APPROVALS ===== */
 
 function VacationApprovalsPanel({ admin }: { admin: any }) {
+  const companies = admin.companies.data ?? [];
+  const companyCountry = companies[0]?.country ?? undefined;
+
   return (
     <VacationTimeline
       employees={admin.employees.data ?? []}
       vacationRequests={admin.vacationRequests.data ?? []}
       userManagers={admin.userManagers.data ?? []}
+      companyCountry={companyCountry}
       onApprove={(id, status) => admin.approveVacation.mutate({ id, status })}
       isPending={admin.approveVacation.isPending}
     />
