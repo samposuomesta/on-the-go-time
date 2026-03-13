@@ -175,6 +175,7 @@ function AdminContent({ activeTab, admin }: { activeTab: string; admin: any }) {
     case 'companies': return <CompaniesPanel admin={admin} />;
     case 'workplaces': return <WorkplacesPanel admin={admin} />;
     case 'reminders': return <RemindersPanel admin={admin} />;
+    case 'audit': return <AuditTrailPanel admin={admin} />;
     default: return null;
   }
 }
