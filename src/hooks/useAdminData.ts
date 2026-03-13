@@ -348,7 +348,7 @@ export function useAdminData() {
   });
 
   return {
-    employees, projects, companies, workplaces, reminderRules, userManagers, absenceReasons,
+    employees, projects, companies, workplaces, reminderRules, userManagers, absenceReasons, auditLog,
     pendingTravel, pendingHours, absences, vacationRequests,
     allTimeEntries, allWorkBank,
     approveTravel, approveHours, approveAbsence, approveVacation,
