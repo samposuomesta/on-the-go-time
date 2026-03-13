@@ -721,10 +721,10 @@ function AbsencesPanel({ admin }: { admin: any }) {
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-base font-display">Absence Reasons</CardTitle>
-              <CardDescription>Custom reasons employees can select when marking absence</CardDescription>
+              <CardTitle className="text-base font-display">{t('absenceReasons.title')}</CardTitle>
+              <CardDescription>{t('absenceReasons.description')}</CardDescription>
             </div>
-            <AddAbsenceReasonDialog onCreate={(data) => { admin.createAbsenceReason.mutate(data); toast.success('Reason added'); }} />
+            <AddAbsenceReasonDialog onCreate={(data) => { admin.createAbsenceReason.mutate(data); toast.success(t('common.added')); }} />
           </div>
         </CardHeader>
         <CardContent className="p-0">
