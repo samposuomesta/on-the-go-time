@@ -263,7 +263,7 @@ function StatisticsPanel({ admin }: { admin: any }) {
     });
 
     return perUser;
-  }, [employees, timeEntries, absences, vacationRequests, workBank]);
+  }, [employees, timeEntries, absences, vacationRequests, workBank, holidaySet]);
 
   const userList = Object.values(stats);
   const managersData = userList.filter((u: any) => u.role === 'manager' || u.role === 'admin');
