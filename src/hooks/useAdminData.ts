@@ -238,6 +238,14 @@ export function useAdminData() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-projects'] }),
   });
 
+  const updateProject = useMutation({
+    mutationFn: async ({ id, ...data }: { id: string; name?: string; customer?: string | null }) => {
+      const { error } = await supabase.from('projects').update(data).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-projects'] }),
+  });
+
   const createEmployee = useMutation({
     mutationFn: async (data: { name: string; email: string; role: 'employee' | 'manager' | 'admin'; contract_start_date?: string; annual_vacation_days?: number }) => {
       const { error } = await supabase.from('users').insert({ ...data, company_id: DEMO_COMPANY_ID });
