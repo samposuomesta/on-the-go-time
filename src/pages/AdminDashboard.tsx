@@ -196,7 +196,17 @@ function StatisticsPanel({ admin }: { admin: any }) {
   const absences = admin.absences.data ?? [];
   const vacationRequests = admin.vacationRequests.data ?? [];
   const workBank = admin.allWorkBank.data ?? [];
-  const projectHours = admin.pendingHours.data ?? [];
+  const companies = admin.companies.data ?? [];
+
+  // Get holiday set if company country is Finland
+  const companyCountry = companies[0]?.country;
+  const currentYear = new Date().getFullYear();
+  const holidaySet = useMemo(() => {
+    if (companyCountry === 'Finland') {
+      return getFinnishHolidaySet([currentYear - 1, currentYear, currentYear + 1]);
+    }
+    return undefined;
+  }, [companyCountry, currentYear]);
 
   const stats = useMemo(() => {
     const perUser: Record<string, {
