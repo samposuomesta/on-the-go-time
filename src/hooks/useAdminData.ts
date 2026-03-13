@@ -68,6 +68,19 @@ export function useAdminData() {
     },
   });
 
+  const absenceReasons = useQuery({
+    queryKey: ['admin-absence-reasons'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('absence_reasons')
+        .select('*')
+        .eq('company_id', DEMO_COMPANY_ID)
+        .order('label');
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const reminderRules = useQuery({
     queryKey: ['admin-reminders'],
     queryFn: async () => {
