@@ -90,7 +90,7 @@ export default function AdminDashboard() {
           <ArrowLeft className="h-5 w-5" />
         </Link>
         <Separator orientation="vertical" className="h-6" />
-        <h1 className="text-base lg:text-lg font-display font-bold">Admin Panel</h1>
+        <h1 className="text-base lg:text-lg font-display font-bold">{t('admin.title')}</h1>
       </header>
 
       <div className="flex-1 flex">
