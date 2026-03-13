@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAdminData } from '@/hooks/useAdminData';
+import { useTranslation, getLocalizedField } from '@/lib/i18n';
 import { VacationTimeline } from '@/components/admin/VacationTimeline';
 import { getFinnishHolidaySet } from '@/lib/finnish-holidays';
 import { Button } from '@/components/ui/button';
