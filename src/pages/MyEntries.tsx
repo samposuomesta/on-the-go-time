@@ -1,8 +1,9 @@
 import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { format, startOfMonth, endOfMonth, parseISO, isWithinInterval } from 'date-fns';
-import { ArrowLeft, Clock, Briefcase, Car, CalendarIcon, Filter } from 'lucide-react';
+import { ArrowLeft, Clock, Briefcase, Car, CalendarIcon, Filter, Download } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { exportTimeEntriesCSV, exportProjectHoursCSV, exportTravelExpensesCSV } from '@/lib/csv-export';
 import { supabase } from '@/integrations/supabase/client';
 import { DEMO_USER_ID } from '@/lib/demo-user';
 import { Button } from '@/components/ui/button';
@@ -88,7 +89,15 @@ export default function MyEntries() {
         <Link to="/" className="touch-target flex items-center justify-center rounded-lg hover:bg-muted p-2 -ml-2">
           <ArrowLeft className="h-5 w-5" />
         </Link>
-        <h1 className="text-lg font-display font-bold">My Entries</h1>
+        <h1 className="text-lg font-display font-bold flex-1">My Entries</h1>
+        <Button size="sm" variant="outline" className="gap-1.5 text-xs"
+          onClick={() => {
+            exportTimeEntriesCSV(timeEntries);
+            exportProjectHoursCSV(projectHours);
+            exportTravelExpensesCSV(expenses);
+          }}>
+          <Download className="h-3.5 w-3.5" /> CSV
+        </Button>
       </header>
 
       {/* Date Filter */}

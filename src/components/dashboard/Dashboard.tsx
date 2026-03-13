@@ -8,6 +8,7 @@ import {
 import { useTimeTracking } from '@/hooks/useTimeTracking';
 import { useWorkBank } from '@/hooks/useWorkBank';
 import { useOfflineSync } from '@/hooks/useOfflineSync';
+import { useWorkplaceDetection } from '@/hooks/useWorkplaceDetection';
 import { StatusCard } from './StatusCard';
 import { ActionButton } from './ActionButton';
 import { AddProjectHoursDialog } from './AddProjectHoursDialog';
@@ -29,6 +30,7 @@ export function Dashboard() {
   const { activeEntry, loading, startWork, stopWork } = useTimeTracking();
   const { balance: bankBalance } = useWorkBank();
   useOfflineSync();
+  useWorkplaceDetection(!!activeEntry);
   const navigate = useNavigate();
   const [showProjectHours, setShowProjectHours] = useState(false);
   const [expenseMode, setExpenseMode] = useState<'kilometers' | 'parking' | 'receipt' | null>(null);
@@ -72,7 +74,7 @@ export function Dashboard() {
                 { icon: BarChart3, label: 'My Statistics', path: '/my-statistics' },
                 { icon: Receipt, label: 'Travel Expenses', path: '/travel-expenses' },
                 { icon: Shield, label: 'Admin Panel', path: '/admin' },
-                { icon: Settings, label: 'Settings', path: null },
+                { icon: Settings, label: 'Settings', path: '/settings' },
                 { icon: LogOut, label: 'Logout', path: null },
               ].map(({ icon: Icon, label, path }) => (
                 <button

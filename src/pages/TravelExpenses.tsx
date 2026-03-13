@@ -1,7 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { format, parseISO, startOfMonth, endOfMonth } from 'date-fns';
-import { ArrowLeft, Car, CalendarIcon } from 'lucide-react';
+import { ArrowLeft, Car, CalendarIcon, Download } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { exportTravelExpensesCSV } from '@/lib/csv-export';
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { DEMO_USER_ID } from '@/lib/demo-user';
@@ -47,7 +48,11 @@ export default function TravelExpenses() {
         <Link to="/" className="touch-target flex items-center justify-center rounded-lg hover:bg-muted p-2 -ml-2">
           <ArrowLeft className="h-5 w-5" />
         </Link>
-        <h1 className="text-lg font-display font-bold">Travel Expenses</h1>
+        <h1 className="text-lg font-display font-bold flex-1">Travel Expenses</h1>
+        <Button size="sm" variant="outline" className="gap-1.5 text-xs"
+          onClick={() => exportTravelExpensesCSV(expenses)}>
+          <Download className="h-3.5 w-3.5" /> CSV
+        </Button>
       </header>
 
       <div className="px-4 pt-4 pb-2 max-w-lg mx-auto w-full">
