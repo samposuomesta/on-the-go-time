@@ -24,7 +24,7 @@ const navItems = [
   { key: 'approvals', label: 'Approvals', icon: Clock },
   { key: 'projects', label: 'Projects', icon: Briefcase },
   { key: 'absences', label: 'Absences', icon: CalendarOff },
-  { key: 'vacation-approvals', label: 'Vacation Approvals', icon: CalendarDays, href: '/admin/vacation-approvals' },
+  { key: 'vacation-approvals', label: 'Vacation Approvals', icon: CalendarDays },
   { key: 'companies', label: 'Companies', icon: Building2 },
   { key: 'workplaces', label: 'GPS Workplaces', icon: MapPin },
   { key: 'reminders', label: 'Reminders', icon: Bell },
