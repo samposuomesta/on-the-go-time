@@ -732,25 +732,30 @@ function AbsencesPanel({ admin }: { admin: any }) {
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/50">
-                  <TableHead className="font-semibold">Reason</TableHead>
-                  <TableHead className="font-semibold">Status</TableHead>
-                  <TableHead className="font-semibold w-[100px]">Active</TableHead>
-                  <TableHead className="w-[60px]"></TableHead>
+                  <TableHead className="font-semibold">{t('absenceReasons.reason')}</TableHead>
+                  <TableHead className="font-semibold">{t('absenceReasons.labelFi')}</TableHead>
+                  <TableHead className="font-semibold">{t('projects.status')}</TableHead>
+                  <TableHead className="font-semibold w-[100px]">{t('absenceReasons.active')}</TableHead>
+                  <TableHead className="w-[100px]"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {absenceReasons.length === 0 ? (
-                  <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-8">No custom absence reasons. Add reasons above so employees can select them.</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">{t('absenceReasons.noReasons')}</TableCell></TableRow>
                 ) : absenceReasons.map((r: any) => (
                   <TableRow key={r.id} className="hover:bg-muted/30">
                     <TableCell className="font-medium">{r.label}</TableCell>
-                    <TableCell><Badge variant={r.active ? 'default' : 'secondary'}>{r.active ? 'Active' : 'Inactive'}</Badge></TableCell>
+                    <TableCell className="text-muted-foreground">{r.label_fi || '—'}</TableCell>
+                    <TableCell><Badge variant={r.active ? 'default' : 'secondary'}>{r.active ? t('absenceReasons.active') : t('absenceReasons.inactive')}</Badge></TableCell>
                     <TableCell><Switch checked={r.active} onCheckedChange={(active) => admin.toggleAbsenceReason.mutate({ id: r.id, active })} /></TableCell>
                     <TableCell>
-                      <Button size="icon" variant="ghost" className="text-destructive hover:text-destructive h-8 w-8"
-                        onClick={() => { admin.deleteAbsenceReason.mutate(r.id); toast.success('Deleted'); }}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <div className="flex gap-1">
+                        <EditAbsenceReasonDialog reason={r} onSave={(data) => { admin.updateAbsenceReason.mutate({ id: r.id, ...data }); toast.success(t('common.updated')); }} />
+                        <Button size="icon" variant="ghost" className="text-destructive hover:text-destructive h-8 w-8"
+                          onClick={() => { admin.deleteAbsenceReason.mutate(r.id); toast.success(t('common.deleted')); }}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
