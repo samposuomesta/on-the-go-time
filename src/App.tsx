@@ -10,6 +10,7 @@ import AdminDashboard from "./pages/AdminDashboard.tsx";
 import LongSickLeave from "./pages/LongSickLeave.tsx";
 import TravelExpenses from "./pages/TravelExpenses.tsx";
 import MyStatistics from "./pages/MyStatistics.tsx";
+import SettingsPage from "./pages/Settings.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ const App = () => (
           <Route path="/long-sick-leave" element={<LongSickLeave />} />
           <Route path="/travel-expenses" element={<TravelExpenses />} />
           <Route path="/my-statistics" element={<MyStatistics />} />
+          <Route path="/settings" element={<SettingsPage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
