@@ -626,50 +626,6 @@ function AbsencesPanel({ admin }: { admin: any }) {
         <p className="text-sm text-muted-foreground">{absences.length} total records</p>
       </div>
 
-      {/* Absence Reasons Management */}
-      <Card>
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-base font-display">Absence Reasons</CardTitle>
-              <CardDescription>Custom reasons employees can select when marking absence</CardDescription>
-            </div>
-            <AddAbsenceReasonDialog onCreate={(data) => { admin.createAbsenceReason.mutate(data); toast.success('Reason added'); }} />
-          </div>
-        </CardHeader>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-muted/50">
-                  <TableHead className="font-semibold">Reason</TableHead>
-                  <TableHead className="font-semibold">Status</TableHead>
-                  <TableHead className="font-semibold w-[100px]">Active</TableHead>
-                  <TableHead className="w-[60px]"></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {absenceReasons.length === 0 ? (
-                  <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-8">No custom absence reasons. Add reasons above so employees can select them.</TableCell></TableRow>
-                ) : absenceReasons.map((r: any) => (
-                  <TableRow key={r.id} className="hover:bg-muted/30">
-                    <TableCell className="font-medium">{r.label}</TableCell>
-                    <TableCell><Badge variant={r.active ? 'default' : 'secondary'}>{r.active ? 'Active' : 'Inactive'}</Badge></TableCell>
-                    <TableCell><Switch checked={r.active} onCheckedChange={(active) => admin.toggleAbsenceReason.mutate({ id: r.id, active })} /></TableCell>
-                    <TableCell>
-                      <Button size="icon" variant="ghost" className="text-destructive hover:text-destructive h-8 w-8"
-                        onClick={() => { admin.deleteAbsenceReason.mutate(r.id); toast.success('Deleted'); }}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
-
       <Card>
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
@@ -751,6 +707,50 @@ function AbsencesPanel({ admin }: { admin: any }) {
           </CardContent>
         </Card>
       )}
+
+      {/* Absence Reasons Management */}
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-base font-display">Absence Reasons</CardTitle>
+              <CardDescription>Custom reasons employees can select when marking absence</CardDescription>
+            </div>
+            <AddAbsenceReasonDialog onCreate={(data) => { admin.createAbsenceReason.mutate(data); toast.success('Reason added'); }} />
+          </div>
+        </CardHeader>
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/50">
+                  <TableHead className="font-semibold">Reason</TableHead>
+                  <TableHead className="font-semibold">Status</TableHead>
+                  <TableHead className="font-semibold w-[100px]">Active</TableHead>
+                  <TableHead className="w-[60px]"></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {absenceReasons.length === 0 ? (
+                  <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-8">No custom absence reasons. Add reasons above so employees can select them.</TableCell></TableRow>
+                ) : absenceReasons.map((r: any) => (
+                  <TableRow key={r.id} className="hover:bg-muted/30">
+                    <TableCell className="font-medium">{r.label}</TableCell>
+                    <TableCell><Badge variant={r.active ? 'default' : 'secondary'}>{r.active ? 'Active' : 'Inactive'}</Badge></TableCell>
+                    <TableCell><Switch checked={r.active} onCheckedChange={(active) => admin.toggleAbsenceReason.mutate({ id: r.id, active })} /></TableCell>
+                    <TableCell>
+                      <Button size="icon" variant="ghost" className="text-destructive hover:text-destructive h-8 w-8"
+                        onClick={() => { admin.deleteAbsenceReason.mutate(r.id); toast.success('Deleted'); }}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
