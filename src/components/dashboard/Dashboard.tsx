@@ -26,6 +26,7 @@ const APP_VERSION = '0.1.0';
 
 export function Dashboard() {
   const { activeEntry, loading, startWork, stopWork } = useTimeTracking();
+  const { balance: bankBalance } = useWorkBank();
   const navigate = useNavigate();
   const [showProjectHours, setShowProjectHours] = useState(false);
   const [expenseMode, setExpenseMode] = useState<'kilometers' | 'parking' | 'receipt' | null>(null);
