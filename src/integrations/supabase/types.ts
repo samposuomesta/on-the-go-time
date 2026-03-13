@@ -21,6 +21,7 @@ export type Database = {
           created_at: string
           id: string
           label: string
+          label_fi: string | null
         }
         Insert: {
           active?: boolean
@@ -28,6 +29,7 @@ export type Database = {
           created_at?: string
           id?: string
           label: string
+          label_fi?: string | null
         }
         Update: {
           active?: boolean
@@ -35,6 +37,7 @@ export type Database = {
           created_at?: string
           id?: string
           label?: string
+          label_fi?: string | null
         }
         Relationships: [
           {
@@ -282,6 +285,7 @@ export type Database = {
           enabled: boolean
           id: string
           message: string
+          message_fi: string | null
           time: string
           type: string
         }
@@ -291,6 +295,7 @@ export type Database = {
           enabled?: boolean
           id?: string
           message?: string
+          message_fi?: string | null
           time?: string
           type?: string
         }
@@ -300,6 +305,7 @@ export type Database = {
           enabled?: boolean
           id?: string
           message?: string
+          message_fi?: string | null
           time?: string
           type?: string
         }

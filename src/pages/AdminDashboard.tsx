@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAdminData } from '@/hooks/useAdminData';
+import { useTranslation, getLocalizedField } from '@/lib/i18n';
 import { VacationTimeline } from '@/components/admin/VacationTimeline';
 import { getFinnishHolidaySet } from '@/lib/finnish-holidays';
 import { Button } from '@/components/ui/button';
@@ -25,18 +26,18 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Separator } from '@/components/ui/separator';
 import { Progress } from '@/components/ui/progress';
 
-const navItems = [
-  { key: 'statistics', label: 'Statistics', icon: BarChart3, description: 'Overview & metrics' },
-  { key: 'approvals', label: 'Approvals', icon: Clock, description: 'Travel & project hours' },
-  { key: 'vacation-approvals', label: 'Vacation Approvals', icon: CalendarDays, description: 'Review vacation requests' },
-  { key: 'absences', label: 'Absences', icon: CalendarOff, description: 'Sick leave & absences' },
-  { key: 'projects', label: 'Projects', icon: Briefcase, description: 'Manage projects' },
-  { key: 'workplaces', label: 'GPS Workplaces', icon: MapPin, description: 'Geofence locations' },
-  { key: 'reminders', label: 'Reminders', icon: Bell, description: 'Notification rules' },
-  { key: 'employees', label: 'Employees', icon: Users, description: 'Manage team members' },
-  { key: 'companies', label: 'Companies', icon: Building2, description: 'Company settings' },
-  { key: 'audit', label: 'Audit Trail', icon: FileText, description: 'Change history' },
-];
+const navItemDefs = [
+  { key: 'statistics', labelKey: 'admin.statistics', icon: BarChart3, descKey: 'admin.statisticsDesc' },
+  { key: 'approvals', labelKey: 'admin.approvals', icon: Clock, descKey: 'admin.approvalsDesc' },
+  { key: 'vacation-approvals', labelKey: 'admin.vacationApprovals', icon: CalendarDays, descKey: 'admin.vacationApprovalsDesc' },
+  { key: 'absences', labelKey: 'admin.absences', icon: CalendarOff, descKey: 'admin.absencesDesc' },
+  { key: 'projects', labelKey: 'admin.projects', icon: Briefcase, descKey: 'admin.projectsDesc' },
+  { key: 'workplaces', labelKey: 'admin.workplaces', icon: MapPin, descKey: 'admin.workplacesDesc' },
+  { key: 'reminders', labelKey: 'admin.reminders', icon: Bell, descKey: 'admin.remindersDesc' },
+  { key: 'employees', labelKey: 'admin.employees', icon: Users, descKey: 'admin.employeesDesc' },
+  { key: 'companies', labelKey: 'admin.companies', icon: Building2, descKey: 'admin.companiesDesc' },
+  { key: 'audit', labelKey: 'admin.audit', icon: FileText, descKey: 'admin.auditDesc' },
+] as const;
 
 function StatusBadge({ status }: { status: string }) {
   const config: Record<string, string> = {
@@ -72,6 +73,7 @@ function ApproveRejectButtons({ id, onApprove, isPending }: {
 
 export default function AdminDashboard() {
   const admin = useAdminData();
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState('statistics');
 
   const pendingCounts = {
@@ -88,14 +90,14 @@ export default function AdminDashboard() {
           <ArrowLeft className="h-5 w-5" />
         </Link>
         <Separator orientation="vertical" className="h-6" />
-        <h1 className="text-base lg:text-lg font-display font-bold">Admin Panel</h1>
+        <h1 className="text-base lg:text-lg font-display font-bold">{t('admin.title')}</h1>
       </header>
 
       <div className="flex-1 flex">
         {/* Desktop sidebar */}
         <aside className="hidden md:flex flex-col w-60 lg:w-72 border-r border-border bg-card shrink-0 sticky top-14 h-[calc(100vh-3.5rem)] overflow-y-auto">
           <nav className="p-2 space-y-0.5">
-            {navItems.map((item) => {
+            {navItemDefs.map((item) => {
               const count = (pendingCounts as any)[item.key] ?? 0;
               return (
                 <button
@@ -110,11 +112,11 @@ export default function AdminDashboard() {
                 >
                   <item.icon className="h-4 w-4 shrink-0" />
                   <div className="flex-1 min-w-0">
-                    <span className="font-medium block">{item.label}</span>
+                    <span className="font-medium block">{t(item.labelKey as any)}</span>
                     <span className={cn(
                       "text-[11px] block truncate",
                       activeTab === item.key ? "text-primary-foreground/70" : "text-muted-foreground/70"
-                    )}>{item.description}</span>
+                    )}>{t(item.descKey as any)}</span>
                   </div>
                   {count > 0 && (
                     <Badge variant={activeTab === item.key ? "secondary" : "default"} className="text-[10px] h-5 px-1.5 shrink-0">
@@ -130,7 +132,7 @@ export default function AdminDashboard() {
         {/* Mobile tab bar */}
         <div className="md:hidden w-full">
           <div className="flex overflow-x-auto border-b border-border bg-card px-2 gap-0.5">
-            {navItems.map((item) => {
+            {navItemDefs.map((item) => {
               const count = (pendingCounts as any)[item.key] ?? 0;
               return (
                 <button
@@ -144,7 +146,7 @@ export default function AdminDashboard() {
                   )}
                 >
                   <item.icon className="h-3.5 w-3.5" />
-                  {item.label}
+                  {t(item.labelKey as any)}
                   {count > 0 && <Badge variant="default" className="text-[10px] h-4 px-1 ml-0.5">{count}</Badge>}
                 </button>
               );
@@ -612,6 +614,7 @@ function VacationApprovalsPanel({ admin }: { admin: any }) {
 /* ===== ABSENCES ===== */
 
 function AbsencesPanel({ admin }: { admin: any }) {
+  const { language, t } = useTranslation();
   const absences = admin.absences.data ?? [];
   const absenceReasons = admin.absenceReasons.data ?? [];
   const pending = absences.filter((a: any) => a.status === 'pending');
@@ -620,7 +623,8 @@ function AbsencesPanel({ admin }: { admin: any }) {
   const reasonLabel = (reasonId: string | null) => {
     if (!reasonId) return null;
     const r = absenceReasons.find((ar: any) => ar.id === reasonId);
-    return r?.label ?? null;
+    if (!r) return null;
+    return getLocalizedField(r, 'label', language);
   };
 
   return (
@@ -717,10 +721,10 @@ function AbsencesPanel({ admin }: { admin: any }) {
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-base font-display">Absence Reasons</CardTitle>
-              <CardDescription>Custom reasons employees can select when marking absence</CardDescription>
+              <CardTitle className="text-base font-display">{t('absenceReasons.title')}</CardTitle>
+              <CardDescription>{t('absenceReasons.description')}</CardDescription>
             </div>
-            <AddAbsenceReasonDialog onCreate={(data) => { admin.createAbsenceReason.mutate(data); toast.success('Reason added'); }} />
+            <AddAbsenceReasonDialog onCreate={(data) => { admin.createAbsenceReason.mutate(data); toast.success(t('common.added')); }} />
           </div>
         </CardHeader>
         <CardContent className="p-0">
@@ -728,25 +732,30 @@ function AbsencesPanel({ admin }: { admin: any }) {
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/50">
-                  <TableHead className="font-semibold">Reason</TableHead>
-                  <TableHead className="font-semibold">Status</TableHead>
-                  <TableHead className="font-semibold w-[100px]">Active</TableHead>
-                  <TableHead className="w-[60px]"></TableHead>
+                  <TableHead className="font-semibold">{t('absenceReasons.reason')}</TableHead>
+                  <TableHead className="font-semibold">{t('absenceReasons.labelFi')}</TableHead>
+                  <TableHead className="font-semibold">{t('projects.status')}</TableHead>
+                  <TableHead className="font-semibold w-[100px]">{t('absenceReasons.active')}</TableHead>
+                  <TableHead className="w-[100px]"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {absenceReasons.length === 0 ? (
-                  <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-8">No custom absence reasons. Add reasons above so employees can select them.</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">{t('absenceReasons.noReasons')}</TableCell></TableRow>
                 ) : absenceReasons.map((r: any) => (
                   <TableRow key={r.id} className="hover:bg-muted/30">
                     <TableCell className="font-medium">{r.label}</TableCell>
-                    <TableCell><Badge variant={r.active ? 'default' : 'secondary'}>{r.active ? 'Active' : 'Inactive'}</Badge></TableCell>
+                    <TableCell className="text-muted-foreground">{r.label_fi || '—'}</TableCell>
+                    <TableCell><Badge variant={r.active ? 'default' : 'secondary'}>{r.active ? t('absenceReasons.active') : t('absenceReasons.inactive')}</Badge></TableCell>
                     <TableCell><Switch checked={r.active} onCheckedChange={(active) => admin.toggleAbsenceReason.mutate({ id: r.id, active })} /></TableCell>
                     <TableCell>
-                      <Button size="icon" variant="ghost" className="text-destructive hover:text-destructive h-8 w-8"
-                        onClick={() => { admin.deleteAbsenceReason.mutate(r.id); toast.success('Deleted'); }}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <div className="flex gap-1">
+                        <EditAbsenceReasonDialog reason={r} onSave={(data) => { admin.updateAbsenceReason.mutate({ id: r.id, ...data }); toast.success(t('common.updated')); }} />
+                        <Button size="icon" variant="ghost" className="text-destructive hover:text-destructive h-8 w-8"
+                          onClick={() => { admin.deleteAbsenceReason.mutate(r.id); toast.success(t('common.deleted')); }}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -759,21 +768,48 @@ function AbsencesPanel({ admin }: { admin: any }) {
   );
 }
 
-function AddAbsenceReasonDialog({ onCreate }: { onCreate: (data: { label: string }) => void }) {
+function AddAbsenceReasonDialog({ onCreate }: { onCreate: (data: { label: string; label_fi?: string }) => void }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [label, setLabel] = useState('');
+  const [labelFi, setLabelFi] = useState('');
 
   return (
-    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) setLabel(''); }}>
-      <DialogTrigger asChild><Button className="gap-1.5"><Plus className="h-4 w-4" /> Add Reason</Button></DialogTrigger>
+    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setLabel(''); setLabelFi(''); } }}>
+      <DialogTrigger asChild><Button className="gap-1.5"><Plus className="h-4 w-4" /> {t('absenceReasons.add')}</Button></DialogTrigger>
       <DialogContent className="sm:max-w-sm">
-        <DialogHeader><DialogTitle className="font-display">Add Absence Reason</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle className="font-display">{t('absenceReasons.add')}</DialogTitle></DialogHeader>
         <div className="space-y-4 mt-2">
-          <div className="space-y-1.5"><Label>Reason Label</Label><Input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="e.g. Doctor appointment, Personal leave..." /></div>
+          <div className="space-y-1.5"><Label>{t('absenceReasons.labelEn')}</Label><Input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="e.g. Doctor appointment, Personal leave..." /></div>
+          <div className="space-y-1.5"><Label>{t('absenceReasons.labelFi')}</Label><Input value={labelFi} onChange={(e) => setLabelFi(e.target.value)} placeholder="esim. Lääkärikäynti, Henkilökohtainen vapaa..." /></div>
           <Button className="w-full" disabled={!label.trim()} onClick={() => {
-            onCreate({ label: label.trim() });
-            setOpen(false); setLabel('');
-          }}>Add Reason</Button>
+            onCreate({ label: label.trim(), label_fi: labelFi.trim() || undefined });
+            setOpen(false); setLabel(''); setLabelFi('');
+          }}>{t('absenceReasons.add')}</Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function EditAbsenceReasonDialog({ reason, onSave }: { reason: any; onSave: (data: { label?: string; label_fi?: string | null }) => void }) {
+  const { t } = useTranslation();
+  const [open, setOpen] = useState(false);
+  const [label, setLabel] = useState(reason.label);
+  const [labelFi, setLabelFi] = useState(reason.label_fi || '');
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (o) { setLabel(reason.label); setLabelFi(reason.label_fi || ''); } }}>
+      <DialogTrigger asChild><Button size="icon" variant="ghost" className="h-8 w-8"><Pencil className="h-3.5 w-3.5" /></Button></DialogTrigger>
+      <DialogContent className="sm:max-w-sm">
+        <DialogHeader><DialogTitle className="font-display">{t('absenceReasons.edit')}</DialogTitle></DialogHeader>
+        <div className="space-y-4 mt-2">
+          <div className="space-y-1.5"><Label>{t('absenceReasons.labelEn')}</Label><Input value={label} onChange={(e) => setLabel(e.target.value)} /></div>
+          <div className="space-y-1.5"><Label>{t('absenceReasons.labelFi')}</Label><Input value={labelFi} onChange={(e) => setLabelFi(e.target.value)} placeholder="Suomenkielinen nimi" /></div>
+          <Button className="w-full" disabled={!label.trim()} onClick={() => {
+            onSave({ label: label.trim(), label_fi: labelFi.trim() || null });
+            setOpen(false);
+          }}>{t('common.save')}</Button>
         </div>
       </DialogContent>
     </Dialog>
@@ -783,15 +819,16 @@ function AddAbsenceReasonDialog({ onCreate }: { onCreate: (data: { label: string
 /* ===== PROJECTS ===== */
 
 function ProjectsPanel({ admin }: { admin: any }) {
+  const { t } = useTranslation();
   const projects = admin.projects.data ?? [];
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-display font-bold">Projects</h2>
-          <p className="text-sm text-muted-foreground">{projects.length} projects</p>
+          <h2 className="text-xl font-display font-bold">{t('projects.title')}</h2>
+          <p className="text-sm text-muted-foreground">{projects.length} {t('projects.title').toLowerCase()}</p>
         </div>
-        <AddProjectDialog onCreate={(data) => { admin.createProject.mutate(data); toast.success('Project added'); }} />
+        <AddProjectDialog onCreate={(data) => { admin.createProject.mutate(data); toast.success(t('common.added')); }} />
       </div>
       <Card>
         <CardContent className="p-0">
@@ -799,21 +836,25 @@ function ProjectsPanel({ admin }: { admin: any }) {
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/50">
-                  <TableHead className="font-semibold">Name</TableHead>
-                  <TableHead className="font-semibold">Customer</TableHead>
-                  <TableHead className="font-semibold">Status</TableHead>
-                  <TableHead className="font-semibold w-[100px]">Active</TableHead>
+                  <TableHead className="font-semibold">{t('projects.name')}</TableHead>
+                  <TableHead className="font-semibold">{t('projects.customer')}</TableHead>
+                  <TableHead className="font-semibold">{t('projects.status')}</TableHead>
+                  <TableHead className="font-semibold w-[100px]">{t('absenceReasons.active')}</TableHead>
+                  <TableHead className="w-[60px]"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {projects.length === 0 ? (
-                  <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-12">No projects yet</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-12">{t('projects.noProjects')}</TableCell></TableRow>
                 ) : projects.map((p: any) => (
                   <TableRow key={p.id} className="hover:bg-muted/30">
                     <TableCell className="font-medium">{p.name}</TableCell>
                     <TableCell className="text-muted-foreground">{p.customer || '—'}</TableCell>
-                    <TableCell><Badge variant={p.active ? 'default' : 'secondary'}>{p.active ? 'Active' : 'Inactive'}</Badge></TableCell>
+                    <TableCell><Badge variant={p.active ? 'default' : 'secondary'}>{p.active ? t('absenceReasons.active') : t('absenceReasons.inactive')}</Badge></TableCell>
                     <TableCell><Switch checked={p.active} onCheckedChange={(active) => admin.toggleProject.mutate({ id: p.id, active })} /></TableCell>
+                    <TableCell>
+                      <EditProjectDialog project={p} onSave={(data) => { admin.updateProject.mutate({ id: p.id, ...data }); toast.success(t('common.updated')); }} />
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -937,15 +978,16 @@ function WorkplacesPanel({ admin }: { admin: any }) {
 /* ===== REMINDERS ===== */
 
 function RemindersPanel({ admin }: { admin: any }) {
+  const { language, t } = useTranslation();
   const reminders = admin.reminderRules.data ?? [];
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-display font-bold">Reminder Rules</h2>
-          <p className="text-sm text-muted-foreground">{reminders.length} rules configured</p>
+          <h2 className="text-xl font-display font-bold">{t('reminders.title')}</h2>
+          <p className="text-sm text-muted-foreground">{reminders.length} {t('reminders.title').toLowerCase()}</p>
         </div>
-        <AddReminderDialog onCreate={(data) => { admin.createReminder.mutate(data); toast.success('Reminder added'); }} />
+        <AddReminderDialog onCreate={(data) => { admin.createReminder.mutate(data); toast.success(t('common.added')); }} />
       </div>
       <Card>
         <CardContent className="p-0">
@@ -953,27 +995,32 @@ function RemindersPanel({ admin }: { admin: any }) {
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/50">
-                  <TableHead className="font-semibold">Type</TableHead>
-                  <TableHead className="font-semibold">Time</TableHead>
-                  <TableHead className="font-semibold">Message</TableHead>
-                  <TableHead className="font-semibold">Enabled</TableHead>
-                  <TableHead className="w-[60px]"></TableHead>
+                  <TableHead className="font-semibold">{t('reminders.type')}</TableHead>
+                  <TableHead className="font-semibold">{t('reminders.time')}</TableHead>
+                  <TableHead className="font-semibold">{t('reminders.message')}</TableHead>
+                  <TableHead className="font-semibold">{t('reminders.messageFi')}</TableHead>
+                  <TableHead className="font-semibold">{t('reminders.enabled')}</TableHead>
+                  <TableHead className="w-[100px]"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {reminders.length === 0 ? (
-                  <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-12">No reminder rules configured</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-12">{t('reminders.noReminders')}</TableCell></TableRow>
                 ) : reminders.map((r: any) => (
                   <TableRow key={r.id} className="hover:bg-muted/30">
                     <TableCell className="font-medium capitalize">{r.type.replace('_', ' ')}</TableCell>
                     <TableCell className="font-mono">{r.time}</TableCell>
-                    <TableCell className="text-muted-foreground max-w-[300px] truncate">{r.message}</TableCell>
+                    <TableCell className="text-muted-foreground max-w-[200px] truncate">{r.message}</TableCell>
+                    <TableCell className="text-muted-foreground max-w-[200px] truncate">{r.message_fi || '—'}</TableCell>
                     <TableCell><Switch checked={r.enabled} onCheckedChange={(enabled) => admin.toggleReminder.mutate({ id: r.id, enabled })} /></TableCell>
                     <TableCell>
-                      <Button size="icon" variant="ghost" className="text-destructive hover:text-destructive h-8 w-8"
-                        onClick={() => { admin.deleteReminder.mutate(r.id); toast.success('Deleted'); }}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <div className="flex gap-1">
+                        <EditReminderDialog reminder={r} onSave={(data) => { admin.updateReminder.mutate({ id: r.id, ...data }); toast.success(t('common.updated')); }} />
+                        <Button size="icon" variant="ghost" className="text-destructive hover:text-destructive h-8 w-8"
+                          onClick={() => { admin.deleteReminder.mutate(r.id); toast.success(t('common.deleted')); }}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -1110,22 +1157,47 @@ function EditEmployeeDialog({ employee, allEmployees, currentManagerIds, onSave 
 }
 
 function AddProjectDialog({ onCreate }: { onCreate: (data: { name: string; customer: string | null }) => void }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
   const [customer, setCustomer] = useState('');
 
   return (
     <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setName(''); setCustomer(''); } }}>
-      <DialogTrigger asChild><Button className="gap-1.5"><Plus className="h-4 w-4" /> Add Project</Button></DialogTrigger>
+      <DialogTrigger asChild><Button className="gap-1.5"><Plus className="h-4 w-4" /> {t('projects.add')}</Button></DialogTrigger>
       <DialogContent className="sm:max-w-md">
-        <DialogHeader><DialogTitle className="font-display">Add Project</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle className="font-display">{t('projects.add')}</DialogTitle></DialogHeader>
         <div className="space-y-4 mt-2">
-          <div className="space-y-1.5"><Label>Project Name</Label><Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Project name" /></div>
-          <div className="space-y-1.5"><Label>Customer (optional)</Label><Input value={customer} onChange={(e) => setCustomer(e.target.value)} placeholder="Customer name" /></div>
+          <div className="space-y-1.5"><Label>{t('projects.name')}</Label><Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Project name" /></div>
+          <div className="space-y-1.5"><Label>{t('projects.customerOptional')}</Label><Input value={customer} onChange={(e) => setCustomer(e.target.value)} placeholder="Customer name" /></div>
           <Button className="w-full" disabled={!name.trim()} onClick={() => {
             onCreate({ name: name.trim(), customer: customer.trim() || null });
             setOpen(false); setName(''); setCustomer('');
-          }}>Add Project</Button>
+          }}>{t('projects.add')}</Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function EditProjectDialog({ project, onSave }: { project: any; onSave: (data: { name?: string; customer?: string | null }) => void }) {
+  const { t } = useTranslation();
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState(project.name);
+  const [customer, setCustomer] = useState(project.customer || '');
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (o) { setName(project.name); setCustomer(project.customer || ''); } }}>
+      <DialogTrigger asChild><Button size="icon" variant="ghost" className="h-8 w-8"><Pencil className="h-3.5 w-3.5" /></Button></DialogTrigger>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader><DialogTitle className="font-display">{t('projects.edit')}</DialogTitle></DialogHeader>
+        <div className="space-y-4 mt-2">
+          <div className="space-y-1.5"><Label>{t('projects.name')}</Label><Input value={name} onChange={(e) => setName(e.target.value)} /></div>
+          <div className="space-y-1.5"><Label>{t('projects.customerOptional')}</Label><Input value={customer} onChange={(e) => setCustomer(e.target.value)} /></div>
+          <Button className="w-full" disabled={!name.trim()} onClick={() => {
+            onSave({ name: name.trim(), customer: customer.trim() || null });
+            setOpen(false);
+          }}>{t('common.save')}</Button>
         </div>
       </DialogContent>
     </Dialog>
@@ -1257,11 +1329,13 @@ function AddWorkplaceDialog({ onCreate }: { onCreate: (data: { name: string; lat
   );
 }
 
-function AddReminderDialog({ onCreate }: { onCreate: (data: { type: string; time: string; message: string }) => void }) {
+function AddReminderDialog({ onCreate }: { onCreate: (data: { type: string; time: string; message: string; message_fi?: string }) => void }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [type, setType] = useState('clock_in');
   const [time, setTime] = useState('08:30');
   const [message, setMessage] = useState('');
+  const [messageFi, setMessageFi] = useState('');
 
   const defaultMessages: Record<string, string> = {
     clock_in: "Don't forget to start your workday!",
@@ -1271,29 +1345,69 @@ function AddReminderDialog({ onCreate }: { onCreate: (data: { type: string; time
   };
 
   return (
-    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setType('clock_in'); setTime('08:30'); setMessage(''); } }}>
-      <DialogTrigger asChild><Button className="gap-1.5"><Plus className="h-4 w-4" /> Add Reminder</Button></DialogTrigger>
+    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setType('clock_in'); setTime('08:30'); setMessage(''); setMessageFi(''); } }}>
+      <DialogTrigger asChild><Button className="gap-1.5"><Plus className="h-4 w-4" /> {t('reminders.add')}</Button></DialogTrigger>
       <DialogContent className="sm:max-w-md">
-        <DialogHeader><DialogTitle className="font-display">Add Reminder Rule</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle className="font-display">{t('reminders.add')}</DialogTitle></DialogHeader>
         <div className="space-y-4 mt-2">
           <div className="space-y-1.5">
-            <Label>Type</Label>
+            <Label>{t('reminders.type')}</Label>
             <Select value={type} onValueChange={(v) => { setType(v); setMessage(defaultMessages[v] || ''); }}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="clock_in">Clock-In Reminder</SelectItem>
-                <SelectItem value="clock_out">Clock-Out Reminder</SelectItem>
-                <SelectItem value="vacation_approval">Vacation Approval</SelectItem>
-                <SelectItem value="manager_approval">Manager Approval</SelectItem>
+                <SelectItem value="clock_in">{t('reminders.clockIn')}</SelectItem>
+                <SelectItem value="clock_out">{t('reminders.clockOut')}</SelectItem>
+                <SelectItem value="vacation_approval">{t('reminders.vacationApproval')}</SelectItem>
+                <SelectItem value="manager_approval">{t('reminders.managerApproval')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
-          <div className="space-y-1.5"><Label>Time</Label><Input type="time" value={time} onChange={(e) => setTime(e.target.value)} /></div>
-          <div className="space-y-1.5"><Label>Message</Label><Input value={message || defaultMessages[type]} onChange={(e) => setMessage(e.target.value)} /></div>
+          <div className="space-y-1.5"><Label>{t('reminders.time')}</Label><Input type="time" value={time} onChange={(e) => setTime(e.target.value)} /></div>
+          <div className="space-y-1.5"><Label>{t('reminders.messageEn')}</Label><Input value={message || defaultMessages[type]} onChange={(e) => setMessage(e.target.value)} /></div>
+          <div className="space-y-1.5"><Label>{t('reminders.messageFi')}</Label><Input value={messageFi} onChange={(e) => setMessageFi(e.target.value)} placeholder="Viesti suomeksi" /></div>
           <Button className="w-full" onClick={() => {
-            onCreate({ type, time, message: message || defaultMessages[type] });
-            setOpen(false); setType('clock_in'); setTime('08:30'); setMessage('');
-          }}>Add Reminder</Button>
+            onCreate({ type, time, message: message || defaultMessages[type], message_fi: messageFi.trim() || undefined });
+            setOpen(false); setType('clock_in'); setTime('08:30'); setMessage(''); setMessageFi('');
+          }}>{t('reminders.add')}</Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function EditReminderDialog({ reminder, onSave }: { reminder: any; onSave: (data: { type?: string; time?: string; message?: string; message_fi?: string | null }) => void }) {
+  const { t } = useTranslation();
+  const [open, setOpen] = useState(false);
+  const [type, setType] = useState(reminder.type);
+  const [time, setTime] = useState(reminder.time);
+  const [message, setMessage] = useState(reminder.message);
+  const [messageFi, setMessageFi] = useState(reminder.message_fi || '');
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (o) { setType(reminder.type); setTime(reminder.time); setMessage(reminder.message); setMessageFi(reminder.message_fi || ''); } }}>
+      <DialogTrigger asChild><Button size="icon" variant="ghost" className="h-8 w-8"><Pencil className="h-3.5 w-3.5" /></Button></DialogTrigger>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader><DialogTitle className="font-display">{t('reminders.edit')}</DialogTitle></DialogHeader>
+        <div className="space-y-4 mt-2">
+          <div className="space-y-1.5">
+            <Label>{t('reminders.type')}</Label>
+            <Select value={type} onValueChange={setType}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="clock_in">{t('reminders.clockIn')}</SelectItem>
+                <SelectItem value="clock_out">{t('reminders.clockOut')}</SelectItem>
+                <SelectItem value="vacation_approval">{t('reminders.vacationApproval')}</SelectItem>
+                <SelectItem value="manager_approval">{t('reminders.managerApproval')}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5"><Label>{t('reminders.time')}</Label><Input type="time" value={time} onChange={(e) => setTime(e.target.value)} /></div>
+          <div className="space-y-1.5"><Label>{t('reminders.messageEn')}</Label><Input value={message} onChange={(e) => setMessage(e.target.value)} /></div>
+          <div className="space-y-1.5"><Label>{t('reminders.messageFi')}</Label><Input value={messageFi} onChange={(e) => setMessageFi(e.target.value)} placeholder="Viesti suomeksi" /></div>
+          <Button className="w-full" onClick={() => {
+            onSave({ type, time, message, message_fi: messageFi.trim() || null });
+            setOpen(false);
+          }}>{t('common.save')}</Button>
         </div>
       </DialogContent>
     </Dialog>

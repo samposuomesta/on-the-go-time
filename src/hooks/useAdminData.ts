@@ -238,6 +238,14 @@ export function useAdminData() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-projects'] }),
   });
 
+  const updateProject = useMutation({
+    mutationFn: async ({ id, ...data }: { id: string; name?: string; customer?: string | null }) => {
+      const { error } = await supabase.from('projects').update(data).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-projects'] }),
+  });
+
   const createEmployee = useMutation({
     mutationFn: async (data: { name: string; email: string; role: 'employee' | 'manager' | 'admin'; contract_start_date?: string; annual_vacation_days?: number }) => {
       const { error } = await supabase.from('users').insert({ ...data, company_id: DEMO_COMPANY_ID });
@@ -279,8 +287,16 @@ export function useAdminData() {
   });
 
   const createReminder = useMutation({
-    mutationFn: async (data: { type: string; time: string; message: string }) => {
+    mutationFn: async (data: { type: string; time: string; message: string; message_fi?: string }) => {
       const { error } = await supabase.from('reminder_rules' as any).insert({ ...data, company_id: DEMO_COMPANY_ID } as any);
+      if (error) throw error;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-reminders'] }),
+  });
+
+  const updateReminder = useMutation({
+    mutationFn: async ({ id, ...data }: { id: string; type?: string; time?: string; message?: string; message_fi?: string | null }) => {
+      const { error } = await supabase.from('reminder_rules' as any).update(data as any).eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-reminders'] }),
@@ -303,8 +319,16 @@ export function useAdminData() {
   });
 
   const createAbsenceReason = useMutation({
-    mutationFn: async (data: { label: string }) => {
-      const { error } = await supabase.from('absence_reasons').insert({ ...data, company_id: DEMO_COMPANY_ID });
+    mutationFn: async (data: { label: string; label_fi?: string }) => {
+      const { error } = await supabase.from('absence_reasons').insert({ ...data, company_id: DEMO_COMPANY_ID } as any);
+      if (error) throw error;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-absence-reasons'] }),
+  });
+
+  const updateAbsenceReason = useMutation({
+    mutationFn: async ({ id, ...data }: { id: string; label?: string; label_fi?: string | null }) => {
+      const { error } = await supabase.from('absence_reasons').update(data as any).eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-absence-reasons'] }),
@@ -352,11 +376,11 @@ export function useAdminData() {
     pendingTravel, pendingHours, absences, vacationRequests,
     allTimeEntries, allWorkBank,
     approveTravel, approveHours, approveAbsence, approveVacation,
-    updateEmployee, toggleProject, createProject, createEmployee,
+    updateEmployee, toggleProject, createProject, updateProject, createEmployee,
     createCompany, updateCompany,
     createWorkplace, deleteWorkplace,
-    createReminder, toggleReminder, deleteReminder,
-    createAbsenceReason, toggleAbsenceReason, deleteAbsenceReason,
+    createReminder, updateReminder, toggleReminder, deleteReminder,
+    createAbsenceReason, updateAbsenceReason, toggleAbsenceReason, deleteAbsenceReason,
     setEmployeeManagers,
   };
 }
