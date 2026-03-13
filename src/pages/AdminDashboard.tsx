@@ -112,11 +112,11 @@ export default function AdminDashboard() {
                 >
                   <item.icon className="h-4 w-4 shrink-0" />
                   <div className="flex-1 min-w-0">
-                    <span className="font-medium block">{item.label}</span>
+                    <span className="font-medium block">{t(item.labelKey as any)}</span>
                     <span className={cn(
                       "text-[11px] block truncate",
                       activeTab === item.key ? "text-primary-foreground/70" : "text-muted-foreground/70"
-                    )}>{item.description}</span>
+                    )}>{t(item.descKey as any)}</span>
                   </div>
                   {count > 0 && (
                     <Badge variant={activeTab === item.key ? "secondary" : "default"} className="text-[10px] h-5 px-1.5 shrink-0">
