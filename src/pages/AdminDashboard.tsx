@@ -7,6 +7,7 @@ import {
 import { Link } from 'react-router-dom';
 import { useAdminData } from '@/hooks/useAdminData';
 import { VacationTimeline } from '@/components/admin/VacationTimeline';
+import { getFinnishHolidaySet } from '@/lib/finnish-holidays';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
