@@ -214,19 +214,22 @@ function ApprovalsPanel({ admin }: { admin: any }) {
             isPending={admin.approveHours.isPending} />
         )}
       />
-      <ApprovalSection
-        icon={CalendarDays} label="Vacation Requests"
-        count={admin.vacationRequests.data?.filter((v: any) => v.status === 'pending').length ?? 0}
-        items={admin.vacationRequests.data ?? []}
-        renderItem={(v: any) => (
-          <ApprovalCard key={v.id} id={v.id}
-            title={`${v.users?.name ?? 'Unknown'}`}
-            subtitle={`${format(parseISO(v.start_date), 'MMM d')} — ${format(parseISO(v.end_date), 'MMM d, yyyy')}`}
-            detail={v.comment} status={v.status}
-            onApprove={(id, status) => admin.approveVacation.mutate({ id, status })}
-            isPending={admin.approveVacation.isPending} />
-        )}
-      />
+      <Card className="border-dashed">
+        <CardContent className="py-6 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <CalendarDays className="h-5 w-5 text-muted-foreground" />
+            <div>
+              <p className="text-sm font-medium">Vacation Requests</p>
+              <p className="text-xs text-muted-foreground">Managed on a dedicated page</p>
+            </div>
+          </div>
+          <Link to="/admin/vacation-approvals">
+            <Button variant="outline" size="sm" className="gap-1.5">
+              <ExternalLink className="h-3.5 w-3.5" /> Open
+            </Button>
+          </Link>
+        </CardContent>
+      </Card>
     </div>
   );
 }
