@@ -1043,12 +1043,15 @@ function AddEmployeeDialog({ onCreate }: { onCreate: (data: any) => void }) {
   const [role, setRole] = useState<'employee' | 'manager' | 'admin'>('employee');
   const [contractDate, setContractDate] = useState('');
   const [vacationDays, setVacationDays] = useState('25');
-  const reset = () => { setName(''); setEmail(''); setEmployeeNumber(''); setRole('employee'); setContractDate(''); setVacationDays('25'); };
+  const [dailyWorkHours, setDailyWorkHours] = useState('7.5');
+  const [autoSubtractLunch, setAutoSubtractLunch] = useState(false);
+  const [lunchThreshold, setLunchThreshold] = useState('5');
+  const reset = () => { setName(''); setEmail(''); setEmployeeNumber(''); setRole('employee'); setContractDate(''); setVacationDays('25'); setDailyWorkHours('7.5'); setAutoSubtractLunch(false); setLunchThreshold('5'); };
 
   return (
     <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) reset(); }}>
       <DialogTrigger asChild><Button className="gap-1.5"><Plus className="h-4 w-4" /> Add Employee</Button></DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader><DialogTitle className="font-display">Add Employee</DialogTitle></DialogHeader>
         <div className="grid gap-4 mt-2 sm:grid-cols-2">
           <div className="space-y-1.5 sm:col-span-2"><Label>Name</Label><Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Full name" /></div>
@@ -1062,9 +1065,25 @@ function AddEmployeeDialog({ onCreate }: { onCreate: (data: any) => void }) {
           </div>
           <div className="space-y-1.5"><Label>Contract Start</Label><Input type="date" value={contractDate} onChange={(e) => setContractDate(e.target.value)} /></div>
           <div className="space-y-1.5"><Label>Vacation Days/Year</Label><Input type="number" value={vacationDays} onChange={(e) => setVacationDays(e.target.value)} min="0" max="50" /></div>
+          <div className="space-y-1.5"><Label>Daily Working Hours</Label><Input type="number" step="0.5" value={dailyWorkHours} onChange={(e) => setDailyWorkHours(e.target.value)} min="1" max="24" /></div>
+          <div className="sm:col-span-2 space-y-3 rounded-lg border border-border p-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <Label>Auto-subtract 30 min lunch</Label>
+                <p className="text-xs text-muted-foreground mt-0.5">Automatically deduct lunch break from daily hours</p>
+              </div>
+              <Switch checked={autoSubtractLunch} onCheckedChange={setAutoSubtractLunch} />
+            </div>
+            {autoSubtractLunch && (
+              <div className="space-y-1.5">
+                <Label className="text-xs">If daily work exceeds (hours)</Label>
+                <Input type="number" step="0.5" value={lunchThreshold} onChange={(e) => setLunchThreshold(e.target.value)} min="1" max="12" />
+              </div>
+            )}
+          </div>
         </div>
         <Button className="w-full mt-2" disabled={!name.trim() || !email.trim()} onClick={() => {
-          onCreate({ name: name.trim(), email: email.trim(), employee_number: employeeNumber.trim() || null, role, contract_start_date: contractDate || null, annual_vacation_days: parseInt(vacationDays) || 25 });
+          onCreate({ name: name.trim(), email: email.trim(), employee_number: employeeNumber.trim() || null, role, contract_start_date: contractDate || null, annual_vacation_days: parseInt(vacationDays) || 25, daily_work_hours: parseFloat(dailyWorkHours) || 7.5, auto_subtract_lunch: autoSubtractLunch, lunch_threshold_hours: parseFloat(lunchThreshold) || 5 });
           setOpen(false); reset();
         }}>Add Employee</Button>
       </DialogContent>
