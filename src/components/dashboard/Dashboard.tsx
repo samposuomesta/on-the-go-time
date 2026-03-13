@@ -62,20 +62,24 @@ export function Dashboard() {
             </SheetHeader>
             <nav className="mt-6 space-y-1">
               {[
-                { icon: CalendarDays, label: 'Vacation Requests' },
-                { icon: AlertTriangle, label: 'Long Sick Leave' },
-                { icon: FileText, label: 'My Entries' },
-                { icon: BarChart3, label: 'My Statistics' },
-                { icon: Receipt, label: 'Travel Expenses' },
-                { icon: Settings, label: 'Settings' },
-                { icon: LogOut, label: 'Logout' },
-              ].map(({ icon: Icon, label }) => (
+                { icon: CalendarDays, label: 'Vacation Requests', path: null },
+                { icon: AlertTriangle, label: 'Long Sick Leave', path: null },
+                { icon: FileText, label: 'My Entries', path: '/my-entries' },
+                { icon: BarChart3, label: 'My Statistics', path: null },
+                { icon: Receipt, label: 'Travel Expenses', path: null },
+                { icon: Settings, label: 'Settings', path: null },
+                { icon: LogOut, label: 'Logout', path: null },
+              ].map(({ icon: Icon, label, path }) => (
                 <button
                   key={label}
                   className="flex w-full items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-foreground hover:bg-muted touch-target"
                   onClick={() => {
                     setMenuOpen(false);
-                    toast.info(`${label} — coming soon`);
+                    if (path) {
+                      navigate(path);
+                    } else {
+                      toast.info(`${label} — coming soon`);
+                    }
                   }}
                 >
                   <Icon className="h-5 w-5 text-muted-foreground" />
