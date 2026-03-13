@@ -35,6 +35,7 @@ const navItems = [
   { key: 'reminders', label: 'Reminders', icon: Bell, description: 'Notification rules' },
   { key: 'employees', label: 'Employees', icon: Users, description: 'Manage team members' },
   { key: 'companies', label: 'Companies', icon: Building2, description: 'Company settings' },
+  { key: 'audit', label: 'Audit Trail', icon: FileText, description: 'Change history' },
 ];
 
 function StatusBadge({ status }: { status: string }) {
