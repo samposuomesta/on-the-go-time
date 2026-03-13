@@ -303,8 +303,16 @@ export function useAdminData() {
   });
 
   const createAbsenceReason = useMutation({
-    mutationFn: async (data: { label: string }) => {
-      const { error } = await supabase.from('absence_reasons').insert({ ...data, company_id: DEMO_COMPANY_ID });
+    mutationFn: async (data: { label: string; label_fi?: string }) => {
+      const { error } = await supabase.from('absence_reasons').insert({ ...data, company_id: DEMO_COMPANY_ID } as any);
+      if (error) throw error;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-absence-reasons'] }),
+  });
+
+  const updateAbsenceReason = useMutation({
+    mutationFn: async ({ id, ...data }: { id: string; label?: string; label_fi?: string | null }) => {
+      const { error } = await supabase.from('absence_reasons').update(data as any).eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-absence-reasons'] }),
