@@ -97,7 +97,7 @@ export default function AdminDashboard() {
         {/* Desktop sidebar */}
         <aside className="hidden md:flex flex-col w-60 lg:w-72 border-r border-border bg-card shrink-0 sticky top-14 h-[calc(100vh-3.5rem)] overflow-y-auto">
           <nav className="p-2 space-y-0.5">
-            {navItems.map((item) => {
+            {navItemDefs.map((item) => {
               const count = (pendingCounts as any)[item.key] ?? 0;
               return (
                 <button
