@@ -368,101 +368,14 @@ function ApprovalsPanel({ admin }: { admin: any }) {
 /* ===== VACATION APPROVALS ===== */
 
 function VacationApprovalsPanel({ admin }: { admin: any }) {
-  const requests = admin.vacationRequests.data ?? [];
-  const pending = requests.filter((r: any) => r.status === 'pending');
-  const handled = requests.filter((r: any) => r.status !== 'pending');
-
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-xl font-display font-bold">Vacation Approvals</h2>
-        <p className="text-sm text-muted-foreground">Review and manage vacation requests</p>
-      </div>
-
-      <Card>
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Clock className="h-5 w-5 text-warning" />
-              <CardTitle className="text-base font-display">Pending Requests</CardTitle>
-            </div>
-            <Badge variant="secondary">{pending.length} pending</Badge>
-          </div>
-        </CardHeader>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-muted/50">
-                  <TableHead className="font-semibold">Employee</TableHead>
-                  <TableHead className="font-semibold">Start Date</TableHead>
-                  <TableHead className="font-semibold">End Date</TableHead>
-                  <TableHead className="font-semibold">Comment</TableHead>
-                  <TableHead className="font-semibold">Submitted</TableHead>
-                  <TableHead className="text-right font-semibold">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {pending.length === 0 ? (
-                  <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">No pending requests</TableCell></TableRow>
-                ) : pending.map((r: any) => (
-                  <TableRow key={r.id} className="hover:bg-muted/30">
-                    <TableCell className="font-medium">{r.users?.name ?? 'Unknown'}</TableCell>
-                    <TableCell>{format(parseISO(r.start_date), 'MMM d, yyyy')}</TableCell>
-                    <TableCell>{format(parseISO(r.end_date), 'MMM d, yyyy')}</TableCell>
-                    <TableCell className="text-muted-foreground max-w-[200px] truncate">{r.comment || '—'}</TableCell>
-                    <TableCell className="text-muted-foreground">{format(new Date(r.created_at), 'MMM d')}</TableCell>
-                    <TableCell className="text-right">
-                      <ApproveRejectButtons id={r.id} onApprove={(id, status) => admin.approveVacation.mutate({ id, status })} isPending={admin.approveVacation.isPending} />
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <CalendarDays className="h-5 w-5 text-muted-foreground" />
-              <CardTitle className="text-base font-display">History</CardTitle>
-            </div>
-            <Badge variant="secondary">{handled.length} processed</Badge>
-          </div>
-        </CardHeader>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-muted/50">
-                  <TableHead className="font-semibold">Employee</TableHead>
-                  <TableHead className="font-semibold">Start Date</TableHead>
-                  <TableHead className="font-semibold">End Date</TableHead>
-                  <TableHead className="font-semibold">Comment</TableHead>
-                  <TableHead className="font-semibold">Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {handled.length === 0 ? (
-                  <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">No history yet</TableCell></TableRow>
-                ) : handled.map((r: any) => (
-                  <TableRow key={r.id} className="hover:bg-muted/30">
-                    <TableCell className="font-medium">{r.users?.name ?? 'Unknown'}</TableCell>
-                    <TableCell>{format(parseISO(r.start_date), 'MMM d, yyyy')}</TableCell>
-                    <TableCell>{format(parseISO(r.end_date), 'MMM d, yyyy')}</TableCell>
-                    <TableCell className="text-muted-foreground max-w-[200px] truncate">{r.comment || '—'}</TableCell>
-                    <TableCell><StatusBadge status={r.status} /></TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+    <VacationTimeline
+      employees={admin.employees.data ?? []}
+      vacationRequests={admin.vacationRequests.data ?? []}
+      userManagers={admin.userManagers.data ?? []}
+      onApprove={(id, status) => admin.approveVacation.mutate({ id, status })}
+      isPending={admin.approveVacation.isPending}
+    />
   );
 }
 
