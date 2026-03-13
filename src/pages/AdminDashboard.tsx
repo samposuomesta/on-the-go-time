@@ -1329,11 +1329,13 @@ function AddWorkplaceDialog({ onCreate }: { onCreate: (data: { name: string; lat
   );
 }
 
-function AddReminderDialog({ onCreate }: { onCreate: (data: { type: string; time: string; message: string }) => void }) {
+function AddReminderDialog({ onCreate }: { onCreate: (data: { type: string; time: string; message: string; message_fi?: string }) => void }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [type, setType] = useState('clock_in');
   const [time, setTime] = useState('08:30');
   const [message, setMessage] = useState('');
+  const [messageFi, setMessageFi] = useState('');
 
   const defaultMessages: Record<string, string> = {
     clock_in: "Don't forget to start your workday!",
@@ -1343,29 +1345,69 @@ function AddReminderDialog({ onCreate }: { onCreate: (data: { type: string; time
   };
 
   return (
-    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setType('clock_in'); setTime('08:30'); setMessage(''); } }}>
-      <DialogTrigger asChild><Button className="gap-1.5"><Plus className="h-4 w-4" /> Add Reminder</Button></DialogTrigger>
+    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setType('clock_in'); setTime('08:30'); setMessage(''); setMessageFi(''); } }}>
+      <DialogTrigger asChild><Button className="gap-1.5"><Plus className="h-4 w-4" /> {t('reminders.add')}</Button></DialogTrigger>
       <DialogContent className="sm:max-w-md">
-        <DialogHeader><DialogTitle className="font-display">Add Reminder Rule</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle className="font-display">{t('reminders.add')}</DialogTitle></DialogHeader>
         <div className="space-y-4 mt-2">
           <div className="space-y-1.5">
-            <Label>Type</Label>
+            <Label>{t('reminders.type')}</Label>
             <Select value={type} onValueChange={(v) => { setType(v); setMessage(defaultMessages[v] || ''); }}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="clock_in">Clock-In Reminder</SelectItem>
-                <SelectItem value="clock_out">Clock-Out Reminder</SelectItem>
-                <SelectItem value="vacation_approval">Vacation Approval</SelectItem>
-                <SelectItem value="manager_approval">Manager Approval</SelectItem>
+                <SelectItem value="clock_in">{t('reminders.clockIn')}</SelectItem>
+                <SelectItem value="clock_out">{t('reminders.clockOut')}</SelectItem>
+                <SelectItem value="vacation_approval">{t('reminders.vacationApproval')}</SelectItem>
+                <SelectItem value="manager_approval">{t('reminders.managerApproval')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
-          <div className="space-y-1.5"><Label>Time</Label><Input type="time" value={time} onChange={(e) => setTime(e.target.value)} /></div>
-          <div className="space-y-1.5"><Label>Message</Label><Input value={message || defaultMessages[type]} onChange={(e) => setMessage(e.target.value)} /></div>
+          <div className="space-y-1.5"><Label>{t('reminders.time')}</Label><Input type="time" value={time} onChange={(e) => setTime(e.target.value)} /></div>
+          <div className="space-y-1.5"><Label>{t('reminders.messageEn')}</Label><Input value={message || defaultMessages[type]} onChange={(e) => setMessage(e.target.value)} /></div>
+          <div className="space-y-1.5"><Label>{t('reminders.messageFi')}</Label><Input value={messageFi} onChange={(e) => setMessageFi(e.target.value)} placeholder="Viesti suomeksi" /></div>
           <Button className="w-full" onClick={() => {
-            onCreate({ type, time, message: message || defaultMessages[type] });
-            setOpen(false); setType('clock_in'); setTime('08:30'); setMessage('');
-          }}>Add Reminder</Button>
+            onCreate({ type, time, message: message || defaultMessages[type], message_fi: messageFi.trim() || undefined });
+            setOpen(false); setType('clock_in'); setTime('08:30'); setMessage(''); setMessageFi('');
+          }}>{t('reminders.add')}</Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function EditReminderDialog({ reminder, onSave }: { reminder: any; onSave: (data: { type?: string; time?: string; message?: string; message_fi?: string | null }) => void }) {
+  const { t } = useTranslation();
+  const [open, setOpen] = useState(false);
+  const [type, setType] = useState(reminder.type);
+  const [time, setTime] = useState(reminder.time);
+  const [message, setMessage] = useState(reminder.message);
+  const [messageFi, setMessageFi] = useState(reminder.message_fi || '');
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (o) { setType(reminder.type); setTime(reminder.time); setMessage(reminder.message); setMessageFi(reminder.message_fi || ''); } }}>
+      <DialogTrigger asChild><Button size="icon" variant="ghost" className="h-8 w-8"><Pencil className="h-3.5 w-3.5" /></Button></DialogTrigger>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader><DialogTitle className="font-display">{t('reminders.edit')}</DialogTitle></DialogHeader>
+        <div className="space-y-4 mt-2">
+          <div className="space-y-1.5">
+            <Label>{t('reminders.type')}</Label>
+            <Select value={type} onValueChange={setType}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="clock_in">{t('reminders.clockIn')}</SelectItem>
+                <SelectItem value="clock_out">{t('reminders.clockOut')}</SelectItem>
+                <SelectItem value="vacation_approval">{t('reminders.vacationApproval')}</SelectItem>
+                <SelectItem value="manager_approval">{t('reminders.managerApproval')}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5"><Label>{t('reminders.time')}</Label><Input type="time" value={time} onChange={(e) => setTime(e.target.value)} /></div>
+          <div className="space-y-1.5"><Label>{t('reminders.messageEn')}</Label><Input value={message} onChange={(e) => setMessage(e.target.value)} /></div>
+          <div className="space-y-1.5"><Label>{t('reminders.messageFi')}</Label><Input value={messageFi} onChange={(e) => setMessageFi(e.target.value)} placeholder="Viesti suomeksi" /></div>
+          <Button className="w-full" onClick={() => {
+            onSave({ type, time, message, message_fi: messageFi.trim() || null });
+            setOpen(false);
+          }}>{t('common.save')}</Button>
         </div>
       </DialogContent>
     </Dialog>
