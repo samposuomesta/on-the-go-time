@@ -81,6 +81,7 @@ export type Database = {
           hours: number
           id: string
           project_id: string
+          status: Database["public"]["Enums"]["request_status"]
           user_id: string
         }
         Insert: {
@@ -90,6 +91,7 @@ export type Database = {
           hours: number
           id?: string
           project_id: string
+          status?: Database["public"]["Enums"]["request_status"]
           user_id: string
         }
         Update: {
@@ -99,6 +101,7 @@ export type Database = {
           hours?: number
           id?: string
           project_id?: string
+          status?: Database["public"]["Enums"]["request_status"]
           user_id?: string
         }
         Relationships: [
@@ -258,6 +261,7 @@ export type Database = {
           parking_cost: number | null
           project_id: string | null
           receipt_image: string | null
+          status: Database["public"]["Enums"]["request_status"]
           user_id: string
         }
         Insert: {
@@ -269,6 +273,7 @@ export type Database = {
           parking_cost?: number | null
           project_id?: string | null
           receipt_image?: string | null
+          status?: Database["public"]["Enums"]["request_status"]
           user_id: string
         }
         Update: {
@@ -280,6 +285,7 @@ export type Database = {
           parking_cost?: number | null
           project_id?: string | null
           receipt_image?: string | null
+          status?: Database["public"]["Enums"]["request_status"]
           user_id?: string
         }
         Relationships: [
@@ -301,7 +307,9 @@ export type Database = {
       }
       users: {
         Row: {
+          annual_vacation_days: number
           company_id: string
+          contract_start_date: string | null
           created_at: string
           email: string
           id: string
@@ -310,7 +318,9 @@ export type Database = {
           role: Database["public"]["Enums"]["user_role"]
         }
         Insert: {
+          annual_vacation_days?: number
           company_id: string
+          contract_start_date?: string | null
           created_at?: string
           email: string
           id?: string
@@ -319,7 +329,9 @@ export type Database = {
           role?: Database["public"]["Enums"]["user_role"]
         }
         Update: {
+          annual_vacation_days?: number
           company_id?: string
+          contract_start_date?: string | null
           created_at?: string
           email?: string
           id?: string
