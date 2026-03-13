@@ -108,6 +108,7 @@ function AdminContent({ activeTab, admin }: { activeTab: string; admin: any }) {
     case 'approvals': return <ApprovalsPanel admin={admin} />;
     case 'projects': return <ProjectsPanel admin={admin} />;
     case 'absences': return <AbsencesPanel admin={admin} />;
+    case 'vacation-approvals': return <VacationApprovalsPanel admin={admin} />;
     case 'companies': return <CompaniesPanel admin={admin} />;
     case 'workplaces': return <WorkplacesPanel admin={admin} />;
     case 'reminders': return <RemindersPanel admin={admin} />;
