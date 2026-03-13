@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,7 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { DEMO_USER_ID } from '@/lib/demo-user';
 import { useProjects } from '@/hooks/useProjects';
 import { toast } from 'sonner';
-import { Camera } from 'lucide-react';
+import { Camera, Upload, X, Image as ImageIcon } from 'lucide-react';
 
 interface Props {
   open: boolean;
@@ -25,6 +25,9 @@ export function AddExpenseDialog({ open, onOpenChange, mode }: Props) {
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [description, setDescription] = useState('');
   const [saving, setSaving] = useState(false);
+  const [receiptFile, setReceiptFile] = useState<File | null>(null);
+  const [receiptPreview, setReceiptPreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const titles: Record<string, string> = {
     kilometers: 'Add Kilometers',
@@ -32,8 +35,53 @@ export function AddExpenseDialog({ open, onOpenChange, mode }: Props) {
     receipt: 'Upload Receipt',
   };
 
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file');
+      return;
+    }
+    setReceiptFile(file);
+    const reader = new FileReader();
+    reader.onload = (ev) => setReceiptPreview(ev.target?.result as string);
+    reader.readAsDataURL(file);
+  };
+
+  const clearReceipt = () => {
+    setReceiptFile(null);
+    setReceiptPreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const uploadReceipt = async (): Promise<string | null> => {
+    if (!receiptFile) return null;
+    const ext = receiptFile.name.split('.').pop() || 'jpg';
+    const path = `${DEMO_USER_ID}/${Date.now()}.${ext}`;
+    const { error } = await supabase.storage
+      .from('receipts')
+      .upload(path, receiptFile, { contentType: receiptFile.type });
+    if (error) {
+      console.error('Upload error:', error);
+      toast.error('Failed to upload receipt');
+      return null;
+    }
+    const { data: urlData } = supabase.storage.from('receipts').getPublicUrl(path);
+    return urlData.publicUrl;
+  };
+
   const handleSave = async () => {
     setSaving(true);
+
+    let receiptUrl: string | null = null;
+    if (mode === 'receipt' && receiptFile) {
+      receiptUrl = await uploadReceipt();
+      if (!receiptUrl) {
+        setSaving(false);
+        return;
+      }
+    }
+
     const { error } = await supabase.from('travel_expenses').insert({
       user_id: DEMO_USER_ID,
       project_id: projectId || null,
@@ -41,6 +89,7 @@ export function AddExpenseDialog({ open, onOpenChange, mode }: Props) {
       kilometers: mode === 'kilometers' ? parseFloat(kilometers) || 0 : 0,
       parking_cost: mode === 'parking' ? parseFloat(parkingCost) || 0 : 0,
       description: description || null,
+      receipt_image: receiptUrl,
     });
     setSaving(false);
     if (error) {
@@ -50,6 +99,7 @@ export function AddExpenseDialog({ open, onOpenChange, mode }: Props) {
     toast.success('Expense added');
     onOpenChange(false);
     setKilometers(''); setParkingCost(''); setDescription('');
+    clearReceipt();
   };
 
   return (
@@ -89,12 +139,34 @@ export function AddExpenseDialog({ open, onOpenChange, mode }: Props) {
           {mode === 'receipt' && (
             <div>
               <Label>Receipt Photo</Label>
-              <div className="flex items-center justify-center h-32 rounded-lg border-2 border-dashed border-border bg-muted/50 cursor-pointer">
-                <div className="text-center">
-                  <Camera className="h-8 w-8 mx-auto text-muted-foreground" />
-                  <p className="text-sm text-muted-foreground mt-1">Tap to take photo</p>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png"
+                capture="environment"
+                className="hidden"
+                onChange={handleFileSelect}
+              />
+              {receiptPreview ? (
+                <div className="relative">
+                  <img src={receiptPreview} alt="Receipt" className="w-full h-40 object-cover rounded-lg border border-border" />
+                  <button
+                    onClick={clearReceipt}
+                    className="absolute top-2 right-2 bg-background/80 rounded-full p-1 hover:bg-background"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
                 </div>
-              </div>
+              ) : (
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-full flex flex-col items-center justify-center h-32 rounded-lg border-2 border-dashed border-border bg-muted/50 hover:bg-muted transition-colors cursor-pointer"
+                >
+                  <Camera className="h-8 w-8 text-muted-foreground" />
+                  <p className="text-sm text-muted-foreground mt-1">Tap to take photo</p>
+                  <p className="text-xs text-muted-foreground">JPG, PNG</p>
+                </button>
+              )}
             </div>
           )}
           <div>
