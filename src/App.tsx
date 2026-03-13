@@ -3,6 +3,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { I18nProvider } from "@/lib/i18n";
 import Index from "./pages/Index.tsx";
 import MyEntries from "./pages/MyEntries.tsx";
 import VacationRequests from "./pages/VacationRequests.tsx";
@@ -18,25 +19,27 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/my-entries" element={<MyEntries />} />
-          <Route path="/vacation-requests" element={<VacationRequests />} />
-          <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/admin/vacation-approvals" element={<AdminVacationApprovals />} />
-          <Route path="/long-sick-leave" element={<LongSickLeave />} />
-          <Route path="/travel-expenses" element={<TravelExpenses />} />
-          <Route path="/my-statistics" element={<MyStatistics />} />
-          <Route path="/settings" element={<SettingsPage />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+    <I18nProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/my-entries" element={<MyEntries />} />
+            <Route path="/vacation-requests" element={<VacationRequests />} />
+            <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/admin/vacation-approvals" element={<AdminVacationApprovals />} />
+            <Route path="/long-sick-leave" element={<LongSickLeave />} />
+            <Route path="/travel-expenses" element={<TravelExpenses />} />
+            <Route path="/my-statistics" element={<MyStatistics />} />
+            <Route path="/settings" element={<SettingsPage />} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </I18nProvider>
   </QueryClientProvider>
 );
 
