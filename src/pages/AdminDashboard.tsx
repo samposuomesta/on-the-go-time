@@ -196,7 +196,7 @@ function ApprovalsPanel({ admin }: { admin: any }) {
   );
 }
 
-function VacationApprovalsPanel({ admin }: { admin: any }) {
+function VacationApprovalsPanel({ admin }: { admin: any; }) {
   const requests = admin.vacationRequests.data ?? [];
   const pending = requests.filter((r: any) => r.status === 'pending');
   const handled = requests.filter((r: any) => r.status !== 'pending');
