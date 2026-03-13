@@ -200,6 +200,6 @@ export function Dashboard() {
           mode={expenseMode}
         />
       )}
+      <AbsenceReasonDialog open={showAbsenceDialog} onOpenChange={setShowAbsenceDialog} />
     </div>
   );
-}
