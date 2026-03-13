@@ -242,13 +242,13 @@ function StatisticsPanel({ admin }: { admin: any }) {
     // Approved vacation days
     vacationRequests.forEach((vr: any) => {
       if (vr.status !== 'approved' || !perUser[vr.user_id]) return;
-      perUser[vr.user_id].vacationDaysUsed += countBusinessDays(vr.start_date, vr.end_date);
+      perUser[vr.user_id].vacationDaysUsed += countBusinessDays(vr.start_date, vr.end_date, holidaySet);
     });
 
     // Absences (sick & other)
     absences.forEach((ab: any) => {
       if (!perUser[ab.user_id]) return;
-      const days = countBusinessDays(ab.start_date, ab.end_date);
+      const days = countBusinessDays(ab.start_date, ab.end_date, holidaySet);
       if (ab.type === 'sick') {
         perUser[ab.user_id].sickDays += days;
       } else {
