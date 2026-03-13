@@ -411,7 +411,7 @@ function EmployeesPanel({ admin }: { admin: any }) {
               </TableHeader>
               <TableBody>
                 {employees.length === 0 ? (
-                  <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-12">No employees found. Add your first team member above.</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-12">No employees found. Add your first team member above.</TableCell></TableRow>
                 ) : employees.map((emp: any) => {
                   const mgrs = managerNames(emp.id);
                   return (
