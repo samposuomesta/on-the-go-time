@@ -14,11 +14,44 @@ export type Database = {
   }
   public: {
     Tables: {
+      absence_reasons: {
+        Row: {
+          active: boolean
+          company_id: string
+          created_at: string
+          id: string
+          label: string
+        }
+        Insert: {
+          active?: boolean
+          company_id: string
+          created_at?: string
+          id?: string
+          label: string
+        }
+        Update: {
+          active?: boolean
+          company_id?: string
+          created_at?: string
+          id?: string
+          label?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "absence_reasons_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       absences: {
         Row: {
           created_at: string
           end_date: string
           id: string
+          reason_id: string | null
           start_date: string
           status: Database["public"]["Enums"]["request_status"]
           type: Database["public"]["Enums"]["absence_type"]
@@ -28,6 +61,7 @@ export type Database = {
           created_at?: string
           end_date?: string
           id?: string
+          reason_id?: string | null
           start_date?: string
           status?: Database["public"]["Enums"]["request_status"]
           type: Database["public"]["Enums"]["absence_type"]
@@ -37,12 +71,20 @@ export type Database = {
           created_at?: string
           end_date?: string
           id?: string
+          reason_id?: string | null
           start_date?: string
           status?: Database["public"]["Enums"]["request_status"]
           type?: Database["public"]["Enums"]["absence_type"]
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "absences_reason_id_fkey"
+            columns: ["reason_id"]
+            isOneToOne: false
+            referencedRelation: "absence_reasons"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "absences_user_id_fkey"
             columns: ["user_id"]

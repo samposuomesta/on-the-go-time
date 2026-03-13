@@ -12,6 +12,7 @@ import { useWorkplaceDetection } from '@/hooks/useWorkplaceDetection';
 import { StatusCard } from './StatusCard';
 import { ActionButton } from './ActionButton';
 import { AddProjectHoursDialog } from './AddProjectHoursDialog';
+import { AbsenceReasonDialog } from './AbsenceReasonDialog';
 import { AddExpenseDialog } from './AddExpenseDialog';
 import { supabase } from '@/integrations/supabase/client';
 import { DEMO_USER_ID } from '@/lib/demo-user';
@@ -34,6 +35,7 @@ export function Dashboard() {
   const navigate = useNavigate();
   const [showProjectHours, setShowProjectHours] = useState(false);
   const [expenseMode, setExpenseMode] = useState<'kilometers' | 'parking' | 'receipt' | null>(null);
+  const [showAbsenceDialog, setShowAbsenceDialog] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
   const markAbsence = async (type: 'sick' | 'absence') => {
@@ -175,7 +177,7 @@ export function Dashboard() {
             <ActionButton
               icon={UserX}
               label="Absent Today"
-              onClick={() => markAbsence('absence')}
+              onClick={() => setShowAbsenceDialog(true)}
               variant="secondary"
             />
           </div>
@@ -198,6 +200,7 @@ export function Dashboard() {
           mode={expenseMode}
         />
       )}
+      <AbsenceReasonDialog open={showAbsenceDialog} onOpenChange={setShowAbsenceDialog} />
     </div>
   );
 }

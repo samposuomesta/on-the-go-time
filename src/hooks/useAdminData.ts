@@ -68,6 +68,19 @@ export function useAdminData() {
     },
   });
 
+  const absenceReasons = useQuery({
+    queryKey: ['admin-absence-reasons'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('absence_reasons')
+        .select('*')
+        .eq('company_id', DEMO_COMPANY_ID)
+        .order('label');
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const reminderRules = useQuery({
     queryKey: ['admin-reminders'],
     queryFn: async () => {
@@ -276,6 +289,30 @@ export function useAdminData() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-reminders'] }),
   });
 
+  const createAbsenceReason = useMutation({
+    mutationFn: async (data: { label: string }) => {
+      const { error } = await supabase.from('absence_reasons').insert({ ...data, company_id: DEMO_COMPANY_ID });
+      if (error) throw error;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-absence-reasons'] }),
+  });
+
+  const toggleAbsenceReason = useMutation({
+    mutationFn: async ({ id, active }: { id: string; active: boolean }) => {
+      const { error } = await supabase.from('absence_reasons').update({ active }).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-absence-reasons'] }),
+  });
+
+  const deleteAbsenceReason = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('absence_reasons').delete().eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-absence-reasons'] }),
+  });
+
   // Manager assignment mutations
   const setEmployeeManagers = useMutation({
     mutationFn: async ({ userId, managerIds }: { userId: string; managerIds: string[] }) => {
@@ -298,7 +335,7 @@ export function useAdminData() {
   });
 
   return {
-    employees, projects, companies, workplaces, reminderRules, userManagers,
+    employees, projects, companies, workplaces, reminderRules, userManagers, absenceReasons,
     pendingTravel, pendingHours, absences, vacationRequests,
     allTimeEntries, allWorkBank,
     approveTravel, approveHours, approveAbsence, approveVacation,
@@ -306,6 +343,7 @@ export function useAdminData() {
     createCompany, updateCompany,
     createWorkplace, deleteWorkplace,
     createReminder, toggleReminder, deleteReminder,
+    createAbsenceReason, toggleAbsenceReason, deleteAbsenceReason,
     setEmployeeManagers,
   };
 }
