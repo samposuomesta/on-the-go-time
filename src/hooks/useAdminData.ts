@@ -335,7 +335,7 @@ export function useAdminData() {
   });
 
   return {
-    employees, projects, companies, workplaces, reminderRules, userManagers,
+    employees, projects, companies, workplaces, reminderRules, userManagers, absenceReasons,
     pendingTravel, pendingHours, absences, vacationRequests,
     allTimeEntries, allWorkBank,
     approveTravel, approveHours, approveAbsence, approveVacation,
@@ -343,6 +343,7 @@ export function useAdminData() {
     createCompany, updateCompany,
     createWorkplace, deleteWorkplace,
     createReminder, toggleReminder, deleteReminder,
+    createAbsenceReason, toggleAbsenceReason, deleteAbsenceReason,
     setEmployeeManagers,
   };
 }
