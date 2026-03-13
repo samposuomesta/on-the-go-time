@@ -287,8 +287,16 @@ export function useAdminData() {
   });
 
   const createReminder = useMutation({
-    mutationFn: async (data: { type: string; time: string; message: string }) => {
+    mutationFn: async (data: { type: string; time: string; message: string; message_fi?: string }) => {
       const { error } = await supabase.from('reminder_rules' as any).insert({ ...data, company_id: DEMO_COMPANY_ID } as any);
+      if (error) throw error;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-reminders'] }),
+  });
+
+  const updateReminder = useMutation({
+    mutationFn: async ({ id, ...data }: { id: string; type?: string; time?: string; message?: string; message_fi?: string | null }) => {
+      const { error } = await supabase.from('reminder_rules' as any).update(data as any).eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-reminders'] }),
