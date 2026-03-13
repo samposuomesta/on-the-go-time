@@ -4,7 +4,6 @@ import { format, startOfMonth, endOfMonth, parseISO, isWithinInterval } from 'da
 import { ArrowLeft, Clock, Briefcase, Car, CalendarIcon, Filter, Download } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { exportTimeEntriesCSV, exportProjectHoursCSV, exportTravelExpensesCSV } from '@/lib/csv-export';
-import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { DEMO_USER_ID } from '@/lib/demo-user';
 import { Button } from '@/components/ui/button';
