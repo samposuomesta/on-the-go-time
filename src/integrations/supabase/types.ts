@@ -14,7 +14,447 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      absences: {
+        Row: {
+          created_at: string
+          end_date: string
+          id: string
+          start_date: string
+          status: Database["public"]["Enums"]["request_status"]
+          type: Database["public"]["Enums"]["absence_type"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          end_date?: string
+          id?: string
+          start_date?: string
+          status?: Database["public"]["Enums"]["request_status"]
+          type: Database["public"]["Enums"]["absence_type"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          end_date?: string
+          id?: string
+          start_date?: string
+          status?: Database["public"]["Enums"]["request_status"]
+          type?: Database["public"]["Enums"]["absence_type"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "absences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      companies: {
+        Row: {
+          created_at: string
+          id: string
+          km_rate: number
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          km_rate?: number
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          km_rate?: number
+          name?: string
+        }
+        Relationships: []
+      }
+      project_hours: {
+        Row: {
+          created_at: string
+          date: string
+          description: string | null
+          hours: number
+          id: string
+          project_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          date?: string
+          description?: string | null
+          hours: number
+          id?: string
+          project_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          description?: string | null
+          hours?: number
+          id?: string
+          project_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_hours_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_hours_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      projects: {
+        Row: {
+          active: boolean
+          company_id: string
+          created_at: string
+          customer: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          active?: boolean
+          company_id: string
+          created_at?: string
+          customer?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          active?: boolean
+          company_id?: string
+          created_at?: string
+          customer?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "projects_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      push_subscriptions: {
+        Row: {
+          auth: string
+          created_at: string
+          endpoint: string
+          id: string
+          p256dh: string
+          user_id: string
+        }
+        Insert: {
+          auth: string
+          created_at?: string
+          endpoint: string
+          id?: string
+          p256dh: string
+          user_id: string
+        }
+        Update: {
+          auth?: string
+          created_at?: string
+          endpoint?: string
+          id?: string
+          p256dh?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "push_subscriptions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      time_entries: {
+        Row: {
+          break_minutes: number | null
+          created_at: string
+          end_lat: number | null
+          end_lng: number | null
+          end_time: string | null
+          gps_accuracy: number | null
+          id: string
+          project_id: string | null
+          start_lat: number | null
+          start_lng: number | null
+          start_time: string
+          user_id: string
+        }
+        Insert: {
+          break_minutes?: number | null
+          created_at?: string
+          end_lat?: number | null
+          end_lng?: number | null
+          end_time?: string | null
+          gps_accuracy?: number | null
+          id?: string
+          project_id?: string | null
+          start_lat?: number | null
+          start_lng?: number | null
+          start_time?: string
+          user_id: string
+        }
+        Update: {
+          break_minutes?: number | null
+          created_at?: string
+          end_lat?: number | null
+          end_lng?: number | null
+          end_time?: string | null
+          gps_accuracy?: number | null
+          id?: string
+          project_id?: string | null
+          start_lat?: number | null
+          start_lng?: number | null
+          start_time?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "time_entries_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "time_entries_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      travel_expenses: {
+        Row: {
+          created_at: string
+          date: string
+          description: string | null
+          id: string
+          kilometers: number | null
+          parking_cost: number | null
+          project_id: string | null
+          receipt_image: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          date?: string
+          description?: string | null
+          id?: string
+          kilometers?: number | null
+          parking_cost?: number | null
+          project_id?: string | null
+          receipt_image?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          description?: string | null
+          id?: string
+          kilometers?: number | null
+          parking_cost?: number | null
+          project_id?: string | null
+          receipt_image?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "travel_expenses_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "travel_expenses_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      users: {
+        Row: {
+          company_id: string
+          created_at: string
+          email: string
+          id: string
+          manager_id: string | null
+          name: string
+          role: Database["public"]["Enums"]["user_role"]
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          email: string
+          id?: string
+          manager_id?: string | null
+          name: string
+          role?: Database["public"]["Enums"]["user_role"]
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          email?: string
+          id?: string
+          manager_id?: string | null
+          name?: string
+          role?: Database["public"]["Enums"]["user_role"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "users_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "users_manager_id_fkey"
+            columns: ["manager_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vacation_requests: {
+        Row: {
+          comment: string | null
+          created_at: string
+          end_date: string
+          id: string
+          start_date: string
+          status: Database["public"]["Enums"]["request_status"]
+          user_id: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          end_date: string
+          id?: string
+          start_date: string
+          status?: Database["public"]["Enums"]["request_status"]
+          user_id: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          end_date?: string
+          id?: string
+          start_date?: string
+          status?: Database["public"]["Enums"]["request_status"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vacation_requests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      work_bank_transactions: {
+        Row: {
+          created_at: string
+          hours: number
+          id: string
+          reference_id: string | null
+          type: Database["public"]["Enums"]["bank_transaction_type"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          hours: number
+          id?: string
+          reference_id?: string | null
+          type: Database["public"]["Enums"]["bank_transaction_type"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          hours?: number
+          id?: string
+          reference_id?: string | null
+          type?: Database["public"]["Enums"]["bank_transaction_type"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "work_bank_transactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workplaces: {
+        Row: {
+          company_id: string
+          created_at: string
+          id: string
+          latitude: number
+          longitude: number
+          name: string
+          radius_meters: number
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          id?: string
+          latitude: number
+          longitude: number
+          name: string
+          radius_meters?: number
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          id?: string
+          latitude?: number
+          longitude?: number
+          name?: string
+          radius_meters?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workplaces_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +463,15 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      absence_type: "sick" | "absence"
+      bank_transaction_type:
+        | "work"
+        | "overtime"
+        | "vacation"
+        | "sick"
+        | "adjustment"
+      request_status: "pending" | "approved" | "rejected"
+      user_role: "employee" | "manager" | "admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +598,17 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      absence_type: ["sick", "absence"],
+      bank_transaction_type: [
+        "work",
+        "overtime",
+        "vacation",
+        "sick",
+        "adjustment",
+      ],
+      request_status: ["pending", "approved", "rejected"],
+      user_role: ["employee", "manager", "admin"],
+    },
   },
 } as const
