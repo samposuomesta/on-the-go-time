@@ -132,7 +132,7 @@ export default function AdminDashboard() {
         {/* Mobile tab bar */}
         <div className="md:hidden w-full">
           <div className="flex overflow-x-auto border-b border-border bg-card px-2 gap-0.5">
-            {navItems.map((item) => {
+            {navItemDefs.map((item) => {
               const count = (pendingCounts as any)[item.key] ?? 0;
               return (
                 <button
@@ -146,7 +146,7 @@ export default function AdminDashboard() {
                   )}
                 >
                   <item.icon className="h-3.5 w-3.5" />
-                  {item.label}
+                  {t(item.labelKey as any)}
                   {count > 0 && <Badge variant="default" className="text-[10px] h-4 px-1 ml-0.5">{count}</Badge>}
                 </button>
               );
