@@ -7,6 +7,7 @@ import {
 import { Link } from 'react-router-dom';
 import { useAdminData } from '@/hooks/useAdminData';
 import { VacationTimeline } from '@/components/admin/VacationTimeline';
+import { getFinnishHolidaySet } from '@/lib/finnish-holidays';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -177,9 +178,16 @@ function AdminContent({ activeTab, admin }: { activeTab: string; admin: any }) {
 
 /* ===== STATISTICS ===== */
 
-function countBusinessDays(startDate: string, endDate: string): number {
+function countBusinessDays(startDate: string, endDate: string, holidaySet?: Set<string>): number {
   const days = eachDayOfInterval({ start: parseISO(startDate), end: parseISO(endDate) });
-  return days.filter(d => !isWeekend(d)).length;
+  return days.filter(d => {
+    if (isWeekend(d)) return false;
+    if (holidaySet) {
+      const ds = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      if (holidaySet.has(ds)) return false;
+    }
+    return true;
+  }).length;
 }
 
 function StatisticsPanel({ admin }: { admin: any }) {
@@ -188,7 +196,17 @@ function StatisticsPanel({ admin }: { admin: any }) {
   const absences = admin.absences.data ?? [];
   const vacationRequests = admin.vacationRequests.data ?? [];
   const workBank = admin.allWorkBank.data ?? [];
-  const projectHours = admin.pendingHours.data ?? [];
+  const companies = admin.companies.data ?? [];
+
+  // Get holiday set if company country is Finland
+  const companyCountry = companies[0]?.country;
+  const currentYear = new Date().getFullYear();
+  const holidaySet = useMemo(() => {
+    if (companyCountry === 'Finland') {
+      return getFinnishHolidaySet([currentYear - 1, currentYear, currentYear + 1]);
+    }
+    return undefined;
+  }, [companyCountry, currentYear]);
 
   const stats = useMemo(() => {
     const perUser: Record<string, {
@@ -224,13 +242,13 @@ function StatisticsPanel({ admin }: { admin: any }) {
     // Approved vacation days
     vacationRequests.forEach((vr: any) => {
       if (vr.status !== 'approved' || !perUser[vr.user_id]) return;
-      perUser[vr.user_id].vacationDaysUsed += countBusinessDays(vr.start_date, vr.end_date);
+      perUser[vr.user_id].vacationDaysUsed += countBusinessDays(vr.start_date, vr.end_date, holidaySet);
     });
 
     // Absences (sick & other)
     absences.forEach((ab: any) => {
       if (!perUser[ab.user_id]) return;
-      const days = countBusinessDays(ab.start_date, ab.end_date);
+      const days = countBusinessDays(ab.start_date, ab.end_date, holidaySet);
       if (ab.type === 'sick') {
         perUser[ab.user_id].sickDays += days;
       } else {
@@ -245,7 +263,7 @@ function StatisticsPanel({ admin }: { admin: any }) {
     });
 
     return perUser;
-  }, [employees, timeEntries, absences, vacationRequests, workBank]);
+  }, [employees, timeEntries, absences, vacationRequests, workBank, holidaySet]);
 
   const userList = Object.values(stats);
   const managersData = userList.filter((u: any) => u.role === 'manager' || u.role === 'admin');
@@ -743,19 +761,27 @@ function CompaniesPanel({ admin }: { admin: any }) {
               <TableHeader>
                 <TableRow className="bg-muted/50">
                   <TableHead className="font-semibold">Name</TableHead>
+                  <TableHead className="font-semibold">Company ID</TableHead>
+                  <TableHead className="font-semibold">Address</TableHead>
+                  <TableHead className="font-semibold">Country</TableHead>
                   <TableHead className="font-semibold">KM Rate</TableHead>
-                  <TableHead className="font-semibold">Created</TableHead>
                   <TableHead className="w-[60px]"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {companies.length === 0 ? (
-                  <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-12">No companies</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-12">No companies</TableCell></TableRow>
                 ) : companies.map((c: any) => (
                   <TableRow key={c.id} className="hover:bg-muted/30">
                     <TableCell className="font-medium">{c.name}</TableCell>
+                    <TableCell className="font-mono text-sm text-muted-foreground">{c.company_id_code || '—'}</TableCell>
+                    <TableCell className="text-muted-foreground max-w-[200px] truncate">{c.address || '—'}</TableCell>
+                    <TableCell>
+                      {c.country ? (
+                        <Badge variant="outline" className="text-xs">{c.country}</Badge>
+                      ) : '—'}
+                    </TableCell>
                     <TableCell>€{Number(c.km_rate).toFixed(2)}/km</TableCell>
-                    <TableCell className="text-muted-foreground">{format(new Date(c.created_at), 'MMM d, yyyy')}</TableCell>
                     <TableCell>
                       <EditCompanyDialog company={c} onSave={(data) => { admin.updateCompany.mutate({ id: c.id, ...data }); toast.success('Updated'); }} />
                     </TableCell>
@@ -1022,24 +1048,44 @@ function AddProjectDialog({ onCreate }: { onCreate: (data: { name: string; custo
   );
 }
 
-function AddCompanyDialog({ onCreate }: { onCreate: (data: { name: string; km_rate: number }) => void }) {
+function AddCompanyDialog({ onCreate }: { onCreate: (data: any) => void }) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
+  const [companyIdCode, setCompanyIdCode] = useState('');
+  const [address, setAddress] = useState('');
+  const [country, setCountry] = useState('');
   const [kmRate, setKmRate] = useState('0.25');
+  const reset = () => { setName(''); setCompanyIdCode(''); setAddress(''); setCountry(''); setKmRate('0.25'); };
 
   return (
-    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setName(''); setKmRate('0.25'); } }}>
+    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) reset(); }}>
       <DialogTrigger asChild><Button className="gap-1.5"><Plus className="h-4 w-4" /> Add Company</Button></DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader><DialogTitle className="font-display">Add Company</DialogTitle></DialogHeader>
-        <div className="space-y-4 mt-2">
-          <div className="space-y-1.5"><Label>Company Name</Label><Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Company name" /></div>
+        <div className="grid gap-4 mt-2 sm:grid-cols-2">
+          <div className="space-y-1.5 sm:col-span-2"><Label>Company Name</Label><Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Company name" /></div>
+          <div className="space-y-1.5"><Label>Company ID</Label><Input value={companyIdCode} onChange={(e) => setCompanyIdCode(e.target.value)} placeholder="e.g. 1234567-8" /></div>
+          <div className="space-y-1.5"><Label>Country</Label>
+            <Select value={country} onValueChange={setCountry}>
+              <SelectTrigger><SelectValue placeholder="Select country" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Finland">Finland</SelectItem>
+                <SelectItem value="Sweden">Sweden</SelectItem>
+                <SelectItem value="Norway">Norway</SelectItem>
+                <SelectItem value="Denmark">Denmark</SelectItem>
+                <SelectItem value="Estonia">Estonia</SelectItem>
+                <SelectItem value="Germany">Germany</SelectItem>
+                <SelectItem value="Other">Other</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5 sm:col-span-2"><Label>Main Address</Label><Input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Street, City, Postal Code" /></div>
           <div className="space-y-1.5"><Label>KM Rate (€)</Label><Input type="number" step="0.01" value={kmRate} onChange={(e) => setKmRate(e.target.value)} placeholder="0.25" /></div>
-          <Button className="w-full" disabled={!name.trim()} onClick={() => {
-            onCreate({ name: name.trim(), km_rate: parseFloat(kmRate) || 0.25 });
-            setOpen(false); setName(''); setKmRate('0.25');
-          }}>Add Company</Button>
         </div>
+        <Button className="w-full mt-2" disabled={!name.trim()} onClick={() => {
+          onCreate({ name: name.trim(), company_id_code: companyIdCode.trim() || null, address: address.trim() || null, country: country || null, km_rate: parseFloat(kmRate) || 0.25 });
+          setOpen(false); reset();
+        }}>Add Company</Button>
       </DialogContent>
     </Dialog>
   );
@@ -1048,6 +1094,9 @@ function AddCompanyDialog({ onCreate }: { onCreate: (data: { name: string; km_ra
 function EditCompanyDialog({ company, onSave }: { company: any; onSave: (data: any) => void }) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState(company.name);
+  const [companyIdCode, setCompanyIdCode] = useState(company.company_id_code || '');
+  const [address, setAddress] = useState(company.address || '');
+  const [country, setCountry] = useState(company.country || '');
   const [kmRate, setKmRate] = useState(String(company.km_rate));
 
   return (
@@ -1055,14 +1104,30 @@ function EditCompanyDialog({ company, onSave }: { company: any; onSave: (data: a
       <DialogTrigger asChild><Button size="icon" variant="ghost" className="h-8 w-8"><Pencil className="h-3.5 w-3.5" /></Button></DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader><DialogTitle className="font-display">Edit {company.name}</DialogTitle></DialogHeader>
-        <div className="space-y-4 mt-2">
-          <div className="space-y-1.5"><Label>Company Name</Label><Input value={name} onChange={(e) => setName(e.target.value)} /></div>
+        <div className="grid gap-4 mt-2 sm:grid-cols-2">
+          <div className="space-y-1.5 sm:col-span-2"><Label>Company Name</Label><Input value={name} onChange={(e) => setName(e.target.value)} /></div>
+          <div className="space-y-1.5"><Label>Company ID</Label><Input value={companyIdCode} onChange={(e) => setCompanyIdCode(e.target.value)} placeholder="e.g. 1234567-8" /></div>
+          <div className="space-y-1.5"><Label>Country</Label>
+            <Select value={country} onValueChange={setCountry}>
+              <SelectTrigger><SelectValue placeholder="Select country" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Finland">Finland</SelectItem>
+                <SelectItem value="Sweden">Sweden</SelectItem>
+                <SelectItem value="Norway">Norway</SelectItem>
+                <SelectItem value="Denmark">Denmark</SelectItem>
+                <SelectItem value="Estonia">Estonia</SelectItem>
+                <SelectItem value="Germany">Germany</SelectItem>
+                <SelectItem value="Other">Other</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5 sm:col-span-2"><Label>Main Address</Label><Input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Street, City, Postal Code" /></div>
           <div className="space-y-1.5"><Label>KM Rate (€)</Label><Input type="number" step="0.01" value={kmRate} onChange={(e) => setKmRate(e.target.value)} /></div>
-          <Button className="w-full" onClick={() => {
-            onSave({ name: name.trim(), km_rate: parseFloat(kmRate) || 0.25 });
-            setOpen(false);
-          }}>Save Changes</Button>
         </div>
+        <Button className="w-full mt-2" onClick={() => {
+          onSave({ name: name.trim(), company_id_code: companyIdCode.trim() || null, address: address.trim() || null, country: country || null, km_rate: parseFloat(kmRate) || 0.25 });
+          setOpen(false);
+        }}>Save Changes</Button>
       </DialogContent>
     </Dialog>
   );

@@ -229,8 +229,8 @@ export function useAdminData() {
   });
 
   const updateCompany = useMutation({
-    mutationFn: async ({ id, ...data }: { id: string; name?: string; km_rate?: number }) => {
-      const { error } = await supabase.from('companies').update(data).eq('id', id);
+    mutationFn: async ({ id, ...data }: { id: string; name?: string; km_rate?: number; company_id_code?: string | null; address?: string | null; country?: string | null }) => {
+      const { error } = await supabase.from('companies').update(data as any).eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-companies'] }),
