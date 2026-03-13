@@ -30,6 +30,7 @@ export function Dashboard() {
   const { activeEntry, loading, startWork, stopWork } = useTimeTracking();
   const { balance: bankBalance } = useWorkBank();
   useOfflineSync();
+  useWorkplaceDetection(!!activeEntry);
   const navigate = useNavigate();
   const [showProjectHours, setShowProjectHours] = useState(false);
   const [expenseMode, setExpenseMode] = useState<'kilometers' | 'parking' | 'receipt' | null>(null);
