@@ -978,15 +978,16 @@ function WorkplacesPanel({ admin }: { admin: any }) {
 /* ===== REMINDERS ===== */
 
 function RemindersPanel({ admin }: { admin: any }) {
+  const { language, t } = useTranslation();
   const reminders = admin.reminderRules.data ?? [];
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-display font-bold">Reminder Rules</h2>
-          <p className="text-sm text-muted-foreground">{reminders.length} rules configured</p>
+          <h2 className="text-xl font-display font-bold">{t('reminders.title')}</h2>
+          <p className="text-sm text-muted-foreground">{reminders.length} {t('reminders.title').toLowerCase()}</p>
         </div>
-        <AddReminderDialog onCreate={(data) => { admin.createReminder.mutate(data); toast.success('Reminder added'); }} />
+        <AddReminderDialog onCreate={(data) => { admin.createReminder.mutate(data); toast.success(t('common.added')); }} />
       </div>
       <Card>
         <CardContent className="p-0">
@@ -994,27 +995,32 @@ function RemindersPanel({ admin }: { admin: any }) {
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/50">
-                  <TableHead className="font-semibold">Type</TableHead>
-                  <TableHead className="font-semibold">Time</TableHead>
-                  <TableHead className="font-semibold">Message</TableHead>
-                  <TableHead className="font-semibold">Enabled</TableHead>
-                  <TableHead className="w-[60px]"></TableHead>
+                  <TableHead className="font-semibold">{t('reminders.type')}</TableHead>
+                  <TableHead className="font-semibold">{t('reminders.time')}</TableHead>
+                  <TableHead className="font-semibold">{t('reminders.message')}</TableHead>
+                  <TableHead className="font-semibold">{t('reminders.messageFi')}</TableHead>
+                  <TableHead className="font-semibold">{t('reminders.enabled')}</TableHead>
+                  <TableHead className="w-[100px]"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {reminders.length === 0 ? (
-                  <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-12">No reminder rules configured</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-12">{t('reminders.noReminders')}</TableCell></TableRow>
                 ) : reminders.map((r: any) => (
                   <TableRow key={r.id} className="hover:bg-muted/30">
                     <TableCell className="font-medium capitalize">{r.type.replace('_', ' ')}</TableCell>
                     <TableCell className="font-mono">{r.time}</TableCell>
-                    <TableCell className="text-muted-foreground max-w-[300px] truncate">{r.message}</TableCell>
+                    <TableCell className="text-muted-foreground max-w-[200px] truncate">{r.message}</TableCell>
+                    <TableCell className="text-muted-foreground max-w-[200px] truncate">{r.message_fi || '—'}</TableCell>
                     <TableCell><Switch checked={r.enabled} onCheckedChange={(enabled) => admin.toggleReminder.mutate({ id: r.id, enabled })} /></TableCell>
                     <TableCell>
-                      <Button size="icon" variant="ghost" className="text-destructive hover:text-destructive h-8 w-8"
-                        onClick={() => { admin.deleteReminder.mutate(r.id); toast.success('Deleted'); }}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <div className="flex gap-1">
+                        <EditReminderDialog reminder={r} onSave={(data) => { admin.updateReminder.mutate({ id: r.id, ...data }); toast.success(t('common.updated')); }} />
+                        <Button size="icon" variant="ghost" className="text-destructive hover:text-destructive h-8 w-8"
+                          onClick={() => { admin.deleteReminder.mutate(r.id); toast.success(t('common.deleted')); }}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
