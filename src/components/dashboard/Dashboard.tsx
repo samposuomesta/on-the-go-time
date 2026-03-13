@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Play, Square, Clock, Car, ParkingCircle, Camera, 
   Thermometer, UserX, Menu, CalendarDays, FileText, 
@@ -24,6 +25,7 @@ const APP_VERSION = '0.1.0';
 
 export function Dashboard() {
   const { activeEntry, loading, startWork, stopWork } = useTimeTracking();
+  const navigate = useNavigate();
   const [showProjectHours, setShowProjectHours] = useState(false);
   const [expenseMode, setExpenseMode] = useState<'kilometers' | 'parking' | 'receipt' | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -60,20 +62,24 @@ export function Dashboard() {
             </SheetHeader>
             <nav className="mt-6 space-y-1">
               {[
-                { icon: CalendarDays, label: 'Vacation Requests' },
-                { icon: AlertTriangle, label: 'Long Sick Leave' },
-                { icon: FileText, label: 'My Entries' },
-                { icon: BarChart3, label: 'My Statistics' },
-                { icon: Receipt, label: 'Travel Expenses' },
-                { icon: Settings, label: 'Settings' },
-                { icon: LogOut, label: 'Logout' },
-              ].map(({ icon: Icon, label }) => (
+                { icon: CalendarDays, label: 'Vacation Requests', path: null },
+                { icon: AlertTriangle, label: 'Long Sick Leave', path: null },
+                { icon: FileText, label: 'My Entries', path: '/my-entries' },
+                { icon: BarChart3, label: 'My Statistics', path: null },
+                { icon: Receipt, label: 'Travel Expenses', path: null },
+                { icon: Settings, label: 'Settings', path: null },
+                { icon: LogOut, label: 'Logout', path: null },
+              ].map(({ icon: Icon, label, path }) => (
                 <button
                   key={label}
                   className="flex w-full items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-foreground hover:bg-muted touch-target"
                   onClick={() => {
                     setMenuOpen(false);
-                    toast.info(`${label} — coming soon`);
+                    if (path) {
+                      navigate(path);
+                    } else {
+                      toast.info(`${label} — coming soon`);
+                    }
                   }}
                 >
                   <Icon className="h-5 w-5 text-muted-foreground" />
