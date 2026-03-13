@@ -1,0 +1,179 @@
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { format, parseISO } from 'date-fns';
+import { ArrowLeft, CalendarDays, CheckCircle2, XCircle, Clock } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
+
+export default function AdminVacationApprovals() {
+  const queryClient = useQueryClient();
+
+  const { data: requests = [] } = useQuery({
+    queryKey: ['admin-vacation'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('vacation_requests')
+        .select('*, users(name)')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const approveVacation = useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: 'approved' | 'rejected' }) => {
+      const { error } = await supabase.from('vacation_requests').update({ status }).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-vacation'] });
+      toast.success('Updated');
+    },
+  });
+
+  const pending = requests.filter((r: any) => r.status === 'pending');
+  const handled = requests.filter((r: any) => r.status !== 'pending');
+
+  const statusBadge = (status: string) => {
+    const config: Record<string, { className: string }> = {
+      pending: { className: 'bg-warning/15 text-warning border-warning/30' },
+      approved: { className: 'bg-success/15 text-success border-success/30' },
+      rejected: { className: 'bg-destructive/15 text-destructive border-destructive/30' },
+    };
+    return (
+      <Badge variant="outline" className={cn("capitalize", config[status]?.className)}>
+        {status}
+      </Badge>
+    );
+  };
+
+  return (
+    <div className="min-h-screen bg-background flex flex-col">
+      <header className="sticky top-0 z-50 bg-card border-b border-border px-4 lg:px-6 py-3 flex items-center gap-3">
+        <Link to="/admin" className="flex items-center justify-center rounded-lg hover:bg-muted p-2 -ml-2">
+          <ArrowLeft className="h-5 w-5" />
+        </Link>
+        <div>
+          <h1 className="text-lg lg:text-xl font-display font-bold">Vacation Approvals</h1>
+          <p className="text-xs lg:text-sm text-muted-foreground">Review and manage vacation requests</p>
+        </div>
+      </header>
+
+      <main className="flex-1 p-4 lg:p-8 max-w-5xl mx-auto w-full space-y-6">
+        {/* Pending */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base lg:text-lg font-display flex items-center gap-2">
+              <Clock className="h-5 w-5 text-warning" />
+              Pending Requests
+              <Badge variant="secondary" className="ml-auto">{pending.length}</Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Employee</TableHead>
+                    <TableHead>Start Date</TableHead>
+                    <TableHead>End Date</TableHead>
+                    <TableHead>Comment</TableHead>
+                    <TableHead>Submitted</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {pending.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                        No pending vacation requests
+                      </TableCell>
+                    </TableRow>
+                  ) : pending.map((r: any) => (
+                    <TableRow key={r.id}>
+                      <TableCell className="font-medium">{r.users?.name ?? 'Unknown'}</TableCell>
+                      <TableCell>{format(parseISO(r.start_date), 'MMM d, yyyy')}</TableCell>
+                      <TableCell>{format(parseISO(r.end_date), 'MMM d, yyyy')}</TableCell>
+                      <TableCell className="text-muted-foreground max-w-[200px] truncate">{r.comment || '—'}</TableCell>
+                      <TableCell className="text-muted-foreground">{format(new Date(r.created_at), 'MMM d')}</TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="gap-1.5 text-success hover:text-success border-success/30 hover:bg-success/10"
+                            disabled={approveVacation.isPending}
+                            onClick={() => approveVacation.mutate({ id: r.id, status: 'approved' })}
+                          >
+                            <CheckCircle2 className="h-4 w-4" /> Approve
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="gap-1.5 text-destructive hover:text-destructive border-destructive/30 hover:bg-destructive/10"
+                            disabled={approveVacation.isPending}
+                            onClick={() => approveVacation.mutate({ id: r.id, status: 'rejected' })}
+                          >
+                            <XCircle className="h-4 w-4" /> Reject
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* History */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base lg:text-lg font-display flex items-center gap-2">
+              <CalendarDays className="h-5 w-5" />
+              History
+              <Badge variant="secondary" className="ml-auto">{handled.length}</Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Employee</TableHead>
+                    <TableHead>Start Date</TableHead>
+                    <TableHead>End Date</TableHead>
+                    <TableHead>Comment</TableHead>
+                    <TableHead>Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {handled.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                        No history yet
+                      </TableCell>
+                    </TableRow>
+                  ) : handled.map((r: any) => (
+                    <TableRow key={r.id}>
+                      <TableCell className="font-medium">{r.users?.name ?? 'Unknown'}</TableCell>
+                      <TableCell>{format(parseISO(r.start_date), 'MMM d, yyyy')}</TableCell>
+                      <TableCell>{format(parseISO(r.end_date), 'MMM d, yyyy')}</TableCell>
+                      <TableCell className="text-muted-foreground max-w-[200px] truncate">{r.comment || '—'}</TableCell>
+                      <TableCell>{statusBadge(r.status)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+      </main>
+    </div>
+  );
+}
