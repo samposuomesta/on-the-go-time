@@ -399,6 +399,7 @@ function EmployeesPanel({ admin }: { admin: any }) {
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/50">
+                  <TableHead className="font-semibold">Employee #</TableHead>
                   <TableHead className="font-semibold">Name</TableHead>
                   <TableHead className="font-semibold">Email</TableHead>
                   <TableHead className="font-semibold">Role</TableHead>
@@ -410,11 +411,12 @@ function EmployeesPanel({ admin }: { admin: any }) {
               </TableHeader>
               <TableBody>
                 {employees.length === 0 ? (
-                  <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-12">No employees found. Add your first team member above.</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-12">No employees found. Add your first team member above.</TableCell></TableRow>
                 ) : employees.map((emp: any) => {
                   const mgrs = managerNames(emp.id);
                   return (
                     <TableRow key={emp.id} className="hover:bg-muted/30">
+                      <TableCell className="font-mono text-sm text-muted-foreground">{emp.employee_number || '—'}</TableCell>
                       <TableCell className="font-medium">{emp.name}</TableCell>
                       <TableCell className="text-muted-foreground">{emp.email}</TableCell>
                       <TableCell><Badge variant="outline" className="capitalize">{emp.role}</Badge></TableCell>
@@ -880,10 +882,11 @@ function AddEmployeeDialog({ onCreate }: { onCreate: (data: any) => void }) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [employeeNumber, setEmployeeNumber] = useState('');
   const [role, setRole] = useState<'employee' | 'manager' | 'admin'>('employee');
   const [contractDate, setContractDate] = useState('');
   const [vacationDays, setVacationDays] = useState('25');
-  const reset = () => { setName(''); setEmail(''); setRole('employee'); setContractDate(''); setVacationDays('25'); };
+  const reset = () => { setName(''); setEmail(''); setEmployeeNumber(''); setRole('employee'); setContractDate(''); setVacationDays('25'); };
 
   return (
     <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) reset(); }}>
@@ -893,6 +896,7 @@ function AddEmployeeDialog({ onCreate }: { onCreate: (data: any) => void }) {
         <div className="grid gap-4 mt-2 sm:grid-cols-2">
           <div className="space-y-1.5 sm:col-span-2"><Label>Name</Label><Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Full name" /></div>
           <div className="space-y-1.5 sm:col-span-2"><Label>Email</Label><Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="email@company.com" /></div>
+          <div className="space-y-1.5"><Label>Employee Number</Label><Input value={employeeNumber} onChange={(e) => setEmployeeNumber(e.target.value)} placeholder="EMP-001" /></div>
           <div className="space-y-1.5"><Label>Role</Label>
             <Select value={role} onValueChange={(v: any) => setRole(v)}>
               <SelectTrigger><SelectValue /></SelectTrigger>
@@ -903,7 +907,7 @@ function AddEmployeeDialog({ onCreate }: { onCreate: (data: any) => void }) {
           <div className="space-y-1.5"><Label>Vacation Days/Year</Label><Input type="number" value={vacationDays} onChange={(e) => setVacationDays(e.target.value)} min="0" max="50" /></div>
         </div>
         <Button className="w-full mt-2" disabled={!name.trim() || !email.trim()} onClick={() => {
-          onCreate({ name: name.trim(), email: email.trim(), role, contract_start_date: contractDate || null, annual_vacation_days: parseInt(vacationDays) || 25 });
+          onCreate({ name: name.trim(), email: email.trim(), employee_number: employeeNumber.trim() || null, role, contract_start_date: contractDate || null, annual_vacation_days: parseInt(vacationDays) || 25 });
           setOpen(false); reset();
         }}>Add Employee</Button>
       </DialogContent>
@@ -919,6 +923,7 @@ function EditEmployeeDialog({ employee, allEmployees, currentManagerIds, onSave 
 }) {
   const [open, setOpen] = useState(false);
   const [role, setRole] = useState(employee.role);
+  const [employeeNumber, setEmployeeNumber] = useState(employee.employee_number || '');
   const [contractDate, setContractDate] = useState(employee.contract_start_date || '');
   const [vacationDays, setVacationDays] = useState(String(employee.annual_vacation_days ?? 25));
   const [selectedManagers, setSelectedManagers] = useState<string[]>(currentManagerIds);
@@ -943,6 +948,7 @@ function EditEmployeeDialog({ employee, allEmployees, currentManagerIds, onSave 
       <DialogContent className="sm:max-w-md">
         <DialogHeader><DialogTitle className="font-display">Edit {employee.name}</DialogTitle></DialogHeader>
         <div className="grid gap-4 mt-2 sm:grid-cols-2">
+          <div className="space-y-1.5"><Label>Employee Number</Label><Input value={employeeNumber} onChange={(e) => setEmployeeNumber(e.target.value)} placeholder="EMP-001" /></div>
           <div className="space-y-1.5"><Label>Role</Label>
             <Select value={role} onValueChange={(v: any) => setRole(v)}>
               <SelectTrigger><SelectValue /></SelectTrigger>
@@ -985,7 +991,7 @@ function EditEmployeeDialog({ employee, allEmployees, currentManagerIds, onSave 
           </div>
         </div>
         <Button className="w-full mt-2" onClick={() => {
-          onSave({ role, contract_start_date: contractDate || null, annual_vacation_days: parseInt(vacationDays) || 25 }, selectedManagers);
+          onSave({ role, employee_number: employeeNumber.trim() || null, contract_start_date: contractDate || null, annual_vacation_days: parseInt(vacationDays) || 25 }, selectedManagers);
           setOpen(false);
         }}>Save Changes</Button>
       </DialogContent>

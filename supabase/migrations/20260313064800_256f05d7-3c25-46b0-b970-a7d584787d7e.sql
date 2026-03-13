@@ -1,0 +1,1 @@
+ALTER TABLE public.users ADD COLUMN employee_number text DEFAULT NULL;
