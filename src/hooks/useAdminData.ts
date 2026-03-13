@@ -18,6 +18,18 @@ export function useAdminData() {
     },
   });
 
+  // Manager assignments (many-to-many)
+  const userManagers = useQuery({
+    queryKey: ['admin-user-managers'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('user_managers' as any)
+        .select('*');
+      if (error) throw error;
+      return data as any[];
+    },
+  });
+
   const projects = useQuery({
     queryKey: ['admin-projects'],
     queryFn: async () => {
@@ -184,7 +196,6 @@ export function useAdminData() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-employees'] }),
   });
 
-  // Company mutations
   const createCompany = useMutation({
     mutationFn: async (data: { name: string; km_rate: number }) => {
       const { error } = await supabase.from('companies').insert(data);
@@ -201,7 +212,6 @@ export function useAdminData() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-companies'] }),
   });
 
-  // Workplace mutations
   const createWorkplace = useMutation({
     mutationFn: async (data: { name: string; latitude: number; longitude: number; radius_meters: number }) => {
       const { error } = await supabase.from('workplaces').insert({ ...data, company_id: DEMO_COMPANY_ID });
@@ -218,7 +228,6 @@ export function useAdminData() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-workplaces'] }),
   });
 
-  // Reminder mutations
   const createReminder = useMutation({
     mutationFn: async (data: { type: string; time: string; message: string }) => {
       const { error } = await supabase.from('reminder_rules' as any).insert({ ...data, company_id: DEMO_COMPANY_ID } as any);
@@ -243,13 +252,35 @@ export function useAdminData() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-reminders'] }),
   });
 
+  // Manager assignment mutations
+  const setEmployeeManagers = useMutation({
+    mutationFn: async ({ userId, managerIds }: { userId: string; managerIds: string[] }) => {
+      // Delete existing assignments
+      const { error: delError } = await supabase
+        .from('user_managers' as any)
+        .delete()
+        .eq('user_id', userId);
+      if (delError) throw delError;
+      // Insert new assignments
+      if (managerIds.length > 0) {
+        const rows = managerIds.map(mid => ({ user_id: userId, manager_id: mid }));
+        const { error: insError } = await supabase
+          .from('user_managers' as any)
+          .insert(rows as any);
+        if (insError) throw insError;
+      }
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-user-managers'] }),
+  });
+
   return {
-    employees, projects, companies, workplaces, reminderRules,
+    employees, projects, companies, workplaces, reminderRules, userManagers,
     pendingTravel, pendingHours, absences, vacationRequests,
     approveTravel, approveHours, approveAbsence, approveVacation,
     updateEmployee, toggleProject, createProject, createEmployee,
     createCompany, updateCompany,
     createWorkplace, deleteWorkplace,
     createReminder, toggleReminder, deleteReminder,
+    setEmployeeManagers,
   };
 }
