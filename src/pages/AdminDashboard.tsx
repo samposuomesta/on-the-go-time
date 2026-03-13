@@ -178,9 +178,16 @@ function AdminContent({ activeTab, admin }: { activeTab: string; admin: any }) {
 
 /* ===== STATISTICS ===== */
 
-function countBusinessDays(startDate: string, endDate: string): number {
+function countBusinessDays(startDate: string, endDate: string, holidaySet?: Set<string>): number {
   const days = eachDayOfInterval({ start: parseISO(startDate), end: parseISO(endDate) });
-  return days.filter(d => !isWeekend(d)).length;
+  return days.filter(d => {
+    if (isWeekend(d)) return false;
+    if (holidaySet) {
+      const ds = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      if (holidaySet.has(ds)) return false;
+    }
+    return true;
+  }).length;
 }
 
 function StatisticsPanel({ admin }: { admin: any }) {
