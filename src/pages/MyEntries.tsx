@@ -90,7 +90,15 @@ export default function MyEntries() {
         <Link to="/" className="touch-target flex items-center justify-center rounded-lg hover:bg-muted p-2 -ml-2">
           <ArrowLeft className="h-5 w-5" />
         </Link>
-        <h1 className="text-lg font-display font-bold">My Entries</h1>
+        <h1 className="text-lg font-display font-bold flex-1">My Entries</h1>
+        <Button size="sm" variant="outline" className="gap-1.5 text-xs"
+          onClick={() => {
+            exportTimeEntriesCSV(timeEntries);
+            exportProjectHoursCSV(projectHours);
+            exportTravelExpensesCSV(expenses);
+          }}>
+          <Download className="h-3.5 w-3.5" /> CSV
+        </Button>
       </header>
 
       {/* Date Filter */}
