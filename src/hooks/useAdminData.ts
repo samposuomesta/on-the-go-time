@@ -119,6 +119,30 @@ export function useAdminData() {
     },
   });
 
+  const allTimeEntries = useQuery({
+    queryKey: ['admin-all-time-entries'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('time_entries')
+        .select('*')
+        .order('start_time', { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const allWorkBank = useQuery({
+    queryKey: ['admin-all-work-bank'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('work_bank_transactions')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const vacationRequests = useQuery({
     queryKey: ['admin-vacation'],
     queryFn: async () => {
@@ -276,6 +300,7 @@ export function useAdminData() {
   return {
     employees, projects, companies, workplaces, reminderRules, userManagers,
     pendingTravel, pendingHours, absences, vacationRequests,
+    allTimeEntries, allWorkBank,
     approveTravel, approveHours, approveAbsence, approveVacation,
     updateEmployee, toggleProject, createProject, createEmployee,
     createCompany, updateCompany,

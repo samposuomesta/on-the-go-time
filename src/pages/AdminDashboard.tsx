@@ -1,8 +1,8 @@
 import { useState, useMemo } from 'react';
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, differenceInBusinessDays, differenceInHours, differenceInMinutes, eachDayOfInterval, isWeekend } from 'date-fns';
 import {
   ArrowLeft, Users, Briefcase, Car, Clock, CalendarOff,
-  CalendarDays, Plus, Pencil, MapPin, Bell, Building2, Trash2, CheckCircle2, XCircle, X
+  CalendarDays, Plus, Pencil, MapPin, Bell, Building2, Trash2, CheckCircle2, XCircle, X, BarChart3
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAdminData } from '@/hooks/useAdminData';
@@ -20,8 +20,10 @@ import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Separator } from '@/components/ui/separator';
+import { Progress } from '@/components/ui/progress';
 
 const navItems = [
+  { key: 'statistics', label: 'Statistics', icon: BarChart3, description: 'Overview & metrics' },
   { key: 'employees', label: 'Employees', icon: Users, description: 'Manage team members' },
   { key: 'approvals', label: 'Approvals', icon: Clock, description: 'Travel & project hours' },
   { key: 'vacation-approvals', label: 'Vacation Approvals', icon: CalendarDays, description: 'Review vacation requests' },
@@ -66,7 +68,7 @@ function ApproveRejectButtons({ id, onApprove, isPending }: {
 
 export default function AdminDashboard() {
   const admin = useAdminData();
-  const [activeTab, setActiveTab] = useState('employees');
+  const [activeTab, setActiveTab] = useState('statistics');
 
   const pendingCounts = {
     approvals: (admin.pendingTravel.data?.length ?? 0) + (admin.pendingHours.data?.length ?? 0),
@@ -160,6 +162,7 @@ export default function AdminDashboard() {
 
 function AdminContent({ activeTab, admin }: { activeTab: string; admin: any }) {
   switch (activeTab) {
+    case 'statistics': return <StatisticsPanel admin={admin} />;
     case 'employees': return <EmployeesPanel admin={admin} />;
     case 'approvals': return <ApprovalsPanel admin={admin} />;
     case 'projects': return <ProjectsPanel admin={admin} />;
@@ -170,6 +173,205 @@ function AdminContent({ activeTab, admin }: { activeTab: string; admin: any }) {
     case 'reminders': return <RemindersPanel admin={admin} />;
     default: return null;
   }
+}
+
+/* ===== STATISTICS ===== */
+
+function countBusinessDays(startDate: string, endDate: string): number {
+  const days = eachDayOfInterval({ start: parseISO(startDate), end: parseISO(endDate) });
+  return days.filter(d => !isWeekend(d)).length;
+}
+
+function StatisticsPanel({ admin }: { admin: any }) {
+  const employees = admin.employees.data ?? [];
+  const timeEntries = admin.allTimeEntries.data ?? [];
+  const absences = admin.absences.data ?? [];
+  const vacationRequests = admin.vacationRequests.data ?? [];
+  const workBank = admin.allWorkBank.data ?? [];
+  const projectHours = admin.pendingHours.data ?? [];
+
+  const stats = useMemo(() => {
+    const perUser: Record<string, {
+      name: string; role: string;
+      workedHours: number; projectHours: number;
+      vacationDaysUsed: number; vacationDaysTotal: number;
+      sickDays: number; absenceDays: number;
+      bankBalance: number;
+    }> = {};
+
+    // Init per user
+    employees.forEach((emp: any) => {
+      perUser[emp.id] = {
+        name: emp.name,
+        role: emp.role,
+        workedHours: 0,
+        projectHours: 0,
+        vacationDaysUsed: 0,
+        vacationDaysTotal: emp.annual_vacation_days ?? 25,
+        sickDays: 0,
+        absenceDays: 0,
+        bankBalance: 0,
+      };
+    });
+
+    // Time entries (clock in/out)
+    timeEntries.forEach((te: any) => {
+      if (!te.end_time || !perUser[te.user_id]) return;
+      const mins = differenceInMinutes(new Date(te.end_time), new Date(te.start_time)) - (te.break_minutes ?? 0);
+      perUser[te.user_id].workedHours += Math.max(0, mins / 60);
+    });
+
+    // Approved vacation days
+    vacationRequests.forEach((vr: any) => {
+      if (vr.status !== 'approved' || !perUser[vr.user_id]) return;
+      perUser[vr.user_id].vacationDaysUsed += countBusinessDays(vr.start_date, vr.end_date);
+    });
+
+    // Absences (sick & other)
+    absences.forEach((ab: any) => {
+      if (!perUser[ab.user_id]) return;
+      const days = countBusinessDays(ab.start_date, ab.end_date);
+      if (ab.type === 'sick') {
+        perUser[ab.user_id].sickDays += days;
+      } else {
+        perUser[ab.user_id].absenceDays += days;
+      }
+    });
+
+    // Work bank
+    workBank.forEach((wb: any) => {
+      if (!perUser[wb.user_id]) return;
+      perUser[wb.user_id].bankBalance += Number(wb.hours);
+    });
+
+    return perUser;
+  }, [employees, timeEntries, absences, vacationRequests, workBank]);
+
+  const userList = Object.values(stats);
+  const managersData = userList.filter((u: any) => u.role === 'manager' || u.role === 'admin');
+  const employeesData = userList.filter((u: any) => u.role === 'employee');
+
+  const totalWorkedHours = userList.reduce((s, u) => s + u.workedHours, 0);
+  const totalVacationDays = userList.reduce((s, u) => s + u.vacationDaysUsed, 0);
+  const totalSickDays = userList.reduce((s, u) => s + u.sickDays, 0);
+  const totalAbsenceDays = userList.reduce((s, u) => s + u.absenceDays, 0);
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-xl font-display font-bold">Statistics Overview</h2>
+        <p className="text-sm text-muted-foreground">Company-wide metrics and per-employee breakdown</p>
+      </div>
+
+      {/* Summary cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3">
+              <div className="rounded-lg bg-primary/10 p-2.5"><Clock className="h-5 w-5 text-primary" /></div>
+              <div>
+                <p className="text-2xl font-bold">{totalWorkedHours.toFixed(1)}</p>
+                <p className="text-xs text-muted-foreground">Total Work Hours</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3">
+              <div className="rounded-lg bg-success/10 p-2.5"><CalendarDays className="h-5 w-5 text-success" /></div>
+              <div>
+                <p className="text-2xl font-bold">{totalVacationDays}</p>
+                <p className="text-xs text-muted-foreground">Vacation Days Used</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3">
+              <div className="rounded-lg bg-warning/10 p-2.5"><CalendarOff className="h-5 w-5 text-warning" /></div>
+              <div>
+                <p className="text-2xl font-bold">{totalSickDays}</p>
+                <p className="text-xs text-muted-foreground">Sick Leave Days</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3">
+              <div className="rounded-lg bg-destructive/10 p-2.5"><CalendarOff className="h-5 w-5 text-destructive" /></div>
+              <div>
+                <p className="text-2xl font-bold">{totalAbsenceDays}</p>
+                <p className="text-xs text-muted-foreground">Other Absence Days</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Per-employee table */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base font-display">Employee & Manager Breakdown</CardTitle>
+          <CardDescription>Individual statistics for all team members</CardDescription>
+        </CardHeader>
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/50">
+                  <TableHead className="font-semibold">Name</TableHead>
+                  <TableHead className="font-semibold">Role</TableHead>
+                  <TableHead className="font-semibold text-right">Work Hours</TableHead>
+                  <TableHead className="font-semibold text-right">Time Bank</TableHead>
+                  <TableHead className="font-semibold">Vacation (Used / Total)</TableHead>
+                  <TableHead className="font-semibold text-right">Sick Days</TableHead>
+                  <TableHead className="font-semibold text-right">Absence Days</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {[...managersData, ...employeesData].map((u: any) => {
+                  const vacPercent = u.vacationDaysTotal > 0 ? (u.vacationDaysUsed / u.vacationDaysTotal) * 100 : 0;
+                  return (
+                    <TableRow key={u.name}>
+                      <TableCell className="font-medium">{u.name}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className={cn(
+                          "text-xs capitalize",
+                          u.role === 'admin' ? 'border-primary/30 text-primary' :
+                          u.role === 'manager' ? 'border-warning/30 text-warning' :
+                          'border-muted-foreground/30'
+                        )}>{u.role}</Badge>
+                      </TableCell>
+                      <TableCell className="text-right font-mono text-sm">{u.workedHours.toFixed(1)}h</TableCell>
+                      <TableCell className="text-right">
+                        <span className={cn("font-mono text-sm font-medium", u.bankBalance >= 0 ? "text-success" : "text-destructive")}>
+                          {u.bankBalance >= 0 ? '+' : ''}{u.bankBalance.toFixed(1)}h
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2 min-w-[140px]">
+                          <Progress value={Math.min(vacPercent, 100)} className="h-2 flex-1" />
+                          <span className="text-xs font-mono whitespace-nowrap">{u.vacationDaysUsed}/{u.vacationDaysTotal}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right font-mono text-sm">{u.sickDays}</TableCell>
+                      <TableCell className="text-right font-mono text-sm">{u.absenceDays}</TableCell>
+                    </TableRow>
+                  );
+                })}
+                {userList.length === 0 && (
+                  <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">No employees found</TableCell></TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
 }
 
 /* ===== EMPLOYEES ===== */
