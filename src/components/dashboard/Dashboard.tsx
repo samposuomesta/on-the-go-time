@@ -177,7 +177,7 @@ export function Dashboard() {
             <ActionButton
               icon={UserX}
               label="Absent Today"
-              onClick={() => markAbsence('absence')}
+              onClick={() => setShowAbsenceDialog(true)}
               variant="secondary"
             />
           </div>
