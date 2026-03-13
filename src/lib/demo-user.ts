@@ -1,0 +1,3 @@
+// Demo user for no-auth mode
+export const DEMO_USER_ID = 'b0000000-0000-0000-0000-000000000001';
+export const DEMO_COMPANY_ID = 'a0000000-0000-0000-0000-000000000001';
