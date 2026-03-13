@@ -23,6 +23,7 @@ import { Separator } from '@/components/ui/separator';
 import { Progress } from '@/components/ui/progress';
 
 const navItems = [
+  { key: 'statistics', label: 'Statistics', icon: BarChart3, description: 'Overview & metrics' },
   { key: 'employees', label: 'Employees', icon: Users, description: 'Manage team members' },
   { key: 'approvals', label: 'Approvals', icon: Clock, description: 'Travel & project hours' },
   { key: 'vacation-approvals', label: 'Vacation Approvals', icon: CalendarDays, description: 'Review vacation requests' },
