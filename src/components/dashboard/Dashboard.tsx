@@ -62,7 +62,7 @@ export function Dashboard() {
             </SheetHeader>
             <nav className="mt-6 space-y-1">
               {[
-                { icon: CalendarDays, label: 'Vacation Requests', path: null },
+                { icon: CalendarDays, label: 'Vacation Requests', path: '/vacation-requests' },
                 { icon: AlertTriangle, label: 'Long Sick Leave', path: null },
                 { icon: FileText, label: 'My Entries', path: '/my-entries' },
                 { icon: BarChart3, label: 'My Statistics', path: null },
