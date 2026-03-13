@@ -1,7 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { format, parseISO, startOfMonth, endOfMonth } from 'date-fns';
-import { ArrowLeft, Car, CalendarIcon } from 'lucide-react';
+import { ArrowLeft, Car, CalendarIcon, Download } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { exportTravelExpensesCSV } from '@/lib/csv-export';
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { DEMO_USER_ID } from '@/lib/demo-user';
