@@ -1,27 +1,28 @@
 import { useMemo, useState } from 'react';
-import { format, parseISO, eachDayOfInterval, startOfMonth, endOfMonth, addMonths, subMonths, isSameMonth, isWeekend } from 'date-fns';
-import { ChevronLeft, ChevronRight, CheckCircle2, XCircle, Clock } from 'lucide-react';
+import { format, parseISO, eachDayOfInterval, startOfMonth, endOfMonth, addMonths, subMonths, isWeekend } from 'date-fns';
+import { ChevronLeft, ChevronRight, CheckCircle2, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { getFinnishHolidaySet, getFinnishHolidays } from '@/lib/finnish-holidays';
 
 interface VacationTimelineProps {
   employees: any[];
   vacationRequests: any[];
   userManagers: any[];
+  companyCountry?: string;
   onApprove: (id: string, status: 'approved' | 'rejected') => void;
   isPending?: boolean;
 }
 
-export function VacationTimeline({ employees, vacationRequests, userManagers, onApprove, isPending }: VacationTimelineProps) {
+export function VacationTimeline({ employees, vacationRequests, userManagers, companyCountry, onApprove, isPending }: VacationTimelineProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [monthsToShow] = useState(3);
 
-  // Build month range
   const months = useMemo(() => {
     const result = [];
     for (let i = 0; i < monthsToShow; i++) {
@@ -30,15 +31,27 @@ export function VacationTimeline({ employees, vacationRequests, userManagers, on
     return result;
   }, [currentDate, monthsToShow]);
 
-  // All days across months
-  const allDays = useMemo(() => {
-    if (months.length === 0) return [];
-    const first = months[0];
-    const last = endOfMonth(months[months.length - 1]);
-    return eachDayOfInterval({ start: first, end: last });
-  }, [months]);
+  // Holiday set & name lookup for Finland
+  const holidaySet = useMemo(() => {
+    if (companyCountry !== 'Finland') return new Set<string>();
+    const years = months.map(m => m.getFullYear());
+    const uniqueYears = [...new Set(years)];
+    return getFinnishHolidaySet(uniqueYears);
+  }, [companyCountry, months]);
 
-  // Build manager lookup: userId -> manager names
+  const holidayNames = useMemo(() => {
+    if (companyCountry !== 'Finland') return new Map<string, string>();
+    const years = months.map(m => m.getFullYear());
+    const uniqueYears = [...new Set(years)];
+    const map = new Map<string, string>();
+    for (const year of uniqueYears) {
+      for (const h of getFinnishHolidays(year)) {
+        map.set(h.date, h.name);
+      }
+    }
+    return map;
+  }, [companyCountry, months]);
+
   const managerLookup = useMemo(() => {
     const map: Record<string, string[]> = {};
     (userManagers ?? []).forEach((um: any) => {
@@ -51,14 +64,12 @@ export function VacationTimeline({ employees, vacationRequests, userManagers, on
     return map;
   }, [userManagers, employees]);
 
-  // Sort: managers first, then employees
   const sortedPeople = useMemo(() => {
     const managers = employees.filter((e: any) => e.role === 'manager' || e.role === 'admin');
     const nonManagers = employees.filter((e: any) => e.role === 'employee');
     return [...managers, ...nonManagers];
   }, [employees]);
 
-  // Map vacation requests by user
   const vacByUser = useMemo(() => {
     const map: Record<string, any[]> = {};
     (vacationRequests ?? []).forEach((v: any) => {
@@ -68,21 +79,20 @@ export function VacationTimeline({ employees, vacationRequests, userManagers, on
     return map;
   }, [vacationRequests]);
 
-  // Check if a day falls within a vacation request
   const getDayVacation = (userId: string, day: Date) => {
     const reqs = vacByUser[userId] ?? [];
     const dayStr = format(day, 'yyyy-MM-dd');
-    return reqs.find((r: any) => {
-      return dayStr >= r.start_date && dayStr <= r.end_date && r.status !== 'rejected';
-    });
+    return reqs.find((r: any) => dayStr >= r.start_date && dayStr <= r.end_date && r.status !== 'rejected');
   };
+
+  const formatDayStr = (day: Date) =>
+    `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, '0')}-${String(day.getDate()).padStart(2, '0')}`;
 
   const CELL_W = 28;
   const NAME_W = 200;
 
   return (
     <div className="space-y-4">
-      {/* Navigation */}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-display font-bold">Vacation Timeline</h2>
@@ -102,7 +112,7 @@ export function VacationTimeline({ employees, vacationRequests, userManagers, on
       </div>
 
       {/* Legend */}
-      <div className="flex items-center gap-4 text-xs">
+      <div className="flex items-center gap-4 text-xs flex-wrap">
         <div className="flex items-center gap-1.5">
           <div className="w-4 h-3 rounded-sm bg-warning/60 border border-warning/40" />
           <span className="text-muted-foreground">Pending</span>
@@ -115,6 +125,12 @@ export function VacationTimeline({ employees, vacationRequests, userManagers, on
           <div className="w-4 h-3 rounded-sm bg-muted border border-border" />
           <span className="text-muted-foreground">Weekend</span>
         </div>
+        {companyCountry === 'Finland' && (
+          <div className="flex items-center gap-1.5">
+            <div className="w-4 h-3 rounded-sm bg-destructive/30 border border-destructive/40" />
+            <span className="text-muted-foreground">Bank Holiday</span>
+          </div>
+        )}
       </div>
 
       {/* Timeline grid */}
@@ -136,19 +152,38 @@ export function VacationTimeline({ employees, vacationRequests, userManagers, on
                           {format(month, 'MMMM yyyy')}
                         </div>
                         <div className="flex">
-                          {daysInMonth.map((day, di) => (
-                            <div
-                              key={di}
-                              className={cn(
-                                "text-center border-r border-border last:border-r-0 py-1",
-                                isWeekend(day) && "bg-muted/40"
-                              )}
-                              style={{ width: CELL_W, minWidth: CELL_W }}
-                            >
-                              <div className="text-[9px] text-muted-foreground leading-none">{format(day, 'EEE').charAt(0)}</div>
-                              <div className="text-[10px] font-medium leading-none mt-0.5">{format(day, 'd')}</div>
-                            </div>
-                          ))}
+                          {daysInMonth.map((day, di) => {
+                            const dayStr = formatDayStr(day);
+                            const isHoliday = holidaySet.has(dayStr);
+                            const holidayName = holidayNames.get(dayStr);
+                            return (
+                              <Tooltip key={di}>
+                                <TooltipTrigger asChild>
+                                  <div
+                                    className={cn(
+                                      "text-center border-r border-border last:border-r-0 py-1",
+                                      isWeekend(day) && "bg-muted/40",
+                                      isHoliday && "bg-destructive/20"
+                                    )}
+                                    style={{ width: CELL_W, minWidth: CELL_W }}
+                                  >
+                                    <div className={cn("text-[9px] leading-none", isHoliday ? "text-destructive font-bold" : "text-muted-foreground")}>
+                                      {format(day, 'EEE').charAt(0)}
+                                    </div>
+                                    <div className={cn("text-[10px] font-medium leading-none mt-0.5", isHoliday && "text-destructive")}>
+                                      {format(day, 'd')}
+                                    </div>
+                                  </div>
+                                </TooltipTrigger>
+                                {isHoliday && (
+                                  <TooltipContent side="bottom" className="text-xs">
+                                    <p className="font-medium">{holidayName}</p>
+                                    <p className="text-muted-foreground">{format(day, 'MMM d, yyyy')}</p>
+                                  </TooltipContent>
+                                )}
+                              </Tooltip>
+                            );
+                          })}
                         </div>
                       </div>
                     );
@@ -163,7 +198,6 @@ export function VacationTimeline({ employees, vacationRequests, userManagers, on
 
                 return (
                   <div key={person.id} className={cn("flex border-b border-border last:border-b-0 hover:bg-muted/20", isManager && "bg-primary/5")}>
-                    {/* Name cell */}
                     <div
                       className="shrink-0 border-r border-border flex items-center px-3 py-1.5 gap-2"
                       style={{ width: NAME_W, minWidth: NAME_W }}
@@ -179,7 +213,6 @@ export function VacationTimeline({ employees, vacationRequests, userManagers, on
                       </div>
                     </div>
 
-                    {/* Day cells */}
                     <div className="flex">
                       {months.map((month, mi) => {
                         const daysInMonth = eachDayOfInterval({ start: month, end: endOfMonth(month) });
@@ -188,6 +221,8 @@ export function VacationTimeline({ employees, vacationRequests, userManagers, on
                             {daysInMonth.map((day, di) => {
                               const vac = getDayVacation(person.id, day);
                               const weekend = isWeekend(day);
+                              const dayStr = formatDayStr(day);
+                              const isHoliday = holidaySet.has(dayStr);
 
                               return (
                                 <Tooltip key={di}>
@@ -195,7 +230,8 @@ export function VacationTimeline({ employees, vacationRequests, userManagers, on
                                     <div
                                       className={cn(
                                         "border-r border-border/50 last:border-r-0 flex items-center justify-center cursor-default transition-colors",
-                                        weekend && !vac && "bg-muted/30",
+                                        weekend && !vac && !isHoliday && "bg-muted/30",
+                                        isHoliday && !vac && "bg-destructive/15",
                                         vac?.status === 'pending' && "bg-warning/50 hover:bg-warning/70",
                                         vac?.status === 'approved' && "bg-success/50 hover:bg-success/70",
                                       )}
@@ -207,27 +243,37 @@ export function VacationTimeline({ employees, vacationRequests, userManagers, on
                                           vac.status === 'pending' ? "bg-warning" : "bg-success"
                                         )} />
                                       )}
+                                      {!vac && isHoliday && (
+                                        <div className="w-1.5 h-1.5 rounded-full bg-destructive/60" />
+                                      )}
                                     </div>
                                   </TooltipTrigger>
-                                  {vac && (
+                                  {(vac || isHoliday) && (
                                     <TooltipContent side="top" className="text-xs max-w-[200px]">
-                                      <p className="font-medium">{person.name}</p>
-                                      <p>{format(parseISO(vac.start_date), 'MMM d')} — {format(parseISO(vac.end_date), 'MMM d, yyyy')}</p>
-                                      <p className="capitalize font-medium mt-0.5">{vac.status}</p>
-                                      {vac.comment && <p className="text-muted-foreground mt-0.5">{vac.comment}</p>}
-                                      {vac.status === 'pending' && (
-                                        <div className="flex gap-1 mt-1.5">
-                                          <Button size="sm" variant="outline" className="h-6 text-[10px] gap-1 text-success border-success/30"
-                                            disabled={isPending}
-                                            onClick={() => { onApprove(vac.id, 'approved'); toast.success('Approved'); }}>
-                                            <CheckCircle2 className="h-3 w-3" /> Approve
-                                          </Button>
-                                          <Button size="sm" variant="outline" className="h-6 text-[10px] gap-1 text-destructive border-destructive/30"
-                                            disabled={isPending}
-                                            onClick={() => { onApprove(vac.id, 'rejected'); toast.success('Rejected'); }}>
-                                            <XCircle className="h-3 w-3" /> Reject
-                                          </Button>
-                                        </div>
+                                      {isHoliday && (
+                                        <p className="text-destructive font-medium">{holidayNames.get(dayStr)}</p>
+                                      )}
+                                      {vac && (
+                                        <>
+                                          <p className="font-medium">{person.name}</p>
+                                          <p>{format(parseISO(vac.start_date), 'MMM d')} — {format(parseISO(vac.end_date), 'MMM d, yyyy')}</p>
+                                          <p className="capitalize font-medium mt-0.5">{vac.status}</p>
+                                          {vac.comment && <p className="text-muted-foreground mt-0.5">{vac.comment}</p>}
+                                          {vac.status === 'pending' && (
+                                            <div className="flex gap-1 mt-1.5">
+                                              <Button size="sm" variant="outline" className="h-6 text-[10px] gap-1 text-success border-success/30"
+                                                disabled={isPending}
+                                                onClick={() => { onApprove(vac.id, 'approved'); toast.success('Approved'); }}>
+                                                <CheckCircle2 className="h-3 w-3" /> Approve
+                                              </Button>
+                                              <Button size="sm" variant="outline" className="h-6 text-[10px] gap-1 text-destructive border-destructive/30"
+                                                disabled={isPending}
+                                                onClick={() => { onApprove(vac.id, 'rejected'); toast.success('Rejected'); }}>
+                                                <XCircle className="h-3 w-3" /> Reject
+                                              </Button>
+                                            </div>
+                                          )}
+                                        </>
                                       )}
                                     </TooltipContent>
                                   )}
