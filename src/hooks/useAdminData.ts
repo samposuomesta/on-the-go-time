@@ -31,6 +31,44 @@ export function useAdminData() {
     },
   });
 
+  const companies = useQuery({
+    queryKey: ['admin-companies'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('companies')
+        .select('*')
+        .order('name');
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const workplaces = useQuery({
+    queryKey: ['admin-workplaces'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('workplaces')
+        .select('*')
+        .eq('company_id', DEMO_COMPANY_ID)
+        .order('name');
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const reminderRules = useQuery({
+    queryKey: ['admin-reminders'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('reminder_rules' as any)
+        .select('*')
+        .eq('company_id', DEMO_COMPANY_ID)
+        .order('created_at');
+      if (error) throw error;
+      return data as any[];
+    },
+  });
+
   const pendingTravel = useQuery({
     queryKey: ['admin-travel'],
     queryFn: async () => {
@@ -81,6 +119,7 @@ export function useAdminData() {
     },
   });
 
+  // Mutations
   const approveTravel = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: 'approved' | 'rejected' }) => {
       const { error } = await supabase.from('travel_expenses').update({ status }).eq('id', id);
@@ -145,9 +184,72 @@ export function useAdminData() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-employees'] }),
   });
 
+  // Company mutations
+  const createCompany = useMutation({
+    mutationFn: async (data: { name: string; km_rate: number }) => {
+      const { error } = await supabase.from('companies').insert(data);
+      if (error) throw error;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-companies'] }),
+  });
+
+  const updateCompany = useMutation({
+    mutationFn: async ({ id, ...data }: { id: string; name?: string; km_rate?: number }) => {
+      const { error } = await supabase.from('companies').update(data).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-companies'] }),
+  });
+
+  // Workplace mutations
+  const createWorkplace = useMutation({
+    mutationFn: async (data: { name: string; latitude: number; longitude: number; radius_meters: number }) => {
+      const { error } = await supabase.from('workplaces').insert({ ...data, company_id: DEMO_COMPANY_ID });
+      if (error) throw error;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-workplaces'] }),
+  });
+
+  const deleteWorkplace = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('workplaces').delete().eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-workplaces'] }),
+  });
+
+  // Reminder mutations
+  const createReminder = useMutation({
+    mutationFn: async (data: { type: string; time: string; message: string }) => {
+      const { error } = await supabase.from('reminder_rules' as any).insert({ ...data, company_id: DEMO_COMPANY_ID } as any);
+      if (error) throw error;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-reminders'] }),
+  });
+
+  const toggleReminder = useMutation({
+    mutationFn: async ({ id, enabled }: { id: string; enabled: boolean }) => {
+      const { error } = await supabase.from('reminder_rules' as any).update({ enabled } as any).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-reminders'] }),
+  });
+
+  const deleteReminder = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('reminder_rules' as any).delete().eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-reminders'] }),
+  });
+
   return {
-    employees, projects, pendingTravel, pendingHours, absences, vacationRequests,
+    employees, projects, companies, workplaces, reminderRules,
+    pendingTravel, pendingHours, absences, vacationRequests,
     approveTravel, approveHours, approveAbsence, approveVacation,
     updateEmployee, toggleProject, createProject, createEmployee,
+    createCompany, updateCompany,
+    createWorkplace, deleteWorkplace,
+    createReminder, toggleReminder, deleteReminder,
   };
 }
