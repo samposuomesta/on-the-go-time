@@ -6,6 +6,8 @@ import {
   BarChart3, Receipt, Settings, LogOut, AlertTriangle, Shield
 } from 'lucide-react';
 import { useTimeTracking } from '@/hooks/useTimeTracking';
+import { useWorkBank } from '@/hooks/useWorkBank';
+import { useOfflineSync } from '@/hooks/useOfflineSync';
 import { StatusCard } from './StatusCard';
 import { ActionButton } from './ActionButton';
 import { AddProjectHoursDialog } from './AddProjectHoursDialog';
@@ -25,6 +27,8 @@ const APP_VERSION = '0.1.0';
 
 export function Dashboard() {
   const { activeEntry, loading, startWork, stopWork } = useTimeTracking();
+  const { balance: bankBalance } = useWorkBank();
+  useOfflineSync();
   const navigate = useNavigate();
   const [showProjectHours, setShowProjectHours] = useState(false);
   const [expenseMode, setExpenseMode] = useState<'kilometers' | 'parking' | 'receipt' | null>(null);
@@ -63,10 +67,10 @@ export function Dashboard() {
             <nav className="mt-6 space-y-1">
               {[
                 { icon: CalendarDays, label: 'Vacation Requests', path: '/vacation-requests' },
-                { icon: AlertTriangle, label: 'Long Sick Leave', path: null },
+                { icon: AlertTriangle, label: 'Long Sick Leave', path: '/long-sick-leave' },
                 { icon: FileText, label: 'My Entries', path: '/my-entries' },
-                { icon: BarChart3, label: 'My Statistics', path: null },
-                { icon: Receipt, label: 'Travel Expenses', path: null },
+                { icon: BarChart3, label: 'My Statistics', path: '/my-statistics' },
+                { icon: Receipt, label: 'Travel Expenses', path: '/travel-expenses' },
                 { icon: Shield, label: 'Admin Panel', path: '/admin' },
                 { icon: Settings, label: 'Settings', path: null },
                 { icon: LogOut, label: 'Logout', path: null },
@@ -95,7 +99,7 @@ export function Dashboard() {
       {/* Main Content */}
       <main className="flex-1 px-4 py-4 space-y-5 max-w-lg mx-auto w-full">
         {/* Status */}
-        <StatusCard activeEntry={activeEntry} loading={loading} bankBalance={0} />
+        <StatusCard activeEntry={activeEntry} loading={loading} bankBalance={bankBalance} />
 
         {/* Clock Actions */}
         <section>
