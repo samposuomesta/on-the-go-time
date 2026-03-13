@@ -65,10 +65,10 @@ export function Dashboard() {
             <nav className="mt-6 space-y-1">
               {[
                 { icon: CalendarDays, label: 'Vacation Requests', path: '/vacation-requests' },
-                { icon: AlertTriangle, label: 'Long Sick Leave', path: null },
+                { icon: AlertTriangle, label: 'Long Sick Leave', path: '/long-sick-leave' },
                 { icon: FileText, label: 'My Entries', path: '/my-entries' },
-                { icon: BarChart3, label: 'My Statistics', path: null },
-                { icon: Receipt, label: 'Travel Expenses', path: null },
+                { icon: BarChart3, label: 'My Statistics', path: '/my-statistics' },
+                { icon: Receipt, label: 'Travel Expenses', path: '/travel-expenses' },
                 { icon: Shield, label: 'Admin Panel', path: '/admin' },
                 { icon: Settings, label: 'Settings', path: null },
                 { icon: LogOut, label: 'Logout', path: null },
