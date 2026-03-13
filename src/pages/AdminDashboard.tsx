@@ -416,6 +416,7 @@ function EmployeesPanel({ admin }: { admin: any }) {
                   const mgrs = managerNames(emp.id);
                   return (
                     <TableRow key={emp.id} className="hover:bg-muted/30">
+                      <TableCell className="font-mono text-sm text-muted-foreground">{emp.employee_number || '—'}</TableCell>
                       <TableCell className="font-medium">{emp.name}</TableCell>
                       <TableCell className="text-muted-foreground">{emp.email}</TableCell>
                       <TableCell><Badge variant="outline" className="capitalize">{emp.role}</Badge></TableCell>
