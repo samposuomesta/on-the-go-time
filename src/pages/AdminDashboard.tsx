@@ -192,20 +192,112 @@ function ApprovalsPanel({ admin }: { admin: any }) {
             isPending={admin.approveHours.isPending} />
         )}
       />
-      <Card className="border-dashed">
-        <CardContent className="py-6 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <CalendarDays className="h-5 w-5 text-muted-foreground" />
-            <div>
-              <p className="text-sm font-medium">Vacation Requests</p>
-              <p className="text-xs text-muted-foreground">Managed on a dedicated page</p>
-            </div>
+    </div>
+  );
+}
+
+function VacationApprovalsPanel({ admin }: { admin: any }) {
+  const requests = admin.vacationRequests.data ?? [];
+  const pending = requests.filter((r: any) => r.status === 'pending');
+  const handled = requests.filter((r: any) => r.status !== 'pending');
+
+  const statusBadge = (status: string) => {
+    const config: Record<string, string> = {
+      pending: 'bg-warning/15 text-warning border-warning/30',
+      approved: 'bg-success/15 text-success border-success/30',
+      rejected: 'bg-destructive/15 text-destructive border-destructive/30',
+    };
+    return <Badge variant="outline" className={cn("capitalize", config[status])}>{status}</Badge>;
+  };
+
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base lg:text-lg font-display flex items-center gap-2">
+            <Clock className="h-5 w-5 text-warning" /> Pending Requests
+            <Badge variant="secondary" className="ml-auto">{pending.length}</Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Employee</TableHead>
+                  <TableHead>Start Date</TableHead>
+                  <TableHead>End Date</TableHead>
+                  <TableHead>Comment</TableHead>
+                  <TableHead>Submitted</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {pending.length === 0 ? (
+                  <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">No pending requests</TableCell></TableRow>
+                ) : pending.map((r: any) => (
+                  <TableRow key={r.id}>
+                    <TableCell className="font-medium">{r.users?.name ?? 'Unknown'}</TableCell>
+                    <TableCell>{format(parseISO(r.start_date), 'MMM d, yyyy')}</TableCell>
+                    <TableCell>{format(parseISO(r.end_date), 'MMM d, yyyy')}</TableCell>
+                    <TableCell className="text-muted-foreground max-w-[200px] truncate">{r.comment || '—'}</TableCell>
+                    <TableCell className="text-muted-foreground">{format(new Date(r.created_at), 'MMM d')}</TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Button size="sm" variant="outline" className="gap-1.5 text-success hover:text-success border-success/30 hover:bg-success/10"
+                          disabled={admin.approveVacation.isPending}
+                          onClick={() => admin.approveVacation.mutate({ id: r.id, status: 'approved' })}>
+                          <CheckCircle2 className="h-4 w-4" /> Approve
+                        </Button>
+                        <Button size="sm" variant="outline" className="gap-1.5 text-destructive hover:text-destructive border-destructive/30 hover:bg-destructive/10"
+                          disabled={admin.approveVacation.isPending}
+                          onClick={() => admin.approveVacation.mutate({ id: r.id, status: 'rejected' })}>
+                          <XCircle className="h-4 w-4" /> Reject
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </div>
-          <Link to="/admin/vacation-approvals">
-            <Button variant="outline" size="sm" className="gap-1.5">
-              <ExternalLink className="h-3.5 w-3.5" /> Open
-            </Button>
-          </Link>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base lg:text-lg font-display flex items-center gap-2">
+            <CalendarDays className="h-5 w-5" /> History
+            <Badge variant="secondary" className="ml-auto">{handled.length}</Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Employee</TableHead>
+                  <TableHead>Start Date</TableHead>
+                  <TableHead>End Date</TableHead>
+                  <TableHead>Comment</TableHead>
+                  <TableHead>Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {handled.length === 0 ? (
+                  <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">No history yet</TableCell></TableRow>
+                ) : handled.map((r: any) => (
+                  <TableRow key={r.id}>
+                    <TableCell className="font-medium">{r.users?.name ?? 'Unknown'}</TableCell>
+                    <TableCell>{format(parseISO(r.start_date), 'MMM d, yyyy')}</TableCell>
+                    <TableCell>{format(parseISO(r.end_date), 'MMM d, yyyy')}</TableCell>
+                    <TableCell className="text-muted-foreground max-w-[200px] truncate">{r.comment || '—'}</TableCell>
+                    <TableCell>{statusBadge(r.status)}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
     </div>
