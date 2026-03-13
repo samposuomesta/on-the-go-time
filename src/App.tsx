@@ -27,6 +27,7 @@ const App = () => (
           <Route path="/my-entries" element={<MyEntries />} />
           <Route path="/vacation-requests" element={<VacationRequests />} />
           <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin/vacation-approvals" element={<AdminVacationApprovals />} />
           <Route path="/long-sick-leave" element={<LongSickLeave />} />
           <Route path="/travel-expenses" element={<TravelExpenses />} />
           <Route path="/my-statistics" element={<MyStatistics />} />
