@@ -819,15 +819,16 @@ function EditAbsenceReasonDialog({ reason, onSave }: { reason: any; onSave: (dat
 /* ===== PROJECTS ===== */
 
 function ProjectsPanel({ admin }: { admin: any }) {
+  const { t } = useTranslation();
   const projects = admin.projects.data ?? [];
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-display font-bold">Projects</h2>
-          <p className="text-sm text-muted-foreground">{projects.length} projects</p>
+          <h2 className="text-xl font-display font-bold">{t('projects.title')}</h2>
+          <p className="text-sm text-muted-foreground">{projects.length} {t('projects.title').toLowerCase()}</p>
         </div>
-        <AddProjectDialog onCreate={(data) => { admin.createProject.mutate(data); toast.success('Project added'); }} />
+        <AddProjectDialog onCreate={(data) => { admin.createProject.mutate(data); toast.success(t('common.added')); }} />
       </div>
       <Card>
         <CardContent className="p-0">
@@ -835,21 +836,25 @@ function ProjectsPanel({ admin }: { admin: any }) {
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/50">
-                  <TableHead className="font-semibold">Name</TableHead>
-                  <TableHead className="font-semibold">Customer</TableHead>
-                  <TableHead className="font-semibold">Status</TableHead>
-                  <TableHead className="font-semibold w-[100px]">Active</TableHead>
+                  <TableHead className="font-semibold">{t('projects.name')}</TableHead>
+                  <TableHead className="font-semibold">{t('projects.customer')}</TableHead>
+                  <TableHead className="font-semibold">{t('projects.status')}</TableHead>
+                  <TableHead className="font-semibold w-[100px]">{t('absenceReasons.active')}</TableHead>
+                  <TableHead className="w-[60px]"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {projects.length === 0 ? (
-                  <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-12">No projects yet</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-12">{t('projects.noProjects')}</TableCell></TableRow>
                 ) : projects.map((p: any) => (
                   <TableRow key={p.id} className="hover:bg-muted/30">
                     <TableCell className="font-medium">{p.name}</TableCell>
                     <TableCell className="text-muted-foreground">{p.customer || '—'}</TableCell>
-                    <TableCell><Badge variant={p.active ? 'default' : 'secondary'}>{p.active ? 'Active' : 'Inactive'}</Badge></TableCell>
+                    <TableCell><Badge variant={p.active ? 'default' : 'secondary'}>{p.active ? t('absenceReasons.active') : t('absenceReasons.inactive')}</Badge></TableCell>
                     <TableCell><Switch checked={p.active} onCheckedChange={(active) => admin.toggleProject.mutate({ id: p.id, active })} /></TableCell>
+                    <TableCell>
+                      <EditProjectDialog project={p} onSave={(data) => { admin.updateProject.mutate({ id: p.id, ...data }); toast.success(t('common.updated')); }} />
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
