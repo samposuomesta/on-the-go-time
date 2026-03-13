@@ -882,10 +882,11 @@ function AddEmployeeDialog({ onCreate }: { onCreate: (data: any) => void }) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [employeeNumber, setEmployeeNumber] = useState('');
   const [role, setRole] = useState<'employee' | 'manager' | 'admin'>('employee');
   const [contractDate, setContractDate] = useState('');
   const [vacationDays, setVacationDays] = useState('25');
-  const reset = () => { setName(''); setEmail(''); setRole('employee'); setContractDate(''); setVacationDays('25'); };
+  const reset = () => { setName(''); setEmail(''); setEmployeeNumber(''); setRole('employee'); setContractDate(''); setVacationDays('25'); };
 
   return (
     <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) reset(); }}>
@@ -895,6 +896,7 @@ function AddEmployeeDialog({ onCreate }: { onCreate: (data: any) => void }) {
         <div className="grid gap-4 mt-2 sm:grid-cols-2">
           <div className="space-y-1.5 sm:col-span-2"><Label>Name</Label><Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Full name" /></div>
           <div className="space-y-1.5 sm:col-span-2"><Label>Email</Label><Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="email@company.com" /></div>
+          <div className="space-y-1.5"><Label>Employee Number</Label><Input value={employeeNumber} onChange={(e) => setEmployeeNumber(e.target.value)} placeholder="EMP-001" /></div>
           <div className="space-y-1.5"><Label>Role</Label>
             <Select value={role} onValueChange={(v: any) => setRole(v)}>
               <SelectTrigger><SelectValue /></SelectTrigger>
@@ -905,7 +907,7 @@ function AddEmployeeDialog({ onCreate }: { onCreate: (data: any) => void }) {
           <div className="space-y-1.5"><Label>Vacation Days/Year</Label><Input type="number" value={vacationDays} onChange={(e) => setVacationDays(e.target.value)} min="0" max="50" /></div>
         </div>
         <Button className="w-full mt-2" disabled={!name.trim() || !email.trim()} onClick={() => {
-          onCreate({ name: name.trim(), email: email.trim(), role, contract_start_date: contractDate || null, annual_vacation_days: parseInt(vacationDays) || 25 });
+          onCreate({ name: name.trim(), email: email.trim(), employee_number: employeeNumber.trim() || null, role, contract_start_date: contractDate || null, annual_vacation_days: parseInt(vacationDays) || 25 });
           setOpen(false); reset();
         }}>Add Employee</Button>
       </DialogContent>
