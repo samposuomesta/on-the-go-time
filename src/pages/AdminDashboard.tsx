@@ -26,18 +26,18 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Separator } from '@/components/ui/separator';
 import { Progress } from '@/components/ui/progress';
 
-const navItems = [
-  { key: 'statistics', label: 'Statistics', icon: BarChart3, description: 'Overview & metrics' },
-  { key: 'approvals', label: 'Approvals', icon: Clock, description: 'Travel & project hours' },
-  { key: 'vacation-approvals', label: 'Vacation Approvals', icon: CalendarDays, description: 'Review vacation requests' },
-  { key: 'absences', label: 'Absences', icon: CalendarOff, description: 'Sick leave & absences' },
-  { key: 'projects', label: 'Projects', icon: Briefcase, description: 'Manage projects' },
-  { key: 'workplaces', label: 'GPS Workplaces', icon: MapPin, description: 'Geofence locations' },
-  { key: 'reminders', label: 'Reminders', icon: Bell, description: 'Notification rules' },
-  { key: 'employees', label: 'Employees', icon: Users, description: 'Manage team members' },
-  { key: 'companies', label: 'Companies', icon: Building2, description: 'Company settings' },
-  { key: 'audit', label: 'Audit Trail', icon: FileText, description: 'Change history' },
-];
+const navItemDefs = [
+  { key: 'statistics', labelKey: 'admin.statistics', icon: BarChart3, descKey: 'admin.statisticsDesc' },
+  { key: 'approvals', labelKey: 'admin.approvals', icon: Clock, descKey: 'admin.approvalsDesc' },
+  { key: 'vacation-approvals', labelKey: 'admin.vacationApprovals', icon: CalendarDays, descKey: 'admin.vacationApprovalsDesc' },
+  { key: 'absences', labelKey: 'admin.absences', icon: CalendarOff, descKey: 'admin.absencesDesc' },
+  { key: 'projects', labelKey: 'admin.projects', icon: Briefcase, descKey: 'admin.projectsDesc' },
+  { key: 'workplaces', labelKey: 'admin.workplaces', icon: MapPin, descKey: 'admin.workplacesDesc' },
+  { key: 'reminders', labelKey: 'admin.reminders', icon: Bell, descKey: 'admin.remindersDesc' },
+  { key: 'employees', labelKey: 'admin.employees', icon: Users, descKey: 'admin.employeesDesc' },
+  { key: 'companies', labelKey: 'admin.companies', icon: Building2, descKey: 'admin.companiesDesc' },
+  { key: 'audit', labelKey: 'admin.audit', icon: FileText, descKey: 'admin.auditDesc' },
+] as const;
 
 function StatusBadge({ status }: { status: string }) {
   const config: Record<string, string> = {
