@@ -1157,22 +1157,47 @@ function EditEmployeeDialog({ employee, allEmployees, currentManagerIds, onSave 
 }
 
 function AddProjectDialog({ onCreate }: { onCreate: (data: { name: string; customer: string | null }) => void }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
   const [customer, setCustomer] = useState('');
 
   return (
     <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setName(''); setCustomer(''); } }}>
-      <DialogTrigger asChild><Button className="gap-1.5"><Plus className="h-4 w-4" /> Add Project</Button></DialogTrigger>
+      <DialogTrigger asChild><Button className="gap-1.5"><Plus className="h-4 w-4" /> {t('projects.add')}</Button></DialogTrigger>
       <DialogContent className="sm:max-w-md">
-        <DialogHeader><DialogTitle className="font-display">Add Project</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle className="font-display">{t('projects.add')}</DialogTitle></DialogHeader>
         <div className="space-y-4 mt-2">
-          <div className="space-y-1.5"><Label>Project Name</Label><Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Project name" /></div>
-          <div className="space-y-1.5"><Label>Customer (optional)</Label><Input value={customer} onChange={(e) => setCustomer(e.target.value)} placeholder="Customer name" /></div>
+          <div className="space-y-1.5"><Label>{t('projects.name')}</Label><Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Project name" /></div>
+          <div className="space-y-1.5"><Label>{t('projects.customerOptional')}</Label><Input value={customer} onChange={(e) => setCustomer(e.target.value)} placeholder="Customer name" /></div>
           <Button className="w-full" disabled={!name.trim()} onClick={() => {
             onCreate({ name: name.trim(), customer: customer.trim() || null });
             setOpen(false); setName(''); setCustomer('');
-          }}>Add Project</Button>
+          }}>{t('projects.add')}</Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function EditProjectDialog({ project, onSave }: { project: any; onSave: (data: { name?: string; customer?: string | null }) => void }) {
+  const { t } = useTranslation();
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState(project.name);
+  const [customer, setCustomer] = useState(project.customer || '');
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (o) { setName(project.name); setCustomer(project.customer || ''); } }}>
+      <DialogTrigger asChild><Button size="icon" variant="ghost" className="h-8 w-8"><Pencil className="h-3.5 w-3.5" /></Button></DialogTrigger>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader><DialogTitle className="font-display">{t('projects.edit')}</DialogTitle></DialogHeader>
+        <div className="space-y-4 mt-2">
+          <div className="space-y-1.5"><Label>{t('projects.name')}</Label><Input value={name} onChange={(e) => setName(e.target.value)} /></div>
+          <div className="space-y-1.5"><Label>{t('projects.customerOptional')}</Label><Input value={customer} onChange={(e) => setCustomer(e.target.value)} /></div>
+          <Button className="w-full" disabled={!name.trim()} onClick={() => {
+            onSave({ name: name.trim(), customer: customer.trim() || null });
+            setOpen(false);
+          }}>{t('common.save')}</Button>
         </div>
       </DialogContent>
     </Dialog>
