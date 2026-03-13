@@ -74,7 +74,7 @@ export function Dashboard() {
                 { icon: BarChart3, label: 'My Statistics', path: '/my-statistics' },
                 { icon: Receipt, label: 'Travel Expenses', path: '/travel-expenses' },
                 { icon: Shield, label: 'Admin Panel', path: '/admin' },
-                { icon: Settings, label: 'Settings', path: null },
+                { icon: Settings, label: 'Settings', path: '/settings' },
                 { icon: LogOut, label: 'Logout', path: null },
               ].map(({ icon: Icon, label, path }) => (
                 <button
