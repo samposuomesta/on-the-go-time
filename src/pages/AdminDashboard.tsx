@@ -1030,24 +1030,44 @@ function AddProjectDialog({ onCreate }: { onCreate: (data: { name: string; custo
   );
 }
 
-function AddCompanyDialog({ onCreate }: { onCreate: (data: { name: string; km_rate: number }) => void }) {
+function AddCompanyDialog({ onCreate }: { onCreate: (data: any) => void }) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
+  const [companyIdCode, setCompanyIdCode] = useState('');
+  const [address, setAddress] = useState('');
+  const [country, setCountry] = useState('');
   const [kmRate, setKmRate] = useState('0.25');
+  const reset = () => { setName(''); setCompanyIdCode(''); setAddress(''); setCountry(''); setKmRate('0.25'); };
 
   return (
-    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setName(''); setKmRate('0.25'); } }}>
+    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) reset(); }}>
       <DialogTrigger asChild><Button className="gap-1.5"><Plus className="h-4 w-4" /> Add Company</Button></DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader><DialogTitle className="font-display">Add Company</DialogTitle></DialogHeader>
-        <div className="space-y-4 mt-2">
-          <div className="space-y-1.5"><Label>Company Name</Label><Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Company name" /></div>
+        <div className="grid gap-4 mt-2 sm:grid-cols-2">
+          <div className="space-y-1.5 sm:col-span-2"><Label>Company Name</Label><Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Company name" /></div>
+          <div className="space-y-1.5"><Label>Company ID</Label><Input value={companyIdCode} onChange={(e) => setCompanyIdCode(e.target.value)} placeholder="e.g. 1234567-8" /></div>
+          <div className="space-y-1.5"><Label>Country</Label>
+            <Select value={country} onValueChange={setCountry}>
+              <SelectTrigger><SelectValue placeholder="Select country" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Finland">Finland</SelectItem>
+                <SelectItem value="Sweden">Sweden</SelectItem>
+                <SelectItem value="Norway">Norway</SelectItem>
+                <SelectItem value="Denmark">Denmark</SelectItem>
+                <SelectItem value="Estonia">Estonia</SelectItem>
+                <SelectItem value="Germany">Germany</SelectItem>
+                <SelectItem value="Other">Other</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5 sm:col-span-2"><Label>Main Address</Label><Input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Street, City, Postal Code" /></div>
           <div className="space-y-1.5"><Label>KM Rate (€)</Label><Input type="number" step="0.01" value={kmRate} onChange={(e) => setKmRate(e.target.value)} placeholder="0.25" /></div>
-          <Button className="w-full" disabled={!name.trim()} onClick={() => {
-            onCreate({ name: name.trim(), km_rate: parseFloat(kmRate) || 0.25 });
-            setOpen(false); setName(''); setKmRate('0.25');
-          }}>Add Company</Button>
         </div>
+        <Button className="w-full mt-2" disabled={!name.trim()} onClick={() => {
+          onCreate({ name: name.trim(), company_id_code: companyIdCode.trim() || null, address: address.trim() || null, country: country || null, km_rate: parseFloat(kmRate) || 0.25 });
+          setOpen(false); reset();
+        }}>Add Company</Button>
       </DialogContent>
     </Dialog>
   );
