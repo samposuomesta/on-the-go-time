@@ -614,6 +614,7 @@ function VacationApprovalsPanel({ admin }: { admin: any }) {
 /* ===== ABSENCES ===== */
 
 function AbsencesPanel({ admin }: { admin: any }) {
+  const { language, t } = useTranslation();
   const absences = admin.absences.data ?? [];
   const absenceReasons = admin.absenceReasons.data ?? [];
   const pending = absences.filter((a: any) => a.status === 'pending');
@@ -622,7 +623,8 @@ function AbsencesPanel({ admin }: { admin: any }) {
   const reasonLabel = (reasonId: string | null) => {
     if (!reasonId) return null;
     const r = absenceReasons.find((ar: any) => ar.id === reasonId);
-    return r?.label ?? null;
+    if (!r) return null;
+    return getLocalizedField(r, 'label', language);
   };
 
   return (
