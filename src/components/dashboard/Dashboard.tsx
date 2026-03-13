@@ -203,3 +203,4 @@ export function Dashboard() {
       <AbsenceReasonDialog open={showAbsenceDialog} onOpenChange={setShowAbsenceDialog} />
     </div>
   );
+}
