@@ -483,7 +483,7 @@ export function useAdminData() {
   return {
     employees, projects, companies, workplaces, reminderRules, userManagers, absenceReasons, auditLog,
     pendingTravel, pendingHours, pendingTimeEntries, absences, vacationRequests,
-    allTimeEntries, allWorkBank,
+    allTimeEntries, allWorkBank, allTravel, allHours, allTimeEntriesWithNames,
     approveTravel, approveHours, approveAbsence, approveVacation, approveTimeEntry, updateTimeEntry,
     updateEmployee, toggleProject, createProject, updateProject, createEmployee,
     createCompany, updateCompany,
