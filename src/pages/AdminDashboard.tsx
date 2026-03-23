@@ -752,7 +752,7 @@ function ApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
 
 /* ===== VACATION APPROVALS ===== */
 
-function VacationApprovalsPanel({ admin }: { admin: any }) {
+function VacationApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: string) => boolean }) {
   const companies = admin.companies.data ?? [];
   const companyCountry = companies[0]?.country ?? undefined;
 
