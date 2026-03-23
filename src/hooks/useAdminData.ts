@@ -406,6 +406,19 @@ export function useAdminData() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-user-managers'] }),
   });
 
+  // Work bank adjustment mutation
+  const addBankAdjustment = useMutation({
+    mutationFn: async ({ userId, hours }: { userId: string; hours: number }) => {
+      const { error } = await supabase.from('work_bank_transactions').insert({
+        user_id: userId,
+        hours,
+        type: 'adjustment' as any,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-all-work-bank'] }),
+  });
+
   return {
     employees, projects, companies, workplaces, reminderRules, userManagers, absenceReasons, auditLog,
     pendingTravel, pendingHours, pendingTimeEntries, absences, vacationRequests,
