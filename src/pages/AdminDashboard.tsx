@@ -792,8 +792,6 @@ function ApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
             <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => exportAdminProjectHoursCSV(filteredHours)}>
               <Download className="h-3.5 w-3.5" /> CSV
             </Button>
-              <Download className="h-3.5 w-3.5" /> CSV
-            </Button>
           </div>
         </CardHeader>
         <CardContent className="p-0">
