@@ -56,6 +56,20 @@ export function Dashboard() {
 
   const isAdminOrManager = currentUser?.role === 'admin' || currentUser?.role === 'manager';
 
+  const handleAddFullWorkday = async () => {
+    const result = await addFullWorkday();
+    if (result?.overlaps) {
+      setOverlapEntries(result.overlaps);
+      setShowOverlapDialog(true);
+    }
+  };
+
+  const handleReplaceOverlap = async () => {
+    setShowOverlapDialog(false);
+    await addFullWorkday(overlapEntries.map(e => e.id));
+    setOverlapEntries([]);
+  };
+
   const markAbsence = async (type: 'sick' | 'absence') => {
     const { error } = await supabase.from('absences').insert({
       user_id: DEMO_USER_ID,
