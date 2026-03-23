@@ -1,4 +1,4 @@
-import { Clock, Timer } from 'lucide-react';
+import { Clock, Timer, CheckCircle2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { ActiveEntry } from '@/hooks/useTimeTracking';
 import { formatDistanceToNow } from 'date-fns';
@@ -8,9 +8,10 @@ interface StatusCardProps {
   activeEntry: ActiveEntry | null;
   loading: boolean;
   bankBalance: number;
+  todayCompleted?: boolean;
 }
 
-export function StatusCard({ activeEntry, loading, bankBalance }: StatusCardProps) {
+export function StatusCard({ activeEntry, loading, bankBalance, todayCompleted }: StatusCardProps) {
   const { t } = useTranslation();
 
   if (loading) {
