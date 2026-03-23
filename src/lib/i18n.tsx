@@ -266,6 +266,10 @@ const translations = {
     'reminders.clockOut': 'Clock-Out Reminder',
     'reminders.vacationApproval': 'Vacation Approval',
     'reminders.managerApproval': 'Manager Approval',
+    'reminders.hoursApproval': 'Monthly Hours Approval',
+    'reminders.dayOfMonth': 'Day of Month',
+    'reminders.resendAfterDays': 'Resend After (days)',
+    'reminders.resendAfterDaysHelp': 'If not accepted, resend reminder after this many days',
 
     // Common
     'common.save': 'Save Changes',
