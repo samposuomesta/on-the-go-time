@@ -1858,7 +1858,7 @@ function AuditTrailPanel({ admin }: { admin: any }) {
         <p className="text-sm text-muted-foreground">Track all changes across the system</p>
       </div>
 
-      <div className="flex flex-wrap gap-3">
+      <div className="flex flex-wrap gap-3 items-end">
         <Select value={tableFilter} onValueChange={setTableFilter}>
           <SelectTrigger className="w-[180px]"><SelectValue placeholder="All tables" /></SelectTrigger>
           <SelectContent>
@@ -1875,7 +1875,25 @@ function AuditTrailPanel({ admin }: { admin: any }) {
             <SelectItem value="DELETE">Delete</SelectItem>
           </SelectContent>
         </Select>
-        <span className="text-xs text-muted-foreground self-center ml-auto">{filtered.length} entries</span>
+        <div className="space-y-1">
+          <Label className="text-xs">From</Label>
+          <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="w-[150px] dark:[color-scheme:dark]" />
+        </div>
+        <div className="space-y-1">
+          <Label className="text-xs">To</Label>
+          <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="w-[150px] dark:[color-scheme:dark]" />
+        </div>
+        {(tableFilter !== 'all' || actionFilter !== 'all' || dateFrom || dateTo) && (
+          <Button variant="ghost" size="sm" onClick={() => { setTableFilter('all'); setActionFilter('all'); setDateFrom(''); setDateTo(''); }}>
+            <X className="h-3.5 w-3.5 mr-1" /> Clear
+          </Button>
+        )}
+        <div className="flex items-center gap-2 ml-auto">
+          <span className="text-xs text-muted-foreground">{filtered.length} entries</span>
+          <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => exportAuditTrailCSV(filtered)}>
+            <Download className="h-3.5 w-3.5" /> CSV
+          </Button>
+        </div>
       </div>
 
       <Card>
