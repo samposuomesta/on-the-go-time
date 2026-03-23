@@ -330,7 +330,7 @@ export function useAdminData() {
   });
 
   const updateReminder = useMutation({
-    mutationFn: async ({ id, ...data }: { id: string; type?: string; time?: string; message?: string; message_fi?: string | null }) => {
+    mutationFn: async ({ id, ...data }: { id: string; type?: string; time?: string; message?: string; message_fi?: string | null; day_of_month?: number | null; resend_after_days?: number | null }) => {
       const { error } = await supabase.from('reminder_rules' as any).update(data as any).eq('id', id);
       if (error) throw error;
     },
