@@ -78,11 +78,6 @@ export default function AdminDashboard() {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState('statistics');
 
-  // Block employees from accessing admin panel
-  if (!userLoading && currentUser && currentUser.role === 'employee') {
-    return <Navigate to="/" replace />;
-  }
-
   const isManager = currentUser?.role === 'manager';
   const currentUserId = currentUser?.id;
 
@@ -100,6 +95,11 @@ export default function AdminDashboard() {
     if (!managedUserIds) return true; // admin sees all
     return managedUserIds.includes(userId);
   };
+
+  // Block employees from accessing admin panel
+  if (!userLoading && currentUser && currentUser.role === 'employee') {
+    return <Navigate to="/" replace />;
+  }
 
   const pendingCounts = {
     approvals: (admin.pendingTravel.data?.filter((t: any) => canSeeUser(t.user_id)).length ?? 0) 
