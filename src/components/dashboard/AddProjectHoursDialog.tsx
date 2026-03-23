@@ -95,7 +95,6 @@ export function AddProjectHoursDialog({ open, onOpenChange }: Props) {
               </PopoverContent>
             </Popover>
           </div>
-          </div>
           <div>
             <Label>{t('projectHours.description')}</Label>
             <Textarea value={description} onChange={e => setDescription(e.target.value)} placeholder={t('projectHours.descriptionPlaceholder')} />
