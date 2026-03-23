@@ -793,10 +793,9 @@ function ApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
               <CardTitle className="text-base font-display">Project Hours</CardTitle>
               <Badge variant="secondary">{pendingHours.length} pending</Badge>
             </div>
-            <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => {
-              const { exportAdminProjectHoursCSV } = require('@/lib/csv-export');
-              exportAdminProjectHoursCSV(filteredHours);
-            }}>
+            <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => exportAdminProjectHoursCSV(filteredHours)}>
+              <Download className="h-3.5 w-3.5" /> CSV
+            </Button>
               <Download className="h-3.5 w-3.5" /> CSV
             </Button>
           </div>
