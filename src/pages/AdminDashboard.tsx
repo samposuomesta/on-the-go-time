@@ -223,9 +223,9 @@ function countBusinessDays(startDate: string, endDate: string, holidaySet?: Set<
   }).length;
 }
 
-function StatisticsPanel({ admin }: { admin: any }) {
-  const employees = admin.employees.data ?? [];
-  const timeEntries = admin.allTimeEntries.data ?? [];
+function StatisticsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: string) => boolean }) {
+  const employees = (admin.employees.data ?? []).filter((e: any) => canSeeUser(e.id));
+  const timeEntries = (admin.allTimeEntries.data ?? []).filter((te: any) => canSeeUser(te.user_id));
   const absences = admin.absences.data ?? [];
   const vacationRequests = admin.vacationRequests.data ?? [];
   const workBank = admin.allWorkBank.data ?? [];
