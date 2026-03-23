@@ -53,6 +53,10 @@ const translations = {
     'dashboard.sickDayRecorded': 'Sick day recorded',
     'dashboard.absenceRecorded': 'Absence recorded',
     'dashboard.failedToRecord': 'Failed to record',
+    'dashboard.duplicateTitle': 'Overlapping Entry Found',
+    'dashboard.duplicateDescription': 'An entry already exists for this time period. Do you want to replace it or discard the new entry?',
+    'dashboard.replace': 'Replace',
+    'dashboard.discard': 'Discard',
 
     // Menu
     'menu.title': 'Menu',
