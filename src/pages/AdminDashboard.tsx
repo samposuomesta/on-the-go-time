@@ -34,6 +34,7 @@ const navItemDefs = [
   { key: 'vacation-approvals', labelKey: 'admin.vacationApprovals', icon: CalendarDays, descKey: 'admin.vacationApprovalsDesc' },
   { key: 'absences', labelKey: 'admin.absences', icon: CalendarOff, descKey: 'admin.absencesDesc' },
   { key: 'projects', labelKey: 'admin.projects', icon: Briefcase, descKey: 'admin.projectsDesc' },
+  { key: 'project-management', labelKey: 'admin.projectManagement', icon: BarChart3, descKey: 'admin.projectManagementDesc' },
   { key: 'workplaces', labelKey: 'admin.workplaces', icon: MapPin, descKey: 'admin.workplacesDesc' },
   { key: 'reminders', labelKey: 'admin.reminders', icon: Bell, descKey: 'admin.remindersDesc' },
   { key: 'employees', labelKey: 'admin.employees', icon: Users, descKey: 'admin.employeesDesc' },
