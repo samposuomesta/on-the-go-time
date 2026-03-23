@@ -497,6 +497,8 @@ const translations = {
     'admin.vacationApprovalsDesc': 'Tarkista lomapyynnöt',
     'admin.absencesDesc': 'Sairausloma ja poissaolot',
     'admin.projectsDesc': 'Hallinnoi projekteja',
+    'admin.projectManagement': 'Projektinhallinta',
+    'admin.projectManagementDesc': 'Seuraa projektien edistymistä',
     'admin.workplacesDesc': 'Geofence-sijainnit',
     'admin.remindersDesc': 'Ilmoitussäännöt',
     'admin.employeesDesc': 'Hallinnoi tiimin jäseniä',
