@@ -302,8 +302,8 @@ export function useAdminData() {
   });
 
   const createProject = useMutation({
-    mutationFn: async (data: { name: string; customer: string | null }) => {
-      const { error } = await supabase.from('projects').insert({ ...data, company_id: DEMO_COMPANY_ID });
+    mutationFn: async (data: { name: string; customer: string | null; target_hours?: number | null }) => {
+      const { error } = await supabase.from('projects').insert({ ...data, company_id: DEMO_COMPANY_ID } as any);
       if (error) throw error;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-projects'] }),
