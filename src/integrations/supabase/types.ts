@@ -282,30 +282,36 @@ export type Database = {
         Row: {
           company_id: string
           created_at: string
+          day_of_month: number | null
           enabled: boolean
           id: string
           message: string
           message_fi: string | null
+          resend_after_days: number | null
           time: string
           type: string
         }
         Insert: {
           company_id: string
           created_at?: string
+          day_of_month?: number | null
           enabled?: boolean
           id?: string
           message?: string
           message_fi?: string | null
+          resend_after_days?: number | null
           time?: string
           type?: string
         }
         Update: {
           company_id?: string
           created_at?: string
+          day_of_month?: number | null
           enabled?: boolean
           id?: string
           message?: string
           message_fi?: string | null
+          resend_after_days?: number | null
           time?: string
           type?: string
         }
