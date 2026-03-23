@@ -1531,23 +1531,28 @@ function AddWorkplaceDialog({ onCreate }: { onCreate: (data: { name: string; lat
   );
 }
 
-function AddReminderDialog({ onCreate }: { onCreate: (data: { type: string; time: string; message: string; message_fi?: string }) => void }) {
+function AddReminderDialog({ onCreate }: { onCreate: (data: { type: string; time: string; message: string; message_fi?: string; day_of_month?: number; resend_after_days?: number }) => void }) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [type, setType] = useState('clock_in');
   const [time, setTime] = useState('08:30');
   const [message, setMessage] = useState('');
   const [messageFi, setMessageFi] = useState('');
+  const [dayOfMonth, setDayOfMonth] = useState('1');
+  const [resendAfterDays, setResendAfterDays] = useState('3');
 
   const defaultMessages: Record<string, string> = {
     clock_in: "Don't forget to start your workday!",
     clock_out: 'Still working? Remember to clock out.',
     vacation_approval: 'You have vacation requests to review.',
     manager_approval: 'You have pending approvals.',
+    hours_approval: 'Please review and approve employee working hours for last month.',
   };
 
+  const isMonthly = type === 'hours_approval';
+
   return (
-    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setType('clock_in'); setTime('08:30'); setMessage(''); setMessageFi(''); } }}>
+    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setType('clock_in'); setTime('08:30'); setMessage(''); setMessageFi(''); setDayOfMonth('1'); setResendAfterDays('3'); } }}>
       <DialogTrigger asChild><Button className="gap-1.5"><Plus className="h-4 w-4" /> {t('reminders.add')}</Button></DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader><DialogTitle className="font-display">{t('reminders.add')}</DialogTitle></DialogHeader>
@@ -1561,15 +1566,35 @@ function AddReminderDialog({ onCreate }: { onCreate: (data: { type: string; time
                 <SelectItem value="clock_out">{t('reminders.clockOut')}</SelectItem>
                 <SelectItem value="vacation_approval">{t('reminders.vacationApproval')}</SelectItem>
                 <SelectItem value="manager_approval">{t('reminders.managerApproval')}</SelectItem>
+                <SelectItem value="hours_approval">{t('reminders.hoursApproval')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
-          <div className="space-y-1.5"><Label>{t('reminders.time')}</Label><Input type="time" value={time} onChange={(e) => setTime(e.target.value)} /></div>
+          {isMonthly ? (
+            <>
+              <div className="space-y-1.5">
+                <Label>{t('reminders.dayOfMonth')}</Label>
+                <Input type="number" min="1" max="28" value={dayOfMonth} onChange={(e) => setDayOfMonth(e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>{t('reminders.resendAfterDays')}</Label>
+                <p className="text-xs text-muted-foreground">{t('reminders.resendAfterDaysHelp')}</p>
+                <Input type="number" min="1" max="14" value={resendAfterDays} onChange={(e) => setResendAfterDays(e.target.value)} />
+              </div>
+            </>
+          ) : (
+            <div className="space-y-1.5"><Label>{t('reminders.time')}</Label><Input type="time" value={time} onChange={(e) => setTime(e.target.value)} /></div>
+          )}
           <div className="space-y-1.5"><Label>{t('reminders.messageEn')}</Label><Input value={message || defaultMessages[type]} onChange={(e) => setMessage(e.target.value)} /></div>
           <div className="space-y-1.5"><Label>{t('reminders.messageFi')}</Label><Input value={messageFi} onChange={(e) => setMessageFi(e.target.value)} placeholder="Viesti suomeksi" /></div>
           <Button className="w-full" onClick={() => {
-            onCreate({ type, time, message: message || defaultMessages[type], message_fi: messageFi.trim() || undefined });
-            setOpen(false); setType('clock_in'); setTime('08:30'); setMessage(''); setMessageFi('');
+            onCreate({
+              type, time: isMonthly ? '09:00' : time,
+              message: message || defaultMessages[type],
+              message_fi: messageFi.trim() || undefined,
+              ...(isMonthly ? { day_of_month: parseInt(dayOfMonth) || 1, resend_after_days: parseInt(resendAfterDays) || 3 } : {}),
+            });
+            setOpen(false); setType('clock_in'); setTime('08:30'); setMessage(''); setMessageFi(''); setDayOfMonth('1'); setResendAfterDays('3');
           }}>{t('reminders.add')}</Button>
         </div>
       </DialogContent>
