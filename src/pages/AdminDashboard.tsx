@@ -1482,23 +1482,25 @@ function EditEmployeeDialog({ employee, allEmployees, currentManagerIds, onSave,
   );
 }
 
-function AddProjectDialog({ onCreate }: { onCreate: (data: { name: string; customer: string | null }) => void }) {
+function AddProjectDialog({ onCreate }: { onCreate: (data: { name: string; customer: string | null; target_hours: number | null }) => void }) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
   const [customer, setCustomer] = useState('');
+  const [targetHours, setTargetHours] = useState('');
 
   return (
-    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setName(''); setCustomer(''); } }}>
+    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setName(''); setCustomer(''); setTargetHours(''); } }}>
       <DialogTrigger asChild><Button className="gap-1.5"><Plus className="h-4 w-4" /> {t('projects.add')}</Button></DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader><DialogTitle className="font-display">{t('projects.add')}</DialogTitle></DialogHeader>
         <div className="space-y-4 mt-2">
           <div className="space-y-1.5"><Label>{t('projects.name')}</Label><Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Project name" /></div>
           <div className="space-y-1.5"><Label>{t('projects.customerOptional')}</Label><Input value={customer} onChange={(e) => setCustomer(e.target.value)} placeholder="Customer name" /></div>
+          <div className="space-y-1.5"><Label>{t('projects.targetHours')}</Label><Input type="number" min="0" step="1" value={targetHours} onChange={(e) => setTargetHours(e.target.value)} placeholder="Leave empty for no target" /></div>
           <Button className="w-full" disabled={!name.trim()} onClick={() => {
-            onCreate({ name: name.trim(), customer: customer.trim() || null });
-            setOpen(false); setName(''); setCustomer('');
+            onCreate({ name: name.trim(), customer: customer.trim() || null, target_hours: targetHours ? parseFloat(targetHours) : null });
+            setOpen(false); setName(''); setCustomer(''); setTargetHours('');
           }}>{t('projects.add')}</Button>
         </div>
       </DialogContent>
