@@ -359,6 +359,10 @@ const translations = {
     'dashboard.sickDayRecorded': 'Sairauspäivä kirjattu',
     'dashboard.absenceRecorded': 'Poissaolo kirjattu',
     'dashboard.failedToRecord': 'Kirjaus epäonnistui',
+    'dashboard.duplicateTitle': 'Päällekkäinen kirjaus löytyi',
+    'dashboard.duplicateDescription': 'Tälle aikavälille on jo kirjaus. Haluatko korvata sen vai hylätä uuden kirjauksen?',
+    'dashboard.replace': 'Korvaa',
+    'dashboard.discard': 'Hylkää',
 
     // Menu
     'menu.title': 'Valikko',

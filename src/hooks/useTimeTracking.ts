@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { startOfToday } from 'date-fns';
+import { startOfToday, endOfDay } from 'date-fns';
 import { DEMO_USER_ID } from '@/lib/demo-user';
 import { toast } from 'sonner';
 
@@ -8,6 +8,12 @@ export interface ActiveEntry {
   id: string;
   start_time: string;
   project_id: string | null;
+}
+
+export interface OverlapEntry {
+  id: string;
+  start_time: string;
+  end_time: string | null;
 }
 
 export function useTimeTracking() {
@@ -48,6 +54,22 @@ export function useTimeTracking() {
   useEffect(() => {
     fetchActive();
   }, [fetchActive]);
+
+  const checkOverlap = async (startTime: Date, endTime: Date): Promise<OverlapEntry[]> => {
+    const { data, error } = await supabase
+      .from('time_entries')
+      .select('id, start_time, end_time')
+      .eq('user_id', DEMO_USER_ID)
+      .lt('start_time', endTime.toISOString())
+      .or(`end_time.gt.${startTime.toISOString()},end_time.is.null`)
+      .limit(10);
+
+    if (error) {
+      console.error('Error checking overlaps:', error);
+      return [];
+    }
+    return (data as OverlapEntry[]) ?? [];
+  };
 
   const startWork = async () => {
     let lat: number | undefined;
@@ -117,12 +139,33 @@ export function useTimeTracking() {
     setActiveEntry(null);
   };
 
-  const addFullWorkday = async () => {
+  const addFullWorkday = async (replaceIds?: string[]) => {
     const today = startOfToday();
     const startTime = new Date(today);
     startTime.setHours(8, 0, 0, 0);
     const endTime = new Date(today);
     endTime.setHours(16, 0, 0, 0);
+
+    // Check for overlapping entries unless we're already replacing
+    if (!replaceIds) {
+      const overlaps = await checkOverlap(startTime, endTime);
+      if (overlaps.length > 0) {
+        return { overlaps };
+      }
+    }
+
+    // Delete entries being replaced
+    if (replaceIds && replaceIds.length > 0) {
+      const { error: delError } = await supabase
+        .from('time_entries')
+        .delete()
+        .in('id', replaceIds);
+      if (delError) {
+        toast.error('Failed to replace entries');
+        console.error(delError);
+        return;
+      }
+    }
 
     const { error } = await supabase.from('time_entries').insert({
       user_id: DEMO_USER_ID,
@@ -139,7 +182,8 @@ export function useTimeTracking() {
 
     toast.success('Workday 8:00–16:00 added (7.5h effective)');
     fetchActive();
+    return undefined;
   };
 
-  return { activeEntry, todayCompleted, loading, startWork, stopWork, addFullWorkday, refetch: fetchActive };
+  return { activeEntry, todayCompleted, loading, startWork, stopWork, addFullWorkday, checkOverlap, refetch: fetchActive };
 }
