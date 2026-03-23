@@ -1,11 +1,12 @@
 import { useQuery } from '@tanstack/react-query';
-import { format, parseISO, startOfMonth, endOfMonth } from 'date-fns';
+import { format, startOfMonth, endOfMonth, parseISO } from 'date-fns';
 import { ArrowLeft, Car, CalendarIcon, Download } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { exportTravelExpensesCSV } from '@/lib/csv-export';
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { DEMO_USER_ID } from '@/lib/demo-user';
+import { useTranslation } from '@/lib/i18n';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -13,6 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
 export default function TravelExpenses() {
+  const { t } = useTranslation();
   const now = new Date();
   const [range, setRange] = useState({ from: startOfMonth(now), to: endOfMonth(now) });
   const [calendarOpen, setCalendarOpen] = useState(false);
@@ -48,7 +50,7 @@ export default function TravelExpenses() {
         <Link to="/" className="touch-target flex items-center justify-center rounded-lg hover:bg-muted p-2 -ml-2">
           <ArrowLeft className="h-5 w-5" />
         </Link>
-        <h1 className="text-lg font-display font-bold flex-1">Travel Expenses</h1>
+        <h1 className="text-lg font-display font-bold flex-1">{t('travel.title')}</h1>
         <Button size="sm" variant="outline" className="gap-1.5 text-xs"
           onClick={() => exportTravelExpensesCSV(expenses)}>
           <Download className="h-3.5 w-3.5" /> CSV
@@ -77,18 +79,17 @@ export default function TravelExpenses() {
           </PopoverContent>
         </Popover>
 
-        {/* Summary */}
         <div className="grid grid-cols-3 gap-2 mt-3">
           <div className="bg-card rounded-lg border border-border p-2 text-center">
-            <p className="text-xs text-muted-foreground">Entries</p>
+            <p className="text-xs text-muted-foreground">{t('travel.entries')}</p>
             <p className="text-lg font-display font-bold">{expenses.length}</p>
           </div>
           <div className="bg-card rounded-lg border border-border p-2 text-center">
-            <p className="text-xs text-muted-foreground">Total KM</p>
+            <p className="text-xs text-muted-foreground">{t('travel.totalKm')}</p>
             <p className="text-lg font-display font-bold">{totalKm.toFixed(1)}</p>
           </div>
           <div className="bg-card rounded-lg border border-border p-2 text-center">
-            <p className="text-xs text-muted-foreground">Parking</p>
+            <p className="text-xs text-muted-foreground">{t('dashboard.parking')}</p>
             <p className="text-lg font-display font-bold">€{totalParking.toFixed(2)}</p>
           </div>
         </div>
@@ -98,14 +99,14 @@ export default function TravelExpenses() {
         {expenses.length === 0 ? (
           <div className="text-center py-12">
             <Car className="h-8 w-8 mx-auto text-muted-foreground/50 mb-2" />
-            <p className="text-sm text-muted-foreground">No expenses in this period</p>
+            <p className="text-sm text-muted-foreground">{t('travel.noExpenses')}</p>
           </div>
         ) : (
           expenses.map((ex: any) => (
             <div key={ex.id} className="bg-card rounded-lg border border-border p-3">
               <div className="flex justify-between items-start">
                 <div>
-                  <p className="text-sm font-medium">{ex.projects?.name ?? 'No project'}</p>
+                  <p className="text-sm font-medium">{ex.projects?.name ?? t('entries.noProject')}</p>
                   <p className="text-xs text-muted-foreground mt-0.5">{format(parseISO(ex.date), 'EEE, MMM d')}</p>
                 </div>
                 <div className="text-right flex flex-col items-end gap-1">
@@ -113,12 +114,12 @@ export default function TravelExpenses() {
                     {Number(ex.kilometers ?? 0) > 0 && <span className="text-xs font-medium">{ex.kilometers} km</span>}
                     {Number(ex.parking_cost ?? 0) > 0 && <span className="text-xs font-medium ml-2">€{Number(ex.parking_cost).toFixed(2)}</span>}
                   </div>
-                  <Badge variant="outline" className={cn("text-xs capitalize", statusColors[ex.status ?? 'pending'])}>{ex.status ?? 'pending'}</Badge>
+                  <Badge variant="outline" className={cn("text-xs capitalize", statusColors[ex.status ?? 'pending'])}>{t(`common.${ex.status ?? 'pending'}` as any)}</Badge>
                 </div>
               </div>
               {ex.description && <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{ex.description}</p>}
               {ex.receipt_image && (
-                <a href={ex.receipt_image} target="_blank" rel="noopener noreferrer" className="text-xs text-info underline mt-1 inline-block">View receipt</a>
+                <a href={ex.receipt_image} target="_blank" rel="noopener noreferrer" className="text-xs text-info underline mt-1 inline-block">{t('travel.viewReceipt')}</a>
               )}
             </div>
           ))

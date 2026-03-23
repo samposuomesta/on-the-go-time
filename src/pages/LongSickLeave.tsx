@@ -5,12 +5,11 @@ import { ArrowLeft, CalendarIcon, Plus } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { DEMO_USER_ID } from '@/lib/demo-user';
+import { useTranslation } from '@/lib/i18n';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -18,6 +17,7 @@ import { toast } from 'sonner';
 
 export default function LongSickLeave() {
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [startDate, setStartDate] = useState<Date>();
   const [endDate, setEndDate] = useState<Date>();
@@ -52,12 +52,12 @@ export default function LongSickLeave() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['sick-absences'] });
-      toast.success('Sick leave request submitted');
+      toast.success(t('sickLeave.submitted'));
       setDialogOpen(false);
       setStartDate(undefined);
       setEndDate(undefined);
     },
-    onError: () => toast.error('Failed to submit'),
+    onError: () => toast.error(t('sickLeave.failedToSubmit')),
   });
 
   const statusColors: Record<string, string> = {
@@ -73,22 +73,22 @@ export default function LongSickLeave() {
           <Link to="/" className="touch-target flex items-center justify-center rounded-lg hover:bg-muted p-2 -ml-2">
             <ArrowLeft className="h-5 w-5" />
           </Link>
-          <h1 className="text-lg font-display font-bold">Long Sick Leave</h1>
+          <h1 className="text-lg font-display font-bold">{t('sickLeave.title')}</h1>
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Button size="sm" className="gap-1.5"><Plus className="h-4 w-4" /> New</Button>
+            <Button size="sm" className="gap-1.5"><Plus className="h-4 w-4" /> {t('common.new')}</Button>
           </DialogTrigger>
           <DialogContent className="max-w-sm">
-            <DialogHeader><DialogTitle className="font-display">Report Long Sick Leave</DialogTitle></DialogHeader>
+            <DialogHeader><DialogTitle className="font-display">{t('sickLeave.report')}</DialogTitle></DialogHeader>
             <div className="space-y-4 mt-2">
               <div className="space-y-1.5">
-                <Label>Start Date</Label>
+                <Label>{t('vacation.startDate')}</Label>
                 <Popover open={startOpen} onOpenChange={setStartOpen}>
                   <PopoverTrigger asChild>
                     <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !startDate && "text-muted-foreground")}>
                       <CalendarIcon className="h-4 w-4 mr-2" />
-                      {startDate ? format(startDate, 'PPP') : 'Pick start date'}
+                      {startDate ? format(startDate, 'PPP') : t('vacation.pickStartDate')}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
@@ -97,12 +97,12 @@ export default function LongSickLeave() {
                 </Popover>
               </div>
               <div className="space-y-1.5">
-                <Label>End Date</Label>
+                <Label>{t('vacation.endDate')}</Label>
                 <Popover open={endOpen} onOpenChange={setEndOpen}>
                   <PopoverTrigger asChild>
                     <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !endDate && "text-muted-foreground")}>
                       <CalendarIcon className="h-4 w-4 mr-2" />
-                      {endDate ? format(endDate, 'PPP') : 'Pick end date'}
+                      {endDate ? format(endDate, 'PPP') : t('vacation.pickEndDate')}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
@@ -111,7 +111,7 @@ export default function LongSickLeave() {
                 </Popover>
               </div>
               <Button className="w-full" disabled={!startDate || !endDate || createMutation.isPending} onClick={() => createMutation.mutate()}>
-                {createMutation.isPending ? 'Submitting…' : 'Submit Request'}
+                {createMutation.isPending ? t('vacation.submitting') : t('vacation.submitRequest')}
               </Button>
             </div>
           </DialogContent>
@@ -121,7 +121,7 @@ export default function LongSickLeave() {
       <main className="flex-1 px-4 py-4 max-w-lg mx-auto w-full space-y-2">
         {absences.length === 0 ? (
           <div className="text-center py-16">
-            <p className="text-sm text-muted-foreground">No sick leave records</p>
+            <p className="text-sm text-muted-foreground">{t('sickLeave.noRecords')}</p>
           </div>
         ) : (
           absences.map((a) => (
@@ -129,7 +129,7 @@ export default function LongSickLeave() {
               <div>
                 <p className="text-sm font-medium">{format(parseISO(a.start_date), 'MMM d')} — {format(parseISO(a.end_date), 'MMM d, yyyy')}</p>
               </div>
-              <Badge variant="outline" className={cn("text-xs capitalize", statusColors[a.status])}>{a.status}</Badge>
+              <Badge variant="outline" className={cn("text-xs capitalize", statusColors[a.status])}>{t(`common.${a.status}` as any)}</Badge>
             </div>
           ))
         )}

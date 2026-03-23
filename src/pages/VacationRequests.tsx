@@ -5,6 +5,7 @@ import { ArrowLeft, CalendarIcon, Plus, Clock, CheckCircle2, XCircle } from 'luc
 import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { DEMO_USER_ID } from '@/lib/demo-user';
+import { useTranslation } from '@/lib/i18n';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -17,6 +18,7 @@ import { toast } from 'sonner';
 
 export default function VacationRequests() {
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [startDate, setStartDate] = useState<Date>();
   const [endDate, setEndDate] = useState<Date>();
@@ -50,13 +52,13 @@ export default function VacationRequests() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['vacation-requests'] });
-      toast.success('Vacation request submitted');
+      toast.success(t('vacation.submitted'));
       setDialogOpen(false);
       setStartDate(undefined);
       setEndDate(undefined);
       setComment('');
     },
-    onError: () => toast.error('Failed to submit request'),
+    onError: () => toast.error(t('vacation.failedToSubmit')),
   });
 
   const statusConfig: Record<string, { icon: typeof Clock; className: string }> = {
@@ -72,28 +74,27 @@ export default function VacationRequests() {
           <Link to="/" className="touch-target flex items-center justify-center rounded-lg hover:bg-muted p-2 -ml-2">
             <ArrowLeft className="h-5 w-5" />
           </Link>
-          <h1 className="text-lg font-display font-bold">Vacation Requests</h1>
+          <h1 className="text-lg font-display font-bold">{t('vacation.title')}</h1>
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
             <Button size="sm" className="gap-1.5">
               <Plus className="h-4 w-4" />
-              New
+              {t('common.new')}
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-sm">
             <DialogHeader>
-              <DialogTitle className="font-display">New Vacation Request</DialogTitle>
+              <DialogTitle className="font-display">{t('vacation.newRequest')}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 mt-2">
-              {/* Start Date */}
               <div className="space-y-1.5">
-                <Label>Start Date</Label>
+                <Label>{t('vacation.startDate')}</Label>
                 <Popover open={startOpen} onOpenChange={setStartOpen}>
                   <PopoverTrigger asChild>
                     <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !startDate && "text-muted-foreground")}>
                       <CalendarIcon className="h-4 w-4 mr-2" />
-                      {startDate ? format(startDate, 'PPP') : 'Pick start date'}
+                      {startDate ? format(startDate, 'PPP') : t('vacation.pickStartDate')}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
@@ -108,14 +109,13 @@ export default function VacationRequests() {
                 </Popover>
               </div>
 
-              {/* End Date */}
               <div className="space-y-1.5">
-                <Label>End Date</Label>
+                <Label>{t('vacation.endDate')}</Label>
                 <Popover open={endOpen} onOpenChange={setEndOpen}>
                   <PopoverTrigger asChild>
                     <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !endDate && "text-muted-foreground")}>
                       <CalendarIcon className="h-4 w-4 mr-2" />
-                      {endDate ? format(endDate, 'PPP') : 'Pick end date'}
+                      {endDate ? format(endDate, 'PPP') : t('vacation.pickEndDate')}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
@@ -130,13 +130,12 @@ export default function VacationRequests() {
                 </Popover>
               </div>
 
-              {/* Comment */}
               <div className="space-y-1.5">
-                <Label>Comment (optional)</Label>
+                <Label>{t('vacation.comment')}</Label>
                 <Textarea
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
-                  placeholder="Reason for leave…"
+                  placeholder={t('vacation.commentPlaceholder')}
                   rows={3}
                 />
               </div>
@@ -146,7 +145,7 @@ export default function VacationRequests() {
                 disabled={!startDate || !endDate || createMutation.isPending}
                 onClick={() => createMutation.mutate()}
               >
-                {createMutation.isPending ? 'Submitting…' : 'Submit Request'}
+                {createMutation.isPending ? t('vacation.submitting') : t('vacation.submitRequest')}
               </Button>
             </div>
           </DialogContent>
@@ -157,7 +156,7 @@ export default function VacationRequests() {
         {requests.length === 0 ? (
           <div className="text-center py-16">
             <CalendarIcon className="h-8 w-8 mx-auto text-muted-foreground/50 mb-2" />
-            <p className="text-sm text-muted-foreground">No vacation requests yet</p>
+            <p className="text-sm text-muted-foreground">{t('vacation.noRequests')}</p>
           </div>
         ) : (
           requests.map((r) => {
@@ -176,7 +175,7 @@ export default function VacationRequests() {
                   </div>
                   <Badge variant="outline" className={cn("text-xs gap-1 capitalize", cfg.className)}>
                     <StatusIcon className="h-3 w-3" />
-                    {r.status}
+                    {t(`common.${r.status}` as any)}
                   </Badge>
                 </div>
               </div>
