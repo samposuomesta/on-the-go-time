@@ -31,6 +31,7 @@ const APP_VERSION = '0.1.0';
 export function Dashboard() {
   const { activeEntry, loading, startWork, stopWork } = useTimeTracking();
   const { balance: bankBalance } = useWorkBank();
+  const { data: currentUser } = useCurrentUser();
   useOfflineSync();
   useWorkplaceDetection(!!activeEntry);
   const navigate = useNavigate();
@@ -38,6 +39,8 @@ export function Dashboard() {
   const [expenseMode, setExpenseMode] = useState<'kilometers' | 'parking' | 'receipt' | null>(null);
   const [showAbsenceDialog, setShowAbsenceDialog] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+
+  const isAdminOrManager = currentUser?.role === 'admin' || currentUser?.role === 'manager';
 
   const markAbsence = async (type: 'sick' | 'absence') => {
     const { error } = await supabase.from('absences').insert({
