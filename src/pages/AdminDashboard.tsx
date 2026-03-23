@@ -1254,12 +1254,14 @@ function AddEmployeeDialog({ onCreate }: { onCreate: (data: any) => void }) {
   );
 }
 
-function EditEmployeeDialog({ employee, allEmployees, currentManagerIds, onSave }: {
+function EditEmployeeDialog({ employee, allEmployees, currentManagerIds, onSave, onBankAdjust }: {
   employee: any;
   allEmployees: any[];
   currentManagerIds: string[];
   onSave: (data: any, managerIds: string[]) => void;
+  onBankAdjust?: (userId: string, hours: number) => void;
 }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [role, setRole] = useState(employee.role);
   const [employeeNumber, setEmployeeNumber] = useState(employee.employee_number || '');
@@ -1269,6 +1271,7 @@ function EditEmployeeDialog({ employee, allEmployees, currentManagerIds, onSave 
   const [autoSubtractLunch, setAutoSubtractLunch] = useState(employee.auto_subtract_lunch ?? false);
   const [lunchThreshold, setLunchThreshold] = useState(String(employee.lunch_threshold_hours ?? 5));
   const [selectedManagers, setSelectedManagers] = useState<string[]>(currentManagerIds);
+  const [bankAdjustment, setBankAdjustment] = useState('');
 
   const availableManagers = allEmployees.filter(
     (e: any) => (e.role === 'manager' || e.role === 'admin') && e.id !== employee.id
@@ -1288,14 +1291,17 @@ function EditEmployeeDialog({ employee, allEmployees, currentManagerIds, onSave 
         setDailyWorkHours(String(employee.daily_work_hours ?? 7.5));
         setAutoSubtractLunch(employee.auto_subtract_lunch ?? false);
         setLunchThreshold(String(employee.lunch_threshold_hours ?? 5));
+        setVacationDays(String(employee.annual_vacation_days ?? 25));
+        setContractDate(employee.contract_start_date || '');
+        setBankAdjustment('');
       }
     }}>
       <DialogTrigger asChild><Button size="icon" variant="ghost" className="h-8 w-8"><Pencil className="h-3.5 w-3.5" /></Button></DialogTrigger>
       <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
-        <DialogHeader><DialogTitle className="font-display">Edit {employee.name}</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle className="font-display">{t('common.edit')} {employee.name}</DialogTitle></DialogHeader>
         <div className="grid gap-4 mt-2 sm:grid-cols-2">
-          <div className="space-y-1.5"><Label>Employee Number</Label><Input value={employeeNumber} onChange={(e) => setEmployeeNumber(e.target.value)} placeholder="EMP-001" /></div>
-          <div className="space-y-1.5"><Label>Role</Label>
+          <div className="space-y-1.5"><Label>{t('common.name')}</Label><Input value={employeeNumber} onChange={(e) => setEmployeeNumber(e.target.value)} placeholder="EMP-001" /></div>
+          <div className="space-y-1.5"><Label>{t('common.role')}</Label>
             <Select value={role} onValueChange={(v: any) => setRole(v)}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent><SelectItem value="employee">Employee</SelectItem><SelectItem value="manager">Manager</SelectItem><SelectItem value="admin">Admin</SelectItem></SelectContent>
@@ -1319,6 +1325,13 @@ function EditEmployeeDialog({ employee, allEmployees, currentManagerIds, onSave 
               </div>
             )}
           </div>
+          {onBankAdjust && (
+            <div className="sm:col-span-2 space-y-2 rounded-lg border border-border p-3">
+              <Label>{t('employee.workBankAdjustment')}</Label>
+              <p className="text-xs text-muted-foreground">{t('employee.workBankAdjustmentHelp')}</p>
+              <Input type="number" step="0.5" value={bankAdjustment} onChange={(e) => setBankAdjustment(e.target.value)} placeholder="e.g. 2.5 or -1.0" />
+            </div>
+          )}
           <div className="space-y-1.5 sm:col-span-2">
             <Label>Managers</Label>
             {availableManagers.length === 0 ? (
@@ -1354,8 +1367,11 @@ function EditEmployeeDialog({ employee, allEmployees, currentManagerIds, onSave 
         </div>
         <Button className="w-full mt-2" onClick={() => {
           onSave({ role, employee_number: employeeNumber.trim() || null, contract_start_date: contractDate || null, annual_vacation_days: parseInt(vacationDays) || 25, daily_work_hours: parseFloat(dailyWorkHours) || 7.5, auto_subtract_lunch: autoSubtractLunch, lunch_threshold_hours: parseFloat(lunchThreshold) || 5 }, selectedManagers);
+          if (onBankAdjust && bankAdjustment && parseFloat(bankAdjustment) !== 0) {
+            onBankAdjust(employee.id, parseFloat(bankAdjustment));
+          }
           setOpen(false);
-        }}>Save Changes</Button>
+        }}>{t('common.save')}</Button>
       </DialogContent>
     </Dialog>
   );
