@@ -1,7 +1,7 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { format, startOfMonth, endOfMonth, parseISO } from 'date-fns';
-import { ArrowLeft, Clock, Briefcase, Car, CalendarIcon, Filter, Download } from 'lucide-react';
+import { ArrowLeft, Clock, Briefcase, Car, CalendarIcon, Filter, Download, Pencil } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { exportTimeEntriesCSV, exportProjectHoursCSV, exportTravelExpensesCSV } from '@/lib/csv-export';
 import { supabase } from '@/integrations/supabase/client';
@@ -11,9 +11,19 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { EditTimeEntryDialog } from '@/components/entries/EditTimeEntryDialog';
+import { EditProjectHoursDialog } from '@/components/entries/EditProjectHoursDialog';
+import { EditExpenseDialog } from '@/components/entries/EditExpenseDialog';
 
 type DateRange = { from: Date; to: Date };
+
+function StatusBadge({ status, t }: { status: string; t: (k: any) => string }) {
+  const variant = status === 'approved' ? 'default' : status === 'rejected' ? 'destructive' : 'secondary';
+  const label = status === 'approved' ? t('entries.approved') : status === 'rejected' ? t('entries.rejected') : t('entries.pending');
+  return <Badge variant={variant} className="text-[10px] px-1.5 py-0">{label}</Badge>;
+}
 
 export default function MyEntries() {
   const { t } = useTranslation();
@@ -27,6 +37,9 @@ export default function MyEntries() {
     from: range.from,
     to: range.to,
   });
+  const [editTimeEntry, setEditTimeEntry] = useState<any>(null);
+  const [editProjectHour, setEditProjectHour] = useState<any>(null);
+  const [editExpense, setEditExpense] = useState<any>(null);
 
   const { data: timeEntries = [] } = useQuery({
     queryKey: ['time-entries', range.from.toISOString(), range.to.toISOString()],
@@ -151,15 +164,25 @@ export default function MyEntries() {
                 <div key={e.id} className="bg-card rounded-lg border border-border p-3">
                   <div className="flex justify-between items-start">
                     <div>
-                      <p className="text-sm font-medium">{format(new Date(e.start_time), 'EEE, MMM d')}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-medium">{format(new Date(e.start_time), 'EEE, MMM d')}</p>
+                        <StatusBadge status={e.status} t={t} />
+                      </div>
                       <p className="text-xs text-muted-foreground mt-0.5">
                         {format(new Date(e.start_time), 'HH:mm')}
                         {e.end_time ? ` — ${format(new Date(e.end_time), 'HH:mm')}` : ' — …'}
                       </p>
                     </div>
-                    <span className="text-sm font-semibold font-display">
-                      {formatDuration(e.start_time, e.end_time)}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-semibold font-display">
+                        {formatDuration(e.start_time, e.end_time)}
+                      </span>
+                      {e.status === 'pending' && (
+                        <button onClick={() => setEditTimeEntry(e)} className="p-1 rounded hover:bg-muted">
+                          <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+                        </button>
+                      )}
+                    </div>
                   </div>
                   {(e.break_minutes ?? 0) > 0 && (
                     <p className="text-xs text-muted-foreground mt-1">{t('entries.break')}: {e.break_minutes}m</p>
@@ -177,10 +200,20 @@ export default function MyEntries() {
                 <div key={ph.id} className="bg-card rounded-lg border border-border p-3">
                   <div className="flex justify-between items-start">
                     <div>
-                      <p className="text-sm font-medium">{ph.projects?.name ?? t('entries.unknownProject')}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-medium">{ph.projects?.name ?? t('entries.unknownProject')}</p>
+                        <StatusBadge status={ph.status} t={t} />
+                      </div>
                       <p className="text-xs text-muted-foreground mt-0.5">{format(parseISO(ph.date), 'EEE, MMM d')}</p>
                     </div>
-                    <span className="text-sm font-semibold font-display">{ph.hours}h</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-semibold font-display">{ph.hours}h</span>
+                      {ph.status === 'pending' && (
+                        <button onClick={() => setEditProjectHour(ph)} className="p-1 rounded hover:bg-muted">
+                          <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+                        </button>
+                      )}
+                    </div>
                   </div>
                   {ph.description && (
                     <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{ph.description}</p>
@@ -198,15 +231,25 @@ export default function MyEntries() {
                 <div key={ex.id} className="bg-card rounded-lg border border-border p-3">
                   <div className="flex justify-between items-start">
                     <div>
-                      <p className="text-sm font-medium">{ex.projects?.name ?? t('entries.noProject')}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-medium">{ex.projects?.name ?? t('entries.noProject')}</p>
+                        <StatusBadge status={ex.status} t={t} />
+                      </div>
                       <p className="text-xs text-muted-foreground mt-0.5">{format(parseISO(ex.date), 'EEE, MMM d')}</p>
                     </div>
-                    <div className="text-right">
-                      {(ex.kilometers ?? 0) > 0 && (
-                        <p className="text-xs font-medium">{ex.kilometers} km</p>
-                      )}
-                      {(ex.parking_cost ?? 0) > 0 && (
-                        <p className="text-xs font-medium">€{Number(ex.parking_cost).toFixed(2)}</p>
+                    <div className="flex items-center gap-2">
+                      <div className="text-right">
+                        {(ex.kilometers ?? 0) > 0 && (
+                          <p className="text-xs font-medium">{ex.kilometers} km</p>
+                        )}
+                        {(ex.parking_cost ?? 0) > 0 && (
+                          <p className="text-xs font-medium">€{Number(ex.parking_cost).toFixed(2)}</p>
+                        )}
+                      </div>
+                      {ex.status === 'pending' && (
+                        <button onClick={() => setEditExpense(ex)} className="p-1 rounded hover:bg-muted">
+                          <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+                        </button>
                       )}
                     </div>
                   </div>
@@ -219,6 +262,29 @@ export default function MyEntries() {
           </TabsContent>
         </Tabs>
       </main>
+
+      {/* Edit Dialogs */}
+      {editTimeEntry && (
+        <EditTimeEntryDialog
+          entry={editTimeEntry}
+          open={!!editTimeEntry}
+          onOpenChange={(open) => { if (!open) setEditTimeEntry(null); }}
+        />
+      )}
+      {editProjectHour && (
+        <EditProjectHoursDialog
+          entry={editProjectHour}
+          open={!!editProjectHour}
+          onOpenChange={(open) => { if (!open) setEditProjectHour(null); }}
+        />
+      )}
+      {editExpense && (
+        <EditExpenseDialog
+          entry={editExpense}
+          open={!!editExpense}
+          onOpenChange={(open) => { if (!open) setEditExpense(null); }}
+        />
+      )}
     </div>
   );
 }
