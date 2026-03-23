@@ -226,9 +226,9 @@ function countBusinessDays(startDate: string, endDate: string, holidaySet?: Set<
 function StatisticsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: string) => boolean }) {
   const employees = (admin.employees.data ?? []).filter((e: any) => canSeeUser(e.id));
   const timeEntries = (admin.allTimeEntries.data ?? []).filter((te: any) => canSeeUser(te.user_id));
-  const absences = admin.absences.data ?? [];
-  const vacationRequests = admin.vacationRequests.data ?? [];
-  const workBank = admin.allWorkBank.data ?? [];
+  const absences = (admin.absences.data ?? []).filter((a: any) => canSeeUser(a.user_id));
+  const vacationRequests = (admin.vacationRequests.data ?? []).filter((v: any) => canSeeUser(v.user_id));
+  const workBank = (admin.allWorkBank.data ?? []).filter((wb: any) => canSeeUser(wb.user_id));
   const companies = admin.companies.data ?? [];
 
   // Get holiday set if company country is Finland
