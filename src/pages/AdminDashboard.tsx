@@ -74,13 +74,39 @@ function ApproveRejectButtons({ id, onApprove, isPending }: {
 
 export default function AdminDashboard() {
   const admin = useAdminData();
+  const { data: currentUser, isLoading: userLoading } = useCurrentUser();
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState('statistics');
 
+  // Block employees from accessing admin panel
+  if (!userLoading && currentUser && currentUser.role === 'employee') {
+    return <Navigate to="/" replace />;
+  }
+
+  const isManager = currentUser?.role === 'manager';
+  const currentUserId = currentUser?.id;
+
+  // For managers: get list of employee IDs they manage
+  const managedUserIds = useMemo(() => {
+    if (!isManager || !currentUserId) return null; // null = no filter (admin sees all)
+    const userManagers = admin.userManagers.data ?? [];
+    return userManagers
+      .filter((um: any) => um.manager_id === currentUserId)
+      .map((um: any) => um.user_id);
+  }, [isManager, currentUserId, admin.userManagers.data]);
+
+  // Filter helper: returns true if userId should be visible
+  const canSeeUser = (userId: string) => {
+    if (!managedUserIds) return true; // admin sees all
+    return managedUserIds.includes(userId);
+  };
+
   const pendingCounts = {
-    approvals: (admin.pendingTravel.data?.length ?? 0) + (admin.pendingHours.data?.length ?? 0) + (admin.pendingTimeEntries.data?.length ?? 0),
-    'vacation-approvals': admin.vacationRequests.data?.filter((v: any) => v.status === 'pending').length ?? 0,
-    absences: admin.absences.data?.filter((a: any) => a.status === 'pending').length ?? 0,
+    approvals: (admin.pendingTravel.data?.filter((t: any) => canSeeUser(t.user_id)).length ?? 0) 
+      + (admin.pendingHours.data?.filter((h: any) => canSeeUser(h.user_id)).length ?? 0) 
+      + (admin.pendingTimeEntries.data?.filter((te: any) => canSeeUser(te.user_id)).length ?? 0),
+    'vacation-approvals': admin.vacationRequests.data?.filter((v: any) => v.status === 'pending' && canSeeUser(v.user_id)).length ?? 0,
+    absences: admin.absences.data?.filter((a: any) => a.status === 'pending' && canSeeUser(a.user_id)).length ?? 0,
   };
 
   return (
