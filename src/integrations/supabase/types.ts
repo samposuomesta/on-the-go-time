@@ -216,6 +216,7 @@ export type Database = {
           customer: string | null
           id: string
           name: string
+          target_hours: number | null
         }
         Insert: {
           active?: boolean
@@ -224,6 +225,7 @@ export type Database = {
           customer?: string | null
           id?: string
           name: string
+          target_hours?: number | null
         }
         Update: {
           active?: boolean
@@ -232,6 +234,7 @@ export type Database = {
           customer?: string | null
           id?: string
           name?: string
+          target_hours?: number | null
         }
         Relationships: [
           {

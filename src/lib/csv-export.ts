@@ -94,6 +94,21 @@ export function exportAdminProjectHoursCSV(hours: any[]) {
   downloadCSV([headers.join(','), ...rows].join('\n'), 'project-hours-admin.csv');
 }
 
+export function exportProjectManagementCSV(rows: { projectName: string; employeeName: string; description: string; date: string; hoursUsed: number; targetHours: string; approvedHours: number; unapprovedHours: number }[]) {
+  const headers = ['Project', 'Employee', 'Description', 'Date', 'Hours Used', 'Target Hours', 'Approved Hours', 'Unapproved Hours'];
+  const csvRows = rows.map(r => [
+    `"${r.projectName.replace(/"/g, '""')}"`,
+    `"${r.employeeName.replace(/"/g, '""')}"`,
+    `"${(r.description ?? '').replace(/"/g, '""')}"`,
+    r.date,
+    r.hoursUsed,
+    r.targetHours,
+    r.approvedHours,
+    r.unapprovedHours,
+  ].join(','));
+  downloadCSV([headers.join(','), ...csvRows].join('\n'), 'project-management.csv');
+}
+
 export function exportAuditTrailCSV(logs: any[]) {
   const headers = ['Time', 'Table', 'Action', 'Changed By', 'Record ID'];
   const rows = logs.map((l: any) => [

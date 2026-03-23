@@ -187,6 +187,8 @@ const translations = {
     'admin.vacationApprovalsDesc': 'Review vacation requests',
     'admin.absencesDesc': 'Sick leave & absences',
     'admin.projectsDesc': 'Manage projects',
+    'admin.projectManagement': 'Project Management',
+    'admin.projectManagementDesc': 'Track project progress',
     'admin.workplacesDesc': 'Geofence locations',
     'admin.remindersDesc': 'Notification rules',
     'admin.employeesDesc': 'Manage team members',
@@ -263,6 +265,7 @@ const translations = {
     'projects.customerOptional': 'Customer (optional)',
     'projects.status': 'Status',
     'projects.noProjects': 'No projects yet',
+    'projects.targetHours': 'Target Hours (optional)',
 
     // Reminders
     'reminders.title': 'Reminder Rules',
@@ -494,6 +497,8 @@ const translations = {
     'admin.vacationApprovalsDesc': 'Tarkista lomapyynnöt',
     'admin.absencesDesc': 'Sairausloma ja poissaolot',
     'admin.projectsDesc': 'Hallinnoi projekteja',
+    'admin.projectManagement': 'Projektinhallinta',
+    'admin.projectManagementDesc': 'Seuraa projektien edistymistä',
     'admin.workplacesDesc': 'Geofence-sijainnit',
     'admin.remindersDesc': 'Ilmoitussäännöt',
     'admin.employeesDesc': 'Hallinnoi tiimin jäseniä',
@@ -570,6 +575,7 @@ const translations = {
     'projects.customerOptional': 'Asiakas (valinnainen)',
     'projects.status': 'Tila',
     'projects.noProjects': 'Ei projekteja vielä',
+    'projects.targetHours': 'Tavoitetunnit (valinnainen)',
 
     // Reminders
     'reminders.title': 'Muistutussäännöt',
