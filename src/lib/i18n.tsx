@@ -573,6 +573,7 @@ const translations = {
     'projects.customerOptional': 'Asiakas (valinnainen)',
     'projects.status': 'Tila',
     'projects.noProjects': 'Ei projekteja vielä',
+    'projects.targetHours': 'Tavoitetunnit (valinnainen)',
 
     // Reminders
     'reminders.title': 'Muistutussäännöt',
