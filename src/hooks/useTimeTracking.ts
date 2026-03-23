@@ -12,22 +12,36 @@ export interface ActiveEntry {
 
 export function useTimeTracking() {
   const [activeEntry, setActiveEntry] = useState<ActiveEntry | null>(null);
+  const [todayCompleted, setTodayCompleted] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const fetchActive = useCallback(async () => {
-    const { data, error } = await supabase
-      .from('time_entries')
-      .select('id, start_time, project_id')
-      .eq('user_id', DEMO_USER_ID)
-      .is('end_time', null)
-      .order('start_time', { ascending: false })
-      .limit(1)
-      .maybeSingle();
+    const todayStr = startOfToday().toISOString();
 
-    if (error) {
-      console.error('Error fetching active entry:', error);
+    const [activeRes, completedRes] = await Promise.all([
+      supabase
+        .from('time_entries')
+        .select('id, start_time, project_id')
+        .eq('user_id', DEMO_USER_ID)
+        .is('end_time', null)
+        .order('start_time', { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+      supabase
+        .from('time_entries')
+        .select('id')
+        .eq('user_id', DEMO_USER_ID)
+        .not('end_time', 'is', null)
+        .gte('start_time', todayStr)
+        .limit(1)
+        .maybeSingle(),
+    ]);
+
+    if (activeRes.error) {
+      console.error('Error fetching active entry:', activeRes.error);
     }
-    setActiveEntry(data);
+    setActiveEntry(activeRes.data);
+    setTodayCompleted(!!completedRes.data);
     setLoading(false);
   }, []);
 
@@ -127,5 +141,5 @@ export function useTimeTracking() {
     fetchActive();
   };
 
-  return { activeEntry, loading, startWork, stopWork, addFullWorkday, refetch: fetchActive };
+  return { activeEntry, todayCompleted, loading, startWork, stopWork, addFullWorkday, refetch: fetchActive };
 }
