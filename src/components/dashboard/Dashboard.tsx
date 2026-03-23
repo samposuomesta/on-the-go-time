@@ -10,6 +10,7 @@ import { useWorkBank } from '@/hooks/useWorkBank';
 import { useOfflineSync } from '@/hooks/useOfflineSync';
 import { useWorkplaceDetection } from '@/hooks/useWorkplaceDetection';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
+import { useTranslation } from '@/lib/i18n';
 import { StatusCard } from './StatusCard';
 import { ActionButton } from './ActionButton';
 import { AddProjectHoursDialog } from './AddProjectHoursDialog';
@@ -32,6 +33,7 @@ export function Dashboard() {
   const { activeEntry, loading, startWork, stopWork } = useTimeTracking();
   const { balance: bankBalance } = useWorkBank();
   const { data: currentUser } = useCurrentUser();
+  const { t } = useTranslation();
   useOfflineSync();
   useWorkplaceDetection(!!activeEntry);
   const navigate = useNavigate();
@@ -48,10 +50,10 @@ export function Dashboard() {
       type,
     });
     if (error) {
-      toast.error('Failed to record');
+      toast.error(t('dashboard.failedToRecord'));
       return;
     }
-    toast.success(type === 'sick' ? 'Sick day recorded' : 'Absence recorded');
+    toast.success(type === 'sick' ? t('dashboard.sickDayRecorded') : t('dashboard.absenceRecorded'));
   };
 
   return (
@@ -60,7 +62,7 @@ export function Dashboard() {
       <header className="sticky top-0 z-50 bg-card border-b border-border px-4 py-3 flex items-center justify-between">
         <div>
           <h1 className="text-lg font-display font-bold">TimeTrack</h1>
-          <p className="text-xs text-muted-foreground">John Employee</p>
+          <p className="text-xs text-muted-foreground">{currentUser?.name ?? ''}</p>
         </div>
         <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
           <SheetTrigger asChild>
@@ -70,18 +72,18 @@ export function Dashboard() {
           </SheetTrigger>
           <SheetContent side="right" className="w-72">
             <SheetHeader>
-              <SheetTitle className="font-display">Menu</SheetTitle>
+              <SheetTitle className="font-display">{t('menu.title')}</SheetTitle>
             </SheetHeader>
             <nav className="mt-6 space-y-1">
               {[
-                { icon: CalendarDays, label: 'Vacation Requests', path: '/vacation-requests' },
-                { icon: AlertTriangle, label: 'Long Sick Leave', path: '/long-sick-leave' },
-                { icon: FileText, label: 'My Entries', path: '/my-entries' },
-                { icon: BarChart3, label: 'My Statistics', path: '/my-statistics' },
-                { icon: Receipt, label: 'Travel Expenses', path: '/travel-expenses' },
-                ...(isAdminOrManager ? [{ icon: Shield, label: 'Admin Panel', path: '/admin' }] : []),
-                { icon: Settings, label: 'Settings', path: '/settings' },
-                { icon: LogOut, label: 'Logout', path: null },
+                { icon: CalendarDays, label: t('menu.vacationRequests'), path: '/vacation-requests' },
+                { icon: AlertTriangle, label: t('menu.longSickLeave'), path: '/long-sick-leave' },
+                { icon: FileText, label: t('menu.myEntries'), path: '/my-entries' },
+                { icon: BarChart3, label: t('menu.myStatistics'), path: '/my-statistics' },
+                { icon: Receipt, label: t('menu.travelExpenses'), path: '/travel-expenses' },
+                ...(isAdminOrManager ? [{ icon: Shield, label: t('menu.adminPanel'), path: '/admin' }] : []),
+                { icon: Settings, label: t('menu.settings'), path: '/settings' },
+                { icon: LogOut, label: t('menu.logout'), path: null },
               ].map(({ icon: Icon, label, path }) => (
                 <button
                   key={label}
@@ -111,18 +113,18 @@ export function Dashboard() {
 
         {/* Clock Actions */}
         <section>
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Clock</h2>
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">{t('dashboard.clock')}</h2>
           <div className="grid grid-cols-2 gap-3">
             <ActionButton
               icon={Play}
-              label="Start Work"
+              label={t('dashboard.startWork')}
               onClick={startWork}
               variant="success"
               disabled={!!activeEntry || loading}
             />
             <ActionButton
               icon={Square}
-              label="Stop Work"
+              label={t('dashboard.stopWork')}
               onClick={stopWork}
               variant="destructive"
               disabled={!activeEntry || loading}
@@ -132,11 +134,11 @@ export function Dashboard() {
 
         {/* Project Hours */}
         <section>
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Project Hours</h2>
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">{t('dashboard.projectHours')}</h2>
           <div className="grid grid-cols-1 gap-3">
             <ActionButton
               icon={Clock}
-              label="Add Project Hours"
+              label={t('dashboard.addProjectHours')}
               onClick={() => setShowProjectHours(true)}
               variant="default"
             />
@@ -145,23 +147,23 @@ export function Dashboard() {
 
         {/* Expenses */}
         <section>
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Expenses</h2>
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">{t('dashboard.expenses')}</h2>
           <div className="grid grid-cols-3 gap-3">
             <ActionButton
               icon={Car}
-              label="Kilometers"
+              label={t('dashboard.kilometers')}
               onClick={() => setExpenseMode('kilometers')}
               variant="warning"
             />
             <ActionButton
               icon={ParkingCircle}
-              label="Parking"
+              label={t('dashboard.parking')}
               onClick={() => setExpenseMode('parking')}
               variant="warning"
             />
             <ActionButton
               icon={Camera}
-              label="Receipt"
+              label={t('dashboard.receipt')}
               onClick={() => setExpenseMode('receipt')}
               variant="warning"
             />
@@ -170,17 +172,17 @@ export function Dashboard() {
 
         {/* Absence */}
         <section>
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Absence</h2>
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">{t('dashboard.absence')}</h2>
           <div className="grid grid-cols-2 gap-3">
             <ActionButton
               icon={Thermometer}
-              label="Sick Today"
+              label={t('dashboard.sickToday')}
               onClick={() => markAbsence('sick')}
               variant="secondary"
             />
             <ActionButton
               icon={UserX}
-              label="Absent Today"
+              label={t('dashboard.absentToday')}
               onClick={() => setShowAbsenceDialog(true)}
               variant="secondary"
             />

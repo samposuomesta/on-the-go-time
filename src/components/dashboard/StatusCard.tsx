@@ -2,6 +2,7 @@ import { Clock, Timer } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { ActiveEntry } from '@/hooks/useTimeTracking';
 import { formatDistanceToNow } from 'date-fns';
+import { useTranslation } from '@/lib/i18n';
 
 interface StatusCardProps {
   activeEntry: ActiveEntry | null;
@@ -10,6 +11,8 @@ interface StatusCardProps {
 }
 
 export function StatusCard({ activeEntry, loading, bankBalance }: StatusCardProps) {
+  const { t } = useTranslation();
+
   if (loading) {
     return (
       <Card>
@@ -35,17 +38,17 @@ export function StatusCard({ activeEntry, loading, bankBalance }: StatusCardProp
           </div>
           <div>
             <p className="text-sm font-medium text-muted-foreground">
-              {activeEntry ? 'Working since' : 'Not clocked in'}
+              {activeEntry ? t('dashboard.workingSince') : t('dashboard.notClockedIn')}
             </p>
             <p className="text-lg font-display font-semibold">
               {activeEntry
                 ? formatDistanceToNow(new Date(activeEntry.start_time), { addSuffix: false })
-                : 'Start your day'}
+                : t('dashboard.startYourDay')}
             </p>
           </div>
         </div>
         <div className="flex items-center gap-2 pt-1 border-t border-border">
-          <span className="text-xs text-muted-foreground">Time Bank</span>
+          <span className="text-xs text-muted-foreground">{t('dashboard.timeBank')}</span>
           <span className={`text-sm font-semibold ${bankBalance >= 0 ? 'text-success' : 'text-destructive'}`}>
             {bankBalance >= 0 ? '+' : ''}{bankBalance.toFixed(1)}h
           </span>

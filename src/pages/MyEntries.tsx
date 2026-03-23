@@ -1,11 +1,12 @@
 import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { format, startOfMonth, endOfMonth, parseISO, isWithinInterval } from 'date-fns';
+import { format, startOfMonth, endOfMonth, parseISO } from 'date-fns';
 import { ArrowLeft, Clock, Briefcase, Car, CalendarIcon, Filter, Download } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { exportTimeEntriesCSV, exportProjectHoursCSV, exportTravelExpensesCSV } from '@/lib/csv-export';
 import { supabase } from '@/integrations/supabase/client';
 import { DEMO_USER_ID } from '@/lib/demo-user';
+import { useTranslation } from '@/lib/i18n';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Calendar } from '@/components/ui/calendar';
@@ -15,6 +16,7 @@ import { cn } from '@/lib/utils';
 type DateRange = { from: Date; to: Date };
 
 export default function MyEntries() {
+  const { t } = useTranslation();
   const now = new Date();
   const [range, setRange] = useState<DateRange>({
     from: startOfMonth(now),
@@ -26,7 +28,6 @@ export default function MyEntries() {
     to: range.to,
   });
 
-  // Fetch time entries
   const { data: timeEntries = [] } = useQuery({
     queryKey: ['time-entries', range.from.toISOString(), range.to.toISOString()],
     queryFn: async () => {
@@ -42,7 +43,6 @@ export default function MyEntries() {
     },
   });
 
-  // Fetch project hours
   const { data: projectHours = [] } = useQuery({
     queryKey: ['project-hours', range.from.toISOString(), range.to.toISOString()],
     queryFn: async () => {
@@ -58,7 +58,6 @@ export default function MyEntries() {
     },
   });
 
-  // Fetch travel expenses
   const { data: expenses = [] } = useQuery({
     queryKey: ['travel-expenses', range.from.toISOString(), range.to.toISOString()],
     queryFn: async () => {
@@ -75,7 +74,7 @@ export default function MyEntries() {
   });
 
   const formatDuration = (start: string, end: string | null) => {
-    if (!end) return 'In progress…';
+    if (!end) return t('entries.inProgress');
     const ms = new Date(end).getTime() - new Date(start).getTime();
     const h = Math.floor(ms / 3600000);
     const m = Math.floor((ms % 3600000) / 60000);
@@ -84,12 +83,11 @@ export default function MyEntries() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Header */}
       <header className="sticky top-0 z-50 bg-card border-b border-border px-4 py-3 flex items-center gap-3">
         <Link to="/" className="touch-target flex items-center justify-center rounded-lg hover:bg-muted p-2 -ml-2">
           <ArrowLeft className="h-5 w-5" />
         </Link>
-        <h1 className="text-lg font-display font-bold flex-1">My Entries</h1>
+        <h1 className="text-lg font-display font-bold flex-1">{t('entries.title')}</h1>
         <Button size="sm" variant="outline" className="gap-1.5 text-xs"
           onClick={() => {
             exportTimeEntriesCSV(timeEntries);
@@ -100,7 +98,6 @@ export default function MyEntries() {
         </Button>
       </header>
 
-      {/* Date Filter */}
       <div className="px-4 pt-4 pb-2 max-w-lg mx-auto w-full">
         <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
           <PopoverTrigger asChild>
@@ -129,28 +126,26 @@ export default function MyEntries() {
         </Popover>
       </div>
 
-      {/* Tabs */}
       <main className="flex-1 px-4 pb-4 max-w-lg mx-auto w-full">
         <Tabs defaultValue="time" className="mt-2">
           <TabsList className="w-full grid grid-cols-3">
             <TabsTrigger value="time" className="gap-1.5 text-xs">
               <Clock className="h-3.5 w-3.5" />
-              Time ({timeEntries.length})
+              {t('entries.time')} ({timeEntries.length})
             </TabsTrigger>
             <TabsTrigger value="projects" className="gap-1.5 text-xs">
               <Briefcase className="h-3.5 w-3.5" />
-              Projects ({projectHours.length})
+              {t('entries.projects')} ({projectHours.length})
             </TabsTrigger>
             <TabsTrigger value="expenses" className="gap-1.5 text-xs">
               <Car className="h-3.5 w-3.5" />
-              Expenses ({expenses.length})
+              {t('entries.expenses')} ({expenses.length})
             </TabsTrigger>
           </TabsList>
 
-          {/* Time Entries */}
           <TabsContent value="time" className="mt-3 space-y-2">
             {timeEntries.length === 0 ? (
-              <EmptyState label="No time entries in this period" />
+              <EmptyState label={t('entries.noTimeEntries')} />
             ) : (
               timeEntries.map((e) => (
                 <div key={e.id} className="bg-card rounded-lg border border-border p-3">
@@ -167,23 +162,22 @@ export default function MyEntries() {
                     </span>
                   </div>
                   {(e.break_minutes ?? 0) > 0 && (
-                    <p className="text-xs text-muted-foreground mt-1">Break: {e.break_minutes}m</p>
+                    <p className="text-xs text-muted-foreground mt-1">{t('entries.break')}: {e.break_minutes}m</p>
                   )}
                 </div>
               ))
             )}
           </TabsContent>
 
-          {/* Project Hours */}
           <TabsContent value="projects" className="mt-3 space-y-2">
             {projectHours.length === 0 ? (
-              <EmptyState label="No project hours in this period" />
+              <EmptyState label={t('entries.noProjectHours')} />
             ) : (
               projectHours.map((ph: any) => (
                 <div key={ph.id} className="bg-card rounded-lg border border-border p-3">
                   <div className="flex justify-between items-start">
                     <div>
-                      <p className="text-sm font-medium">{ph.projects?.name ?? 'Unknown project'}</p>
+                      <p className="text-sm font-medium">{ph.projects?.name ?? t('entries.unknownProject')}</p>
                       <p className="text-xs text-muted-foreground mt-0.5">{format(parseISO(ph.date), 'EEE, MMM d')}</p>
                     </div>
                     <span className="text-sm font-semibold font-display">{ph.hours}h</span>
@@ -196,16 +190,15 @@ export default function MyEntries() {
             )}
           </TabsContent>
 
-          {/* Travel Expenses */}
           <TabsContent value="expenses" className="mt-3 space-y-2">
             {expenses.length === 0 ? (
-              <EmptyState label="No expenses in this period" />
+              <EmptyState label={t('entries.noExpenses')} />
             ) : (
               expenses.map((ex: any) => (
                 <div key={ex.id} className="bg-card rounded-lg border border-border p-3">
                   <div className="flex justify-between items-start">
                     <div>
-                      <p className="text-sm font-medium">{ex.projects?.name ?? 'No project'}</p>
+                      <p className="text-sm font-medium">{ex.projects?.name ?? t('entries.noProject')}</p>
                       <p className="text-xs text-muted-foreground mt-0.5">{format(parseISO(ex.date), 'EEE, MMM d')}</p>
                     </div>
                     <div className="text-right">
