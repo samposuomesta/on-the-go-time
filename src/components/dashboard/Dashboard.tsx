@@ -9,6 +9,7 @@ import { useTimeTracking } from '@/hooks/useTimeTracking';
 import { useWorkBank } from '@/hooks/useWorkBank';
 import { useOfflineSync } from '@/hooks/useOfflineSync';
 import { useWorkplaceDetection } from '@/hooks/useWorkplaceDetection';
+import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { StatusCard } from './StatusCard';
 import { ActionButton } from './ActionButton';
 import { AddProjectHoursDialog } from './AddProjectHoursDialog';
