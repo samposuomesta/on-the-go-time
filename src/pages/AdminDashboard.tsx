@@ -693,8 +693,12 @@ function ApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
           <Label className="text-xs">To</Label>
           <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="w-[150px] dark:[color-scheme:dark]" />
         </div>
-        {(employeeFilter !== 'all' || dateFrom || dateTo) && (
-          <Button variant="ghost" size="sm" onClick={() => { setEmployeeFilter('all'); setDateFrom(''); setDateTo(''); }}>
+        <div className="flex items-center gap-2">
+          <Checkbox id="show-pending" checked={showOnlyPending} onCheckedChange={(v) => setShowOnlyPending(!!v)} />
+          <Label htmlFor="show-pending" className="text-xs cursor-pointer">Show only pending</Label>
+        </div>
+        {(employeeFilter !== 'all' || dateFrom || dateTo || !showOnlyPending) && (
+          <Button variant="ghost" size="sm" onClick={() => { setEmployeeFilter('all'); setDateFrom(''); setDateTo(''); setShowOnlyPending(true); }}>
             <X className="h-3.5 w-3.5 mr-1" /> Clear
           </Button>
         )}
