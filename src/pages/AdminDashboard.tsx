@@ -770,9 +770,9 @@ function VacationApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser:
 
 /* ===== ABSENCES ===== */
 
-function AbsencesPanel({ admin }: { admin: any }) {
+function AbsencesPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: string) => boolean }) {
   const { language, t } = useTranslation();
-  const absences = admin.absences.data ?? [];
+  const absences = (admin.absences.data ?? []).filter((a: any) => canSeeUser(a.user_id));
   const absenceReasons = admin.absenceReasons.data ?? [];
   const pending = absences.filter((a: any) => a.status === 'pending');
   const handled = absences.filter((a: any) => a.status !== 'pending');
