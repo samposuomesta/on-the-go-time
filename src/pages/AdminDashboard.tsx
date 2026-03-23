@@ -180,31 +180,31 @@ export default function AdminDashboard() {
             })}
           </div>
           <main className="p-4">
-            <AdminContent activeTab={activeTab} admin={admin} />
+            <AdminContent activeTab={activeTab} admin={admin} canSeeUser={canSeeUser} isManager={isManager} />
           </main>
         </div>
 
         {/* Desktop content */}
         <main className="hidden md:block flex-1 p-6 lg:p-8 overflow-auto max-w-6xl">
-          <AdminContent activeTab={activeTab} admin={admin} />
+          <AdminContent activeTab={activeTab} admin={admin} canSeeUser={canSeeUser} isManager={isManager} />
         </main>
       </div>
     </div>
   );
 }
 
-function AdminContent({ activeTab, admin }: { activeTab: string; admin: any }) {
+function AdminContent({ activeTab, admin, canSeeUser, isManager }: { activeTab: string; admin: any; canSeeUser: (id: string) => boolean; isManager: boolean }) {
   switch (activeTab) {
-    case 'statistics': return <StatisticsPanel admin={admin} />;
-    case 'employees': return <EmployeesPanel admin={admin} />;
-    case 'approvals': return <ApprovalsPanel admin={admin} />;
+    case 'statistics': return <StatisticsPanel admin={admin} canSeeUser={canSeeUser} />;
+    case 'employees': return <EmployeesPanel admin={admin} canSeeUser={canSeeUser} />;
+    case 'approvals': return <ApprovalsPanel admin={admin} canSeeUser={canSeeUser} />;
     case 'projects': return <ProjectsPanel admin={admin} />;
-    case 'absences': return <AbsencesPanel admin={admin} />;
-    case 'vacation-approvals': return <VacationApprovalsPanel admin={admin} />;
-    case 'companies': return <CompaniesPanel admin={admin} />;
+    case 'absences': return <AbsencesPanel admin={admin} canSeeUser={canSeeUser} />;
+    case 'vacation-approvals': return <VacationApprovalsPanel admin={admin} canSeeUser={canSeeUser} />;
+    case 'companies': return isManager ? null : <CompaniesPanel admin={admin} />;
     case 'workplaces': return <WorkplacesPanel admin={admin} />;
     case 'reminders': return <RemindersPanel admin={admin} />;
-    case 'audit': return <AuditTrailPanel admin={admin} />;
+    case 'audit': return isManager ? null : <AuditTrailPanel admin={admin} />;
     default: return null;
   }
 }
