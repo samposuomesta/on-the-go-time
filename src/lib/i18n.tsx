@@ -47,6 +47,8 @@ const translations = {
     'dashboard.workingSince': 'Working since',
     'dashboard.notClockedIn': 'Not clocked in',
     'dashboard.startYourDay': 'Start your day',
+    'dashboard.workDayMarked': 'Work day marked',
+    'dashboard.workDayCompleted': 'Work day marked for today',
     'dashboard.timeBank': 'Time Bank',
     'dashboard.sickDayRecorded': 'Sick day recorded',
     'dashboard.absenceRecorded': 'Absence recorded',
