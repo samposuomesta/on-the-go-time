@@ -485,18 +485,140 @@ function EmployeesPanel({ admin }: { admin: any }) {
   );
 }
 
-/* ===== APPROVALS (Travel + Project Hours) ===== */
+/* ===== APPROVALS (Working Hours + Travel + Project Hours) ===== */
+
+function EditTimeEntryDialog({ entry, onSave }: { entry: any; onSave: (data: any) => void }) {
+  const [open, setOpen] = useState(false);
+  const [startTime, setStartTime] = useState('');
+  const [endTime, setEndTime] = useState('');
+  const [breakMins, setBreakMins] = useState('0');
+
+  const handleOpen = (isOpen: boolean) => {
+    if (isOpen) {
+      setStartTime(entry.start_time ? format(new Date(entry.start_time), "yyyy-MM-dd'T'HH:mm") : '');
+      setEndTime(entry.end_time ? format(new Date(entry.end_time), "yyyy-MM-dd'T'HH:mm") : '');
+      setBreakMins(String(entry.break_minutes ?? 0));
+    }
+    setOpen(isOpen);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={handleOpen}>
+      <DialogTrigger asChild>
+        <Button size="sm" variant="ghost" className="h-8 w-8 p-0"><Pencil className="h-3.5 w-3.5" /></Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-sm">
+        <DialogHeader><DialogTitle className="font-display">Edit Working Hours</DialogTitle></DialogHeader>
+        <div className="space-y-3">
+          <div>
+            <Label className="text-xs">Start Time</Label>
+            <Input type="datetime-local" value={startTime} onChange={e => setStartTime(e.target.value)} />
+          </div>
+          <div>
+            <Label className="text-xs">End Time</Label>
+            <Input type="datetime-local" value={endTime} onChange={e => setEndTime(e.target.value)} />
+          </div>
+          <div>
+            <Label className="text-xs">Break (minutes)</Label>
+            <Input type="number" min="0" value={breakMins} onChange={e => setBreakMins(e.target.value)} />
+          </div>
+          {startTime && endTime && (
+            <div className="text-xs text-muted-foreground">
+              Net hours: {Math.max(0, (differenceInMinutes(new Date(endTime), new Date(startTime)) - Number(breakMins)) / 60).toFixed(1)}h
+            </div>
+          )}
+          <Button className="w-full" onClick={() => {
+            onSave({
+              start_time: new Date(startTime).toISOString(),
+              end_time: new Date(endTime).toISOString(),
+              break_minutes: Number(breakMins),
+            });
+            setOpen(false);
+            toast.success('Hours updated');
+          }}>Save Changes</Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 function ApprovalsPanel({ admin }: { admin: any }) {
   const travel = admin.pendingTravel.data ?? [];
   const hours = admin.pendingHours.data ?? [];
+  const timeEntries = admin.pendingTimeEntries.data ?? [];
 
   return (
     <div className="space-y-6">
       <div>
         <h2 className="text-xl font-display font-bold">Approvals</h2>
-        <p className="text-sm text-muted-foreground">Review pending travel expenses and project hours</p>
+        <p className="text-sm text-muted-foreground">Review pending working hours, travel expenses and project hours</p>
       </div>
+
+      {/* Working Hours (Time Entries) */}
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Clock className="h-5 w-5 text-muted-foreground" />
+              <CardTitle className="text-base font-display">Working Hours</CardTitle>
+            </div>
+            <Badge variant="secondary">{timeEntries.length} pending</Badge>
+          </div>
+        </CardHeader>
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/50">
+                  <TableHead className="font-semibold">Employee</TableHead>
+                  <TableHead className="font-semibold">Date</TableHead>
+                  <TableHead className="font-semibold">Start</TableHead>
+                  <TableHead className="font-semibold">End</TableHead>
+                  <TableHead className="font-semibold">Break</TableHead>
+                  <TableHead className="font-semibold">Net Hours</TableHead>
+                  <TableHead className="font-semibold">Project</TableHead>
+                  <TableHead className="font-semibold">Status</TableHead>
+                  <TableHead className="text-right font-semibold">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {timeEntries.length === 0 ? (
+                  <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-8">No pending working hours</TableCell></TableRow>
+                ) : timeEntries.map((te: any) => {
+                  const netMins = te.end_time ? differenceInMinutes(new Date(te.end_time), new Date(te.start_time)) - (te.break_minutes ?? 0) : 0;
+                  return (
+                    <TableRow key={te.id} className="hover:bg-muted/30">
+                      <TableCell className="font-medium">{te.users?.name ?? 'Unknown'}</TableCell>
+                      <TableCell>{format(new Date(te.start_time), 'MMM d, yyyy')}</TableCell>
+                      <TableCell className="font-mono text-sm">{format(new Date(te.start_time), 'HH:mm')}</TableCell>
+                      <TableCell className="font-mono text-sm">{te.end_time ? format(new Date(te.end_time), 'HH:mm') : '—'}</TableCell>
+                      <TableCell className="text-sm">{te.break_minutes ?? 0}min</TableCell>
+                      <TableCell className="font-medium">{te.end_time ? (Math.max(0, netMins) / 60).toFixed(1) + 'h' : '—'}</TableCell>
+                      <TableCell className="text-muted-foreground">{te.projects?.name ?? '—'}</TableCell>
+                      <TableCell><StatusBadge status={te.status} /></TableCell>
+                      <TableCell className="text-right">
+                        {te.status === 'pending' && (
+                          <div className="flex items-center justify-end gap-1">
+                            <EditTimeEntryDialog
+                              entry={te}
+                              onSave={(data) => admin.updateTimeEntry.mutate({ id: te.id, ...data })}
+                            />
+                            <ApproveRejectButtons
+                              id={te.id}
+                              onApprove={(id, status) => admin.approveTimeEntry.mutate({ id, status })}
+                              isPending={admin.approveTimeEntry.isPending}
+                            />
+                          </div>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Travel Expenses */}
       <Card>
