@@ -430,10 +430,19 @@ function StatisticsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: s
 function EmployeesPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: string) => boolean }) {
   const employees = (admin.employees.data ?? []).filter((e: any) => canSeeUser(e.id));
   const userManagers = admin.userManagers.data ?? [];
+  const workBankTxns = admin.allWorkBank.data ?? [];
   const managerNames = (userId: string) => {
     const mgrIds = userManagers.filter((um: any) => um.user_id === userId).map((um: any) => um.manager_id);
     return employees.filter((e: any) => mgrIds.includes(e.id)).map((e: any) => e.name);
   };
+  // Compute current adjustment sum per user
+  const adjustmentSumByUser = useMemo(() => {
+    const sums: Record<string, number> = {};
+    workBankTxns.filter((t: any) => t.type === 'adjustment').forEach((t: any) => {
+      sums[t.user_id] = (sums[t.user_id] ?? 0) + Number(t.hours);
+    });
+    return sums;
+  }, [workBankTxns]);
 
   return (
     <div className="space-y-4">
