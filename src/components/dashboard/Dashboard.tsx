@@ -174,7 +174,7 @@ export function Dashboard() {
             <ActionButton
               icon={CalendarCheck}
               label={t('dashboard.fullWorkday')}
-              onClick={addFullWorkday}
+              onClick={handleAddFullWorkday}
               variant="success"
               disabled={!!activeEntry || loading}
             />
