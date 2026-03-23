@@ -594,6 +594,7 @@ function ApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
   const [employeeFilter, setEmployeeFilter] = useState('all');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
+  const [showOnlyPending, setShowOnlyPending] = useState(true);
   const [selectedTimeEntries, setSelectedTimeEntries] = useState<Set<string>>(new Set());
   const [bulkProcessing, setBulkProcessing] = useState(false);
 
@@ -606,6 +607,7 @@ function ApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
 
   const filterByEmployeeAndDate = (items: any[], dateField: string | ((item: any) => string)) => {
     return items.filter((item: any) => {
+      if (showOnlyPending && item.status !== 'pending') return false;
       if (employeeFilter !== 'all' && item.user_id !== employeeFilter) return false;
       const d = typeof dateField === 'function' ? dateField(item) : item[dateField];
       if (!d) return false;
@@ -691,8 +693,12 @@ function ApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
           <Label className="text-xs">To</Label>
           <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="w-[150px] dark:[color-scheme:dark]" />
         </div>
-        {(employeeFilter !== 'all' || dateFrom || dateTo) && (
-          <Button variant="ghost" size="sm" onClick={() => { setEmployeeFilter('all'); setDateFrom(''); setDateTo(''); }}>
+        <div className="flex items-center gap-2">
+          <Checkbox id="show-pending" checked={showOnlyPending} onCheckedChange={(v) => setShowOnlyPending(!!v)} />
+          <Label htmlFor="show-pending" className="text-xs cursor-pointer">Show only pending</Label>
+        </div>
+        {(employeeFilter !== 'all' || dateFrom || dateTo || !showOnlyPending) && (
+          <Button variant="ghost" size="sm" onClick={() => { setEmployeeFilter('all'); setDateFrom(''); setDateTo(''); setShowOnlyPending(true); }}>
             <X className="h-3.5 w-3.5 mr-1" /> Clear
           </Button>
         )}
