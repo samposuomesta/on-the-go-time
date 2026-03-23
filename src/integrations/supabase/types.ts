@@ -332,6 +332,7 @@ export type Database = {
           start_lat: number | null
           start_lng: number | null
           start_time: string
+          status: Database["public"]["Enums"]["request_status"]
           user_id: string
         }
         Insert: {
@@ -346,6 +347,7 @@ export type Database = {
           start_lat?: number | null
           start_lng?: number | null
           start_time?: string
+          status?: Database["public"]["Enums"]["request_status"]
           user_id: string
         }
         Update: {
@@ -360,6 +362,7 @@ export type Database = {
           start_lat?: number | null
           start_lng?: number | null
           start_time?: string
+          status?: Database["public"]["Enums"]["request_status"]
           user_id?: string
         }
         Relationships: [

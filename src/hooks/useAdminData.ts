@@ -120,6 +120,19 @@ export function useAdminData() {
     },
   });
 
+  const pendingTimeEntries = useQuery({
+    queryKey: ['admin-pending-time-entries'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('time_entries')
+        .select('*, users(name), projects(name)')
+        .eq('status', 'pending')
+        .order('start_time', { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const absences = useQuery({
     queryKey: ['admin-absences'],
     queryFn: async () => {
@@ -204,6 +217,28 @@ export function useAdminData() {
       if (error) throw error;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-absences'] }),
+  });
+
+  const approveTimeEntry = useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: 'approved' | 'rejected' }) => {
+      const { error } = await supabase.from('time_entries').update({ status }).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-pending-time-entries'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-all-time-entries'] });
+    },
+  });
+
+  const updateTimeEntry = useMutation({
+    mutationFn: async ({ id, ...data }: { id: string; start_time?: string; end_time?: string; break_minutes?: number }) => {
+      const { error } = await supabase.from('time_entries').update(data).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-pending-time-entries'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-all-time-entries'] });
+    },
   });
 
   const approveVacation = useMutation({
@@ -373,9 +408,9 @@ export function useAdminData() {
 
   return {
     employees, projects, companies, workplaces, reminderRules, userManagers, absenceReasons, auditLog,
-    pendingTravel, pendingHours, absences, vacationRequests,
+    pendingTravel, pendingHours, pendingTimeEntries, absences, vacationRequests,
     allTimeEntries, allWorkBank,
-    approveTravel, approveHours, approveAbsence, approveVacation,
+    approveTravel, approveHours, approveAbsence, approveVacation, approveTimeEntry, updateTimeEntry,
     updateEmployee, toggleProject, createProject, updateProject, createEmployee,
     createCompany, updateCompany,
     createWorkplace, deleteWorkplace,
