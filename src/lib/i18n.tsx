@@ -284,9 +284,10 @@ const translations = {
     'reminders.resendAfterDays': 'Resend After (days)',
     'reminders.resendAfterDaysHelp': 'If not accepted, resend reminder after this many days',
 
-    'employee.workBankAdjustment': 'Work Bank Adjustment (hours)',
-    'employee.workBankAdjustmentHelp': 'Add or subtract hours from the work bank. Positive = add, negative = subtract.',
-    'employee.currentBankBalance': 'Current Bank Balance',
+    'employee.workBankAdjustment': 'Work Bank Balance',
+    'employee.workBankAdjustmentHelp': 'Set the work bank balance before the current calculation period starts.',
+    'employee.currentBankBalance': 'Current Balance',
+    'employee.setBalanceTo': 'Set balance to (hours)',
 
     // Common
     'common.save': 'Save Changes',
@@ -590,9 +591,10 @@ const translations = {
     'reminders.resendAfterDays': 'Lähetä uudelleen (päivää)',
     'reminders.resendAfterDaysHelp': 'Jos ei hyväksytty, lähetä muistutus uudelleen tämän monen päivän jälkeen',
 
-    'employee.workBankAdjustment': 'Tuntipankin muutos (tunnit)',
-    'employee.workBankAdjustmentHelp': 'Lisää tai vähennä tunteja tuntipankista. Positiivinen = lisää, negatiivinen = vähennä.',
-    'employee.currentBankBalance': 'Nykyinen pankkisaldo',
+    'employee.workBankAdjustment': 'Tuntipankin saldo',
+    'employee.workBankAdjustmentHelp': 'Aseta tuntipankin saldo ennen nykyisen laskentajakson alkua.',
+    'employee.currentBankBalance': 'Nykyinen saldo',
+    'employee.setBalanceTo': 'Aseta saldoksi (tunnit)',
 
     // Common
     'common.save': 'Tallenna muutokset',

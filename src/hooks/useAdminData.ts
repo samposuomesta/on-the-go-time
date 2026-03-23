@@ -419,6 +419,31 @@ export function useAdminData() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-all-work-bank'] }),
   });
 
+  // Set absolute work bank balance
+  const setBankBalance = useMutation({
+    mutationFn: async ({ userId, desiredBalance }: { userId: string; desiredBalance: number }) => {
+      // Delete all existing adjustments for this user
+      const { error: delError } = await supabase
+        .from('work_bank_transactions')
+        .delete()
+        .eq('user_id', userId)
+        .eq('type', 'adjustment' as any);
+      if (delError) throw delError;
+
+      // Insert single adjustment with the desired balance value
+      // The work bank calculation adds this to the computed balance from entries
+      // So we need: adjustment = desiredBalance - computedBalanceFromEntries
+      // But since we just deleted all adjustments, we insert the raw desired offset
+      const { error: insError } = await supabase.from('work_bank_transactions').insert({
+        user_id: userId,
+        hours: desiredBalance,
+        type: 'adjustment' as any,
+      });
+      if (insError) throw insError;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-all-work-bank'] }),
+  });
+
   return {
     employees, projects, companies, workplaces, reminderRules, userManagers, absenceReasons, auditLog,
     pendingTravel, pendingHours, pendingTimeEntries, absences, vacationRequests,
@@ -429,6 +454,6 @@ export function useAdminData() {
     createWorkplace, deleteWorkplace,
     createReminder, updateReminder, toggleReminder, deleteReminder,
     createAbsenceReason, updateAbsenceReason, toggleAbsenceReason, deleteAbsenceReason,
-    setEmployeeManagers, addBankAdjustment,
+    setEmployeeManagers, addBankAdjustment, setBankBalance,
   };
 }

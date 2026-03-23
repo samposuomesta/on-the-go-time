@@ -430,10 +430,19 @@ function StatisticsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: s
 function EmployeesPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: string) => boolean }) {
   const employees = (admin.employees.data ?? []).filter((e: any) => canSeeUser(e.id));
   const userManagers = admin.userManagers.data ?? [];
+  const workBankTxns = admin.allWorkBank.data ?? [];
   const managerNames = (userId: string) => {
     const mgrIds = userManagers.filter((um: any) => um.user_id === userId).map((um: any) => um.manager_id);
     return employees.filter((e: any) => mgrIds.includes(e.id)).map((e: any) => e.name);
   };
+  // Compute current adjustment sum per user
+  const adjustmentSumByUser = useMemo(() => {
+    const sums: Record<string, number> = {};
+    workBankTxns.filter((t: any) => t.type === 'adjustment').forEach((t: any) => {
+      sums[t.user_id] = (sums[t.user_id] ?? 0) + Number(t.hours);
+    });
+    return sums;
+  }, [workBankTxns]);
 
   return (
     <div className="space-y-4">
@@ -498,9 +507,14 @@ function EmployeesPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
                             admin.setEmployeeManagers.mutate({ userId: emp.id, managerIds });
                             toast.success('Updated');
                           }}
+                          currentAdjustment={adjustmentSumByUser[emp.id] ?? 0}
                           onBankAdjust={(userId, hours) => {
                             admin.addBankAdjustment.mutate({ userId, hours });
                             toast.success(`Work bank adjusted by ${hours > 0 ? '+' : ''}${hours}h`);
+                          }}
+                          onSetBankBalance={(userId, desiredBalance) => {
+                            admin.setBankBalance.mutate({ userId, desiredBalance });
+                            toast.success(`Work bank balance set to ${desiredBalance}h`);
                           }}
                         />
                       </TableCell>
@@ -1258,12 +1272,14 @@ function AddEmployeeDialog({ onCreate }: { onCreate: (data: any) => void }) {
   );
 }
 
-function EditEmployeeDialog({ employee, allEmployees, currentManagerIds, onSave, onBankAdjust }: {
+function EditEmployeeDialog({ employee, allEmployees, currentManagerIds, onSave, onBankAdjust, onSetBankBalance, currentAdjustment = 0 }: {
   employee: any;
   allEmployees: any[];
   currentManagerIds: string[];
   onSave: (data: any, managerIds: string[]) => void;
   onBankAdjust?: (userId: string, hours: number) => void;
+  onSetBankBalance?: (userId: string, desiredBalance: number) => void;
+  currentAdjustment?: number;
 }) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
@@ -1276,6 +1292,7 @@ function EditEmployeeDialog({ employee, allEmployees, currentManagerIds, onSave,
   const [lunchThreshold, setLunchThreshold] = useState(String(employee.lunch_threshold_hours ?? 5));
   const [selectedManagers, setSelectedManagers] = useState<string[]>(currentManagerIds);
   const [bankAdjustment, setBankAdjustment] = useState('');
+  const [bankSetValue, setBankSetValue] = useState('');
 
   const availableManagers = allEmployees.filter(
     (e: any) => (e.role === 'manager' || e.role === 'admin') && e.id !== employee.id
@@ -1298,6 +1315,7 @@ function EditEmployeeDialog({ employee, allEmployees, currentManagerIds, onSave,
         setVacationDays(String(employee.annual_vacation_days ?? 25));
         setContractDate(employee.contract_start_date || '');
         setBankAdjustment('');
+        setBankSetValue(String(currentAdjustment));
       }
     }}>
       <DialogTrigger asChild><Button size="icon" variant="ghost" className="h-8 w-8"><Pencil className="h-3.5 w-3.5" /></Button></DialogTrigger>
@@ -1329,11 +1347,24 @@ function EditEmployeeDialog({ employee, allEmployees, currentManagerIds, onSave,
               </div>
             )}
           </div>
-          {onBankAdjust && (
-            <div className="sm:col-span-2 space-y-2 rounded-lg border border-border p-3">
-              <Label>{t('employee.workBankAdjustment')}</Label>
-              <p className="text-xs text-muted-foreground">{t('employee.workBankAdjustmentHelp')}</p>
-              <Input type="number" step="0.5" value={bankAdjustment} onChange={(e) => setBankAdjustment(e.target.value)} placeholder="e.g. 2.5 or -1.0" />
+          {(onBankAdjust || onSetBankBalance) && (
+            <div className="sm:col-span-2 space-y-3 rounded-lg border border-border p-3">
+              <div>
+                <Label>{t('employee.workBankAdjustment')}</Label>
+                <p className="text-xs text-muted-foreground mb-2">{t('employee.workBankAdjustmentHelp')}</p>
+                <div className="flex items-center gap-3">
+                  <div className="flex-1">
+                    <Label className="text-xs text-muted-foreground">{t('employee.currentBankBalance')}</Label>
+                    <div className={cn("text-lg font-semibold", currentAdjustment >= 0 ? 'text-success' : 'text-destructive')}>
+                      {currentAdjustment >= 0 ? '+' : ''}{currentAdjustment.toFixed(1)}h
+                    </div>
+                  </div>
+                  <div className="flex-1 space-y-1">
+                    <Label className="text-xs">{t('employee.setBalanceTo')}</Label>
+                    <Input type="number" step="0.5" value={bankSetValue} onChange={(e) => setBankSetValue(e.target.value)} placeholder="e.g. 5.0" />
+                  </div>
+                </div>
+              </div>
             </div>
           )}
           <div className="space-y-1.5 sm:col-span-2">
@@ -1371,8 +1402,9 @@ function EditEmployeeDialog({ employee, allEmployees, currentManagerIds, onSave,
         </div>
         <Button className="w-full mt-2" onClick={() => {
           onSave({ role, employee_number: employeeNumber.trim() || null, contract_start_date: contractDate || null, annual_vacation_days: parseInt(vacationDays) || 25, daily_work_hours: parseFloat(dailyWorkHours) || 7.5, auto_subtract_lunch: autoSubtractLunch, lunch_threshold_hours: parseFloat(lunchThreshold) || 5 }, selectedManagers);
-          if (onBankAdjust && bankAdjustment && parseFloat(bankAdjustment) !== 0) {
-            onBankAdjust(employee.id, parseFloat(bankAdjustment));
+          // Set absolute balance if changed
+          if (onSetBankBalance && bankSetValue !== '' && parseFloat(bankSetValue) !== currentAdjustment) {
+            onSetBankBalance(employee.id, parseFloat(bankSetValue));
           }
           setOpen(false);
         }}>{t('common.save')}</Button>
