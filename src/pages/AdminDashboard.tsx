@@ -713,10 +713,39 @@ function ApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
           </div>
         </CardHeader>
         <CardContent className="p-0">
+          {/* Bulk action bar */}
+          {selectedTimeEntries.size > 0 && (
+            <div className="flex items-center gap-3 px-4 py-2 bg-muted/50 border-b">
+              <span className="text-sm font-medium">{selectedTimeEntries.size} selected</span>
+              <Button size="sm" variant="outline"
+                className="gap-1 text-xs h-7 text-success hover:text-success border-success/30 hover:bg-success/10"
+                disabled={bulkProcessing}
+                onClick={() => handleBulkAction('approved')}>
+                <CheckCircle2 className="h-3.5 w-3.5" /> Approve All
+              </Button>
+              <Button size="sm" variant="outline"
+                className="gap-1 text-xs h-7 text-destructive hover:text-destructive border-destructive/30 hover:bg-destructive/10"
+                disabled={bulkProcessing}
+                onClick={() => handleBulkAction('rejected')}>
+                <XCircle className="h-3.5 w-3.5" /> Reject All
+              </Button>
+              <Button size="sm" variant="ghost" className="text-xs h-7" onClick={() => setSelectedTimeEntries(new Set())}>
+                Clear
+              </Button>
+            </div>
+          )}
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/50">
+                  <TableHead className="w-10">
+                    <Checkbox
+                      checked={allPendingSelected}
+                      onCheckedChange={toggleSelectAll}
+                      disabled={pendingTimeEntryIds.length === 0}
+                      className={somePendingSelected && !allPendingSelected ? 'opacity-50' : ''}
+                    />
+                  </TableHead>
                   <TableHead className="font-semibold">Employee</TableHead>
                   <TableHead className="font-semibold">Date</TableHead>
                   <TableHead className="font-semibold">Start</TableHead>
@@ -730,11 +759,20 @@ function ApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
               </TableHeader>
               <TableBody>
                 {filteredTimeEntries.length === 0 ? (
-                  <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-8">No working hours found</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={10} className="text-center text-muted-foreground py-8">No working hours found</TableCell></TableRow>
                 ) : filteredTimeEntries.slice(0, 200).map((te: any) => {
                   const netMins = te.end_time ? differenceInMinutes(new Date(te.end_time), new Date(te.start_time)) - (te.break_minutes ?? 0) : 0;
+                  const isPending = te.status === 'pending';
                   return (
-                    <TableRow key={te.id} className="hover:bg-muted/30">
+                    <TableRow key={te.id} className={cn("hover:bg-muted/30", selectedTimeEntries.has(te.id) && "bg-primary/5")}>
+                      <TableCell>
+                        {isPending ? (
+                          <Checkbox
+                            checked={selectedTimeEntries.has(te.id)}
+                            onCheckedChange={() => toggleSelectOne(te.id)}
+                          />
+                        ) : <div className="w-4" />}
+                      </TableCell>
                       <TableCell className="font-medium">{te.users?.name ?? 'Unknown'}</TableCell>
                       <TableCell>{format(new Date(te.start_time), 'MMM d, yyyy')}</TableCell>
                       <TableCell className="font-mono text-sm">{format(new Date(te.start_time), 'HH:mm')}</TableCell>
@@ -744,7 +782,7 @@ function ApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
                       <TableCell className="text-muted-foreground">{te.projects?.name ?? '—'}</TableCell>
                       <TableCell><StatusBadge status={te.status} /></TableCell>
                       <TableCell className="text-right">
-                        {te.status === 'pending' && (
+                        {isPending && (
                           <div className="flex items-center justify-end gap-1">
                             <EditTimeEntryDialog
                               entry={te}
