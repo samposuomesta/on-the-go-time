@@ -408,9 +408,9 @@ export function useAdminData() {
 
   return {
     employees, projects, companies, workplaces, reminderRules, userManagers, absenceReasons, auditLog,
-    pendingTravel, pendingHours, absences, vacationRequests,
+    pendingTravel, pendingHours, pendingTimeEntries, absences, vacationRequests,
     allTimeEntries, allWorkBank,
-    approveTravel, approveHours, approveAbsence, approveVacation,
+    approveTravel, approveHours, approveAbsence, approveVacation, approveTimeEntry, updateTimeEntry,
     updateEmployee, toggleProject, createProject, updateProject, createEmployee,
     createCompany, updateCompany,
     createWorkplace, deleteWorkplace,
