@@ -811,6 +811,58 @@ function ApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
         </CardContent>
       </Card>
 
+      {/* Project Hours */}
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Clock className="h-5 w-5 text-muted-foreground" />
+              <CardTitle className="text-base font-display">Project Hours</CardTitle>
+              <Badge variant="secondary">{pendingHours.length} pending</Badge>
+            </div>
+            <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => exportAdminProjectHoursCSV(filteredHours)}>
+              <Download className="h-3.5 w-3.5" /> CSV
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/50">
+                  <TableHead className="font-semibold">Employee</TableHead>
+                  <TableHead className="font-semibold">Project</TableHead>
+                  <TableHead className="font-semibold">Date</TableHead>
+                  <TableHead className="font-semibold">Hours</TableHead>
+                  <TableHead className="font-semibold">Description</TableHead>
+                  <TableHead className="font-semibold">Status</TableHead>
+                  <TableHead className="text-right font-semibold">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredHours.length === 0 ? (
+                  <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">No project hours found</TableCell></TableRow>
+                ) : filteredHours.slice(0, 200).map((h: any) => (
+                  <TableRow key={h.id} className="hover:bg-muted/30">
+                    <TableCell className="font-medium">{h.users?.name ?? 'Unknown'}</TableCell>
+                    <TableCell className="text-muted-foreground">{h.projects?.name ?? '—'}</TableCell>
+                    <TableCell>{format(parseISO(h.date), 'MMM d, yyyy')}</TableCell>
+                    <TableCell className="font-medium">{h.hours}h</TableCell>
+                    <TableCell className="text-muted-foreground max-w-[200px] truncate">{h.description || '—'}</TableCell>
+                    <TableCell><StatusBadge status={h.status} /></TableCell>
+                    <TableCell className="text-right">
+                      {h.status === 'pending' && (
+                        <ApproveRejectButtons id={h.id} onApprove={(id, status) => admin.approveHours.mutate({ id, status })} isPending={admin.approveHours.isPending} />
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Travel Expenses */}
       <Card>
         <CardHeader className="pb-3">
@@ -855,58 +907,6 @@ function ApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
                     <TableCell className="text-right">
                       {t.status === 'pending' && (
                         <ApproveRejectButtons id={t.id} onApprove={(id, status) => admin.approveTravel.mutate({ id, status })} isPending={admin.approveTravel.isPending} />
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Project Hours */}
-      <Card>
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Clock className="h-5 w-5 text-muted-foreground" />
-              <CardTitle className="text-base font-display">Project Hours</CardTitle>
-              <Badge variant="secondary">{pendingHours.length} pending</Badge>
-            </div>
-            <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => exportAdminProjectHoursCSV(filteredHours)}>
-              <Download className="h-3.5 w-3.5" /> CSV
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-muted/50">
-                  <TableHead className="font-semibold">Employee</TableHead>
-                  <TableHead className="font-semibold">Project</TableHead>
-                  <TableHead className="font-semibold">Date</TableHead>
-                  <TableHead className="font-semibold">Hours</TableHead>
-                  <TableHead className="font-semibold">Description</TableHead>
-                  <TableHead className="font-semibold">Status</TableHead>
-                  <TableHead className="text-right font-semibold">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredHours.length === 0 ? (
-                  <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">No project hours found</TableCell></TableRow>
-                ) : filteredHours.slice(0, 200).map((h: any) => (
-                  <TableRow key={h.id} className="hover:bg-muted/30">
-                    <TableCell className="font-medium">{h.users?.name ?? 'Unknown'}</TableCell>
-                    <TableCell className="text-muted-foreground">{h.projects?.name ?? '—'}</TableCell>
-                    <TableCell>{format(parseISO(h.date), 'MMM d, yyyy')}</TableCell>
-                    <TableCell className="font-medium">{h.hours}h</TableCell>
-                    <TableCell className="text-muted-foreground max-w-[200px] truncate">{h.description || '—'}</TableCell>
-                    <TableCell><StatusBadge status={h.status} /></TableCell>
-                    <TableCell className="text-right">
-                      {h.status === 'pending' && (
-                        <ApproveRejectButtons id={h.id} onApprove={(id, status) => admin.approveHours.mutate({ id, status })} isPending={admin.approveHours.isPending} />
                       )}
                     </TableCell>
                   </TableRow>
