@@ -51,6 +51,8 @@ export function Dashboard() {
   const [expenseMode, setExpenseMode] = useState<'kilometers' | 'parking' | 'receipt' | null>(null);
   const [showAbsenceDialog, setShowAbsenceDialog] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [overlapEntries, setOverlapEntries] = useState<OverlapEntry[]>([]);
+  const [showOverlapDialog, setShowOverlapDialog] = useState(false);
 
   const isAdminOrManager = currentUser?.role === 'admin' || currentUser?.role === 'manager';
 
