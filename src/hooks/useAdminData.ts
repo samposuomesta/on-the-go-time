@@ -120,6 +120,19 @@ export function useAdminData() {
     },
   });
 
+  const pendingTimeEntries = useQuery({
+    queryKey: ['admin-pending-time-entries'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('time_entries')
+        .select('*, users(name), projects(name)')
+        .eq('status', 'pending')
+        .order('start_time', { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const absences = useQuery({
     queryKey: ['admin-absences'],
     queryFn: async () => {
