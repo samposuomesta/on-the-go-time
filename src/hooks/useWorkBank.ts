@@ -76,10 +76,9 @@ export function useWorkBank() {
         workedByDate[dateKey] = (workedByDate[dateKey] ?? 0) + netHours;
       }
 
-      // Calculate balance: sum of (worked - expected) for each working day
-      // Only count days from contract start (or start of year) up to today
+      // Calculate from contract start date (or start of year if no contract date)
       const periodStart = settings.contract_start_date
-        ? new Date(Math.max(new Date(settings.contract_start_date).getTime(), startOfYear(new Date()).getTime()))
+        ? new Date(settings.contract_start_date)
         : startOfYear(new Date());
       const today = new Date();
 

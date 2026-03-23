@@ -564,6 +564,10 @@ const translations = {
     'reminders.resendAfterDays': 'Lähetä uudelleen (päivää)',
     'reminders.resendAfterDaysHelp': 'Jos ei hyväksytty, lähetä muistutus uudelleen tämän monen päivän jälkeen',
 
+    'employee.workBankAdjustment': 'Tuntipankin muutos (tunnit)',
+    'employee.workBankAdjustmentHelp': 'Lisää tai vähennä tunteja tuntipankista. Positiivinen = lisää, negatiivinen = vähennä.',
+    'employee.currentBankBalance': 'Nykyinen pankkisaldo',
+
     // Common
     'common.save': 'Tallenna muutokset',
     'common.cancel': 'Peruuta',
