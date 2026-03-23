@@ -243,6 +243,25 @@ export function Dashboard() {
         />
       )}
       <AbsenceReasonDialog open={showAbsenceDialog} onOpenChange={setShowAbsenceDialog} />
+
+      <AlertDialog open={showOverlapDialog} onOpenChange={setShowOverlapDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('dashboard.duplicateTitle')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('dashboard.duplicateDescription')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => { setShowOverlapDialog(false); setOverlapEntries([]); }}>
+              {t('dashboard.discard')}
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleReplaceOverlap}>
+              {t('dashboard.replace')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
