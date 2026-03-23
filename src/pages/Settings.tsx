@@ -1,10 +1,16 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Moon, Sun, Monitor, Globe } from 'lucide-react';
+import { ArrowLeft, Moon, Sun, Monitor, Bell } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
+import { Switch } from '@/components/ui/switch';
+import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { useTranslation, Language } from '@/lib/i18n';
+import { useCurrentUser } from '@/hooks/useCurrentUser';
+import { supabase } from '@/integrations/supabase/client';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
 type Theme = 'light' | 'dark' | 'system';
 
@@ -27,9 +33,19 @@ function applyTheme(theme: Theme) {
   }
 }
 
+interface UserReminder {
+  id: string;
+  user_id: string;
+  type: string;
+  time: string;
+  enabled: boolean;
+}
+
 export default function SettingsPage() {
   const [theme, setTheme] = useState<Theme>(getStoredTheme);
   const { language, setLanguage, t } = useTranslation();
+  const { data: currentUser } = useCurrentUser();
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     applyTheme(theme);
@@ -42,6 +58,61 @@ export default function SettingsPage() {
     mq.addEventListener('change', handler);
     return () => mq.removeEventListener('change', handler);
   }, [theme]);
+
+  const userId = currentUser?.id;
+
+  const { data: reminders = [] } = useQuery<UserReminder[]>({
+    queryKey: ['user-reminders', userId],
+    queryFn: async () => {
+      if (!userId) return [];
+      const { data, error } = await supabase
+        .from('user_reminders')
+        .select('*')
+        .eq('user_id', userId);
+      if (error) throw error;
+      return (data ?? []) as UserReminder[];
+    },
+    enabled: !!userId,
+  });
+
+  const upsertReminder = useMutation({
+    mutationFn: async ({ type, enabled, time }: { type: string; enabled: boolean; time: string }) => {
+      if (!userId) return;
+      const { error } = await supabase
+        .from('user_reminders')
+        .upsert({ user_id: userId, type, enabled, time }, { onConflict: 'user_id,type' });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user-reminders', userId] });
+      toast.success(t('settings.reminderSaved'));
+    },
+  });
+
+  const getReminder = (type: string) => reminders.find((r) => r.type === type);
+
+  const handleToggle = (type: string, defaultTime: string) => {
+    const existing = getReminder(type);
+    upsertReminder.mutate({
+      type,
+      enabled: existing ? !existing.enabled : true,
+      time: existing?.time ?? defaultTime,
+    });
+  };
+
+  const handleTimeChange = (type: string, time: string) => {
+    const existing = getReminder(type);
+    upsertReminder.mutate({
+      type,
+      enabled: existing?.enabled ?? true,
+      time,
+    });
+  };
+
+  const reminderTypes = [
+    { type: 'clock_in', labelKey: 'settings.clockInReminder' as const, defaultTime: '08:00' },
+    { type: 'clock_out', labelKey: 'settings.clockOutReminder' as const, defaultTime: '16:00' },
+  ];
 
   const themeOptions: { value: Theme; icon: typeof Sun; labelKey: 'theme.light' | 'theme.dark' | 'theme.system' }[] = [
     { value: 'light', icon: Sun, labelKey: 'theme.light' },
@@ -106,6 +177,41 @@ export default function SettingsPage() {
               </button>
             ))}
           </div>
+        </section>
+
+        {/* Reminders */}
+        <section>
+          <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t('settings.reminders')}</Label>
+          <Card className="mt-2">
+            <CardContent className="p-4 space-y-4">
+              {reminderTypes.map(({ type, labelKey, defaultTime }) => {
+                const reminder = getReminder(type);
+                const isEnabled = reminder?.enabled ?? false;
+                const time = reminder?.time ?? defaultTime;
+                return (
+                  <div key={type} className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <Bell className="h-4 w-4 text-muted-foreground shrink-0" />
+                      <span className="text-sm font-medium truncate">{t(labelKey)}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="time"
+                        value={time}
+                        onChange={(e) => handleTimeChange(type, e.target.value)}
+                        className="w-24 h-8 text-xs"
+                        disabled={!isEnabled}
+                      />
+                      <Switch
+                        checked={isEnabled}
+                        onCheckedChange={() => handleToggle(type, defaultTime)}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </CardContent>
+          </Card>
         </section>
 
         {/* App Info */}
