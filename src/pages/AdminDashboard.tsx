@@ -1272,12 +1272,14 @@ function AddEmployeeDialog({ onCreate }: { onCreate: (data: any) => void }) {
   );
 }
 
-function EditEmployeeDialog({ employee, allEmployees, currentManagerIds, onSave, onBankAdjust }: {
+function EditEmployeeDialog({ employee, allEmployees, currentManagerIds, onSave, onBankAdjust, onSetBankBalance, currentAdjustment = 0 }: {
   employee: any;
   allEmployees: any[];
   currentManagerIds: string[];
   onSave: (data: any, managerIds: string[]) => void;
   onBankAdjust?: (userId: string, hours: number) => void;
+  onSetBankBalance?: (userId: string, desiredBalance: number) => void;
+  currentAdjustment?: number;
 }) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
@@ -1290,6 +1292,7 @@ function EditEmployeeDialog({ employee, allEmployees, currentManagerIds, onSave,
   const [lunchThreshold, setLunchThreshold] = useState(String(employee.lunch_threshold_hours ?? 5));
   const [selectedManagers, setSelectedManagers] = useState<string[]>(currentManagerIds);
   const [bankAdjustment, setBankAdjustment] = useState('');
+  const [bankSetValue, setBankSetValue] = useState('');
 
   const availableManagers = allEmployees.filter(
     (e: any) => (e.role === 'manager' || e.role === 'admin') && e.id !== employee.id
