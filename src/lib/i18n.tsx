@@ -263,6 +263,7 @@ const translations = {
     'projects.customerOptional': 'Customer (optional)',
     'projects.status': 'Status',
     'projects.noProjects': 'No projects yet',
+    'projects.targetHours': 'Target Hours (optional)',
 
     // Reminders
     'reminders.title': 'Reminder Rules',
