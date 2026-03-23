@@ -555,6 +555,10 @@ const translations = {
     'reminders.clockOut': 'Uloskirjausmuistutus',
     'reminders.vacationApproval': 'Lomahyväksyntä',
     'reminders.managerApproval': 'Esimiehen hyväksyntä',
+    'reminders.hoursApproval': 'Kuukausittainen tuntihyväksyntä',
+    'reminders.dayOfMonth': 'Kuukauden päivä',
+    'reminders.resendAfterDays': 'Lähetä uudelleen (päivää)',
+    'reminders.resendAfterDaysHelp': 'Jos ei hyväksytty, lähetä muistutus uudelleen tämän monen päivän jälkeen',
 
     // Common
     'common.save': 'Tallenna muutokset',
