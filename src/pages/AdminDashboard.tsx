@@ -1792,6 +1792,8 @@ function EditReminderDialog({ reminder, onSave }: { reminder: any; onSave: (data
 function AuditTrailPanel({ admin }: { admin: any }) {
   const [tableFilter, setTableFilter] = useState('all');
   const [actionFilter, setActionFilter] = useState('all');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
   const logs = admin.auditLog.data ?? [];
   const employees = admin.employees.data ?? [];
 
@@ -1810,9 +1812,11 @@ function AuditTrailPanel({ admin }: { admin: any }) {
     return logs.filter((l: any) => {
       if (tableFilter !== 'all' && l.table_name !== tableFilter) return false;
       if (actionFilter !== 'all' && l.action !== actionFilter) return false;
+      if (dateFrom && l.created_at && l.created_at.slice(0, 10) < dateFrom) return false;
+      if (dateTo && l.created_at && l.created_at.slice(0, 10) > dateTo) return false;
       return true;
     });
-  }, [logs, tableFilter, actionFilter]);
+  }, [logs, tableFilter, actionFilter, dateFrom, dateTo]);
 
   const formatChanges = (log: any) => {
     if (log.action === 'INSERT') {
