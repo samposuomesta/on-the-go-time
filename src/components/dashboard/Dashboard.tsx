@@ -149,7 +149,7 @@ export function Dashboard() {
               icon={CalendarCheck}
               label={t('dashboard.fullWorkday')}
               onClick={addFullWorkday}
-              variant="default"
+              variant="success"
               disabled={!!activeEntry || loading}
             />
           </div>
