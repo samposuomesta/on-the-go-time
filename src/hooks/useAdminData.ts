@@ -322,7 +322,7 @@ export function useAdminData() {
   });
 
   const createReminder = useMutation({
-    mutationFn: async (data: { type: string; time: string; message: string; message_fi?: string }) => {
+    mutationFn: async (data: { type: string; time: string; message: string; message_fi?: string; day_of_month?: number; resend_after_days?: number }) => {
       const { error } = await supabase.from('reminder_rules' as any).insert({ ...data, company_id: DEMO_COMPANY_ID } as any);
       if (error) throw error;
     },

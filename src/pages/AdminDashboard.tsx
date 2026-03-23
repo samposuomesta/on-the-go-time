@@ -1168,7 +1168,10 @@ function RemindersPanel({ admin }: { admin: any }) {
                   <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-12">{t('reminders.noReminders')}</TableCell></TableRow>
                 ) : reminders.map((r: any) => (
                   <TableRow key={r.id} className="hover:bg-muted/30">
-                    <TableCell className="font-medium capitalize">{r.type.replace('_', ' ')}</TableCell>
+                    <TableCell className="font-medium capitalize">
+                      {r.type === 'hours_approval' ? t('reminders.hoursApproval') : r.type.replace('_', ' ')}
+                      {r.day_of_month && <span className="text-xs text-muted-foreground ml-1">({t('reminders.dayOfMonth')}: {r.day_of_month}, {t('reminders.resendAfterDays')}: {r.resend_after_days ?? '—'})</span>}
+                    </TableCell>
                     <TableCell className="font-mono">{r.time}</TableCell>
                     <TableCell className="text-muted-foreground max-w-[200px] truncate">{r.message}</TableCell>
                     <TableCell className="text-muted-foreground max-w-[200px] truncate">{r.message_fi || '—'}</TableCell>
