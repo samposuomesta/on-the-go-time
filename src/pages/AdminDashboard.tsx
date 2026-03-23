@@ -1315,6 +1315,7 @@ function EditEmployeeDialog({ employee, allEmployees, currentManagerIds, onSave,
         setVacationDays(String(employee.annual_vacation_days ?? 25));
         setContractDate(employee.contract_start_date || '');
         setBankAdjustment('');
+        setBankSetValue(String(currentAdjustment));
       }
     }}>
       <DialogTrigger asChild><Button size="icon" variant="ghost" className="h-8 w-8"><Pencil className="h-3.5 w-3.5" /></Button></DialogTrigger>
