@@ -1347,11 +1347,24 @@ function EditEmployeeDialog({ employee, allEmployees, currentManagerIds, onSave,
               </div>
             )}
           </div>
-          {onBankAdjust && (
-            <div className="sm:col-span-2 space-y-2 rounded-lg border border-border p-3">
-              <Label>{t('employee.workBankAdjustment')}</Label>
-              <p className="text-xs text-muted-foreground">{t('employee.workBankAdjustmentHelp')}</p>
-              <Input type="number" step="0.5" value={bankAdjustment} onChange={(e) => setBankAdjustment(e.target.value)} placeholder="e.g. 2.5 or -1.0" />
+          {(onBankAdjust || onSetBankBalance) && (
+            <div className="sm:col-span-2 space-y-3 rounded-lg border border-border p-3">
+              <div>
+                <Label>{t('employee.workBankAdjustment')}</Label>
+                <p className="text-xs text-muted-foreground mb-2">{t('employee.workBankAdjustmentHelp')}</p>
+                <div className="flex items-center gap-3">
+                  <div className="flex-1">
+                    <Label className="text-xs text-muted-foreground">{t('employee.currentBankBalance')}</Label>
+                    <div className={cn("text-lg font-semibold", currentAdjustment >= 0 ? 'text-success' : 'text-destructive')}>
+                      {currentAdjustment >= 0 ? '+' : ''}{currentAdjustment.toFixed(1)}h
+                    </div>
+                  </div>
+                  <div className="flex-1 space-y-1">
+                    <Label className="text-xs">{t('employee.setBalanceTo')}</Label>
+                    <Input type="number" step="0.5" value={bankSetValue} onChange={(e) => setBankSetValue(e.target.value)} placeholder="e.g. 5.0" />
+                  </div>
+                </div>
+              </div>
             </div>
           )}
           <div className="space-y-1.5 sm:col-span-2">
@@ -1389,8 +1402,9 @@ function EditEmployeeDialog({ employee, allEmployees, currentManagerIds, onSave,
         </div>
         <Button className="w-full mt-2" onClick={() => {
           onSave({ role, employee_number: employeeNumber.trim() || null, contract_start_date: contractDate || null, annual_vacation_days: parseInt(vacationDays) || 25, daily_work_hours: parseFloat(dailyWorkHours) || 7.5, auto_subtract_lunch: autoSubtractLunch, lunch_threshold_hours: parseFloat(lunchThreshold) || 5 }, selectedManagers);
-          if (onBankAdjust && bankAdjustment && parseFloat(bankAdjustment) !== 0) {
-            onBankAdjust(employee.id, parseFloat(bankAdjustment));
+          // Set absolute balance if changed
+          if (onSetBankBalance && bankSetValue !== '' && parseFloat(bankSetValue) !== currentAdjustment) {
+            onSetBankBalance(employee.id, parseFloat(bankSetValue));
           }
           setOpen(false);
         }}>{t('common.save')}</Button>
