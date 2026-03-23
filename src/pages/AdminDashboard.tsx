@@ -507,9 +507,14 @@ function EmployeesPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
                             admin.setEmployeeManagers.mutate({ userId: emp.id, managerIds });
                             toast.success('Updated');
                           }}
+                          currentAdjustment={adjustmentSumByUser[emp.id] ?? 0}
                           onBankAdjust={(userId, hours) => {
                             admin.addBankAdjustment.mutate({ userId, hours });
                             toast.success(`Work bank adjusted by ${hours > 0 ? '+' : ''}${hours}h`);
+                          }}
+                          onSetBankBalance={(userId, desiredBalance) => {
+                            admin.setBankBalance.mutate({ userId, desiredBalance });
+                            toast.success(`Work bank balance set to ${desiredBalance}h`);
                           }}
                         />
                       </TableCell>
