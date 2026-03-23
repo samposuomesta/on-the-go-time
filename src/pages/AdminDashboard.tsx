@@ -427,8 +427,8 @@ function StatisticsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: s
 
 /* ===== EMPLOYEES ===== */
 
-function EmployeesPanel({ admin }: { admin: any }) {
-  const employees = admin.employees.data ?? [];
+function EmployeesPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: string) => boolean }) {
+  const employees = (admin.employees.data ?? []).filter((e: any) => canSeeUser(e.id));
   const userManagers = admin.userManagers.data ?? [];
   const managerNames = (userId: string) => {
     const mgrIds = userManagers.filter((um: any) => um.user_id === userId).map((um: any) => um.manager_id);
