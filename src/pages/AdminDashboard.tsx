@@ -1113,6 +1113,193 @@ function ProjectsPanel({ admin }: { admin: any }) {
   );
 }
 
+/* ===== PROJECT MANAGEMENT ===== */
+
+function ProjectManagementPanel({ admin }: { admin: any }) {
+  const { t } = useTranslation();
+  const projects = admin.projects.data ?? [];
+  const allHours: any[] = admin.allHours.data ?? [];
+  const employees = admin.employees.data ?? [];
+
+  const [projectFilter, setProjectFilter] = useState('all');
+  const [employeeFilter, setEmployeeFilter] = useState('all');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+
+  const nameMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    employees.forEach((e: any) => { map[e.id] = e.name; });
+    return map;
+  }, [employees]);
+
+  const projectMap = useMemo(() => {
+    const map: Record<string, any> = {};
+    projects.forEach((p: any) => { map[p.id] = p; });
+    return map;
+  }, [projects]);
+
+  const rows = useMemo(() => {
+    return allHours
+      .filter((h: any) => {
+        if (projectFilter !== 'all' && h.project_id !== projectFilter) return false;
+        if (employeeFilter !== 'all' && h.user_id !== employeeFilter) return false;
+        if (dateFrom && h.date < dateFrom) return false;
+        if (dateTo && h.date > dateTo) return false;
+        return true;
+      })
+      .map((h: any) => {
+        const proj = projectMap[h.project_id];
+        return {
+          id: h.id,
+          projectName: proj?.name ?? 'Unknown',
+          employeeName: h.users?.name ?? nameMap[h.user_id] ?? 'Unknown',
+          description: h.description ?? '',
+          date: h.date,
+          hoursUsed: Number(h.hours),
+          targetHours: proj?.target_hours ? String(proj.target_hours) : '—',
+          status: h.status,
+          approvedHours: h.status === 'approved' ? Number(h.hours) : 0,
+          unapprovedHours: h.status !== 'approved' ? Number(h.hours) : 0,
+          projectId: h.project_id,
+        };
+      });
+  }, [allHours, projectFilter, employeeFilter, dateFrom, dateTo, projectMap, nameMap]);
+
+  // Per-project summary for progress
+  const projectSummaries = useMemo(() => {
+    const sums: Record<string, { name: string; target: number | null; approved: number; total: number }> = {};
+    const sourceRows = projectFilter !== 'all' ? rows : allHours.map((h: any) => {
+      const proj = projectMap[h.project_id];
+      return { projectId: h.project_id, projectName: proj?.name ?? 'Unknown', target: proj?.target_hours ?? null, status: h.status, hours: Number(h.hours) };
+    });
+    sourceRows.forEach((r: any) => {
+      const pid = r.projectId ?? r.project_id;
+      if (!sums[pid]) {
+        const proj = projectMap[pid];
+        sums[pid] = { name: proj?.name ?? r.projectName ?? 'Unknown', target: proj?.target_hours ?? null, approved: 0, total: 0 };
+      }
+      sums[pid].total += Number(r.hours ?? r.hoursUsed ?? 0);
+      if ((r.status) === 'approved') sums[pid].approved += Number(r.hours ?? r.hoursUsed ?? 0);
+    });
+    return Object.values(sums).filter(s => s.target !== null);
+  }, [rows, allHours, projectMap, projectFilter]);
+
+  const hasFilters = projectFilter !== 'all' || employeeFilter !== 'all' || dateFrom || dateTo;
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-xl font-display font-bold">Project Management</h2>
+        <p className="text-sm text-muted-foreground">Track project hours and progress per employee</p>
+      </div>
+
+      {/* Progress cards for projects with targets */}
+      {projectSummaries.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {projectSummaries.map((ps, i) => {
+            const pct = ps.target ? Math.min(100, (ps.approved / ps.target) * 100) : 0;
+            return (
+              <Card key={i}>
+                <CardContent className="pt-4 pb-4 space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="font-medium text-sm truncate">{ps.name}</span>
+                    <span className="text-xs text-muted-foreground">{ps.approved.toFixed(1)} / {ps.target}h</span>
+                  </div>
+                  <Progress value={pct} className="h-2" />
+                  <p className="text-xs text-muted-foreground">{pct.toFixed(0)}% complete • {ps.total.toFixed(1)}h total logged</p>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Filters */}
+      <div className="flex flex-wrap gap-3 items-end">
+        <div className="space-y-1">
+          <Label className="text-xs">Project</Label>
+          <Select value={projectFilter} onValueChange={setProjectFilter}>
+            <SelectTrigger className="w-[180px]"><SelectValue placeholder="All projects" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All projects</SelectItem>
+              {projects.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1">
+          <Label className="text-xs">Employee</Label>
+          <Select value={employeeFilter} onValueChange={setEmployeeFilter}>
+            <SelectTrigger className="w-[180px]"><SelectValue placeholder="All employees" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All employees</SelectItem>
+              {employees.map((e: any) => <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1">
+          <Label className="text-xs">From</Label>
+          <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="w-[150px] dark:[color-scheme:dark]" />
+        </div>
+        <div className="space-y-1">
+          <Label className="text-xs">To</Label>
+          <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="w-[150px] dark:[color-scheme:dark]" />
+        </div>
+        {hasFilters && (
+          <Button variant="ghost" size="sm" onClick={() => { setProjectFilter('all'); setEmployeeFilter('all'); setDateFrom(''); setDateTo(''); }}>
+            <X className="h-3.5 w-3.5 mr-1" /> Clear
+          </Button>
+        )}
+        <div className="flex items-center gap-2 ml-auto">
+          <span className="text-xs text-muted-foreground">{rows.length} entries</span>
+          <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => exportProjectManagementCSV(rows)}>
+            <Download className="h-3.5 w-3.5" /> CSV
+          </Button>
+        </div>
+      </div>
+
+      {/* Table */}
+      <Card>
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/50">
+                  <TableHead className="font-semibold">Project</TableHead>
+                  <TableHead className="font-semibold">Employee</TableHead>
+                  <TableHead className="font-semibold">Description</TableHead>
+                  <TableHead className="font-semibold">Date</TableHead>
+                  <TableHead className="font-semibold text-right">Hours</TableHead>
+                  <TableHead className="font-semibold text-right">Target</TableHead>
+                  <TableHead className="font-semibold text-right">Approved</TableHead>
+                  <TableHead className="font-semibold text-right">Unapproved</TableHead>
+                  <TableHead className="font-semibold">Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {rows.length === 0 ? (
+                  <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-12">No project hours found</TableCell></TableRow>
+                ) : rows.slice(0, 200).map((r: any) => (
+                  <TableRow key={r.id} className="hover:bg-muted/30">
+                    <TableCell className="font-medium">{r.projectName}</TableCell>
+                    <TableCell>{r.employeeName}</TableCell>
+                    <TableCell className="text-muted-foreground max-w-[200px] truncate">{r.description || '—'}</TableCell>
+                    <TableCell className="whitespace-nowrap">{r.date}</TableCell>
+                    <TableCell className="text-right">{r.hoursUsed}</TableCell>
+                    <TableCell className="text-right">{r.targetHours}</TableCell>
+                    <TableCell className="text-right">{r.approvedHours || '—'}</TableCell>
+                    <TableCell className="text-right">{r.unapprovedHours || '—'}</TableCell>
+                    <TableCell><StatusBadge status={r.status} /></TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 /* ===== COMPANIES ===== */
 
 function CompaniesPanel({ admin }: { admin: any }) {
