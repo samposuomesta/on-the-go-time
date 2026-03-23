@@ -8,8 +8,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { supabase } from '@/integrations/supabase/client';
 import { DEMO_USER_ID } from '@/lib/demo-user';
 import { useProjects } from '@/hooks/useProjects';
+import { useTranslation } from '@/lib/i18n';
 import { toast } from 'sonner';
-import { Camera, Upload, X, Image as ImageIcon } from 'lucide-react';
+import { Camera, X } from 'lucide-react';
 
 interface Props {
   open: boolean;
@@ -19,6 +20,7 @@ interface Props {
 
 export function AddExpenseDialog({ open, onOpenChange, mode }: Props) {
   const projects = useProjects();
+  const { t } = useTranslation();
   const [projectId, setProjectId] = useState('');
   const [kilometers, setKilometers] = useState('');
   const [parkingCost, setParkingCost] = useState('');
@@ -29,17 +31,17 @@ export function AddExpenseDialog({ open, onOpenChange, mode }: Props) {
   const [receiptPreview, setReceiptPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const titles: Record<string, string> = {
-    kilometers: 'Add Kilometers',
-    parking: 'Add Parking Cost',
-    receipt: 'Upload Receipt',
+  const titleKeys: Record<string, 'expense.addKilometers' | 'expense.addParking' | 'expense.uploadReceipt'> = {
+    kilometers: 'expense.addKilometers',
+    parking: 'expense.addParking',
+    receipt: 'expense.uploadReceipt',
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     if (!file.type.startsWith('image/')) {
-      toast.error('Please select an image file');
+      toast.error(t('expense.selectImage'));
       return;
     }
     setReceiptFile(file);
@@ -63,7 +65,7 @@ export function AddExpenseDialog({ open, onOpenChange, mode }: Props) {
       .upload(path, receiptFile, { contentType: receiptFile.type });
     if (error) {
       console.error('Upload error:', error);
-      toast.error('Failed to upload receipt');
+      toast.error(t('expense.failedToSave'));
       return null;
     }
     const { data: urlData } = supabase.storage.from('receipts').getPublicUrl(path);
@@ -93,10 +95,10 @@ export function AddExpenseDialog({ open, onOpenChange, mode }: Props) {
     });
     setSaving(false);
     if (error) {
-      toast.error('Failed to save');
+      toast.error(t('expense.failedToSave'));
       return;
     }
-    toast.success('Expense added');
+    toast.success(t('expense.added'));
     onOpenChange(false);
     setKilometers(''); setParkingCost(''); setDescription('');
     clearReceipt();
@@ -106,13 +108,13 @@ export function AddExpenseDialog({ open, onOpenChange, mode }: Props) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-sm mx-auto">
         <DialogHeader>
-          <DialogTitle className="font-display">{titles[mode]}</DialogTitle>
+          <DialogTitle className="font-display">{t(titleKeys[mode])}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <div>
-            <Label>Project</Label>
+            <Label>{t('expense.project')}</Label>
             <Select value={projectId} onValueChange={setProjectId}>
-              <SelectTrigger><SelectValue placeholder="Select project" /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder={t('expense.selectProject')} /></SelectTrigger>
               <SelectContent>
                 {projects.map(p => (
                   <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
@@ -121,24 +123,24 @@ export function AddExpenseDialog({ open, onOpenChange, mode }: Props) {
             </Select>
           </div>
           <div>
-            <Label>Date</Label>
+            <Label>{t('expense.date')}</Label>
             <Input type="date" value={date} onChange={e => setDate(e.target.value)} />
           </div>
           {mode === 'kilometers' && (
             <div>
-              <Label>Kilometers *</Label>
+              <Label>{t('expense.kilometers')} *</Label>
               <Input type="number" step="0.1" min="0" value={kilometers} onChange={e => setKilometers(e.target.value)} placeholder="0" />
             </div>
           )}
           {mode === 'parking' && (
             <div>
-              <Label>Parking Cost (€) *</Label>
+              <Label>{t('expense.parkingCost')} *</Label>
               <Input type="number" step="0.01" min="0" value={parkingCost} onChange={e => setParkingCost(e.target.value)} placeholder="0.00" />
             </div>
           )}
           {mode === 'receipt' && (
             <div>
-              <Label>Receipt Photo</Label>
+              <Label>{t('expense.receiptPhoto')}</Label>
               <input
                 ref={fileInputRef}
                 type="file"
@@ -163,18 +165,18 @@ export function AddExpenseDialog({ open, onOpenChange, mode }: Props) {
                   className="w-full flex flex-col items-center justify-center h-32 rounded-lg border-2 border-dashed border-border bg-muted/50 hover:bg-muted transition-colors cursor-pointer"
                 >
                   <Camera className="h-8 w-8 text-muted-foreground" />
-                  <p className="text-sm text-muted-foreground mt-1">Tap to take photo</p>
+                  <p className="text-sm text-muted-foreground mt-1">{t('expense.tapToPhoto')}</p>
                   <p className="text-xs text-muted-foreground">JPG, PNG</p>
                 </button>
               )}
             </div>
           )}
           <div>
-            <Label>Description</Label>
-            <Textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Details..." />
+            <Label>{t('expense.description')}</Label>
+            <Textarea value={description} onChange={e => setDescription(e.target.value)} placeholder={t('expense.descriptionPlaceholder')} />
           </div>
           <Button onClick={handleSave} disabled={saving} className="w-full touch-target">
-            {saving ? 'Saving...' : 'Save'}
+            {saving ? t('expense.saving') : t('expense.save')}
           </Button>
         </div>
       </DialogContent>

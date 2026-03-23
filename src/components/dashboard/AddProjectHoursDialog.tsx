@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { supabase } from '@/integrations/supabase/client';
 import { DEMO_USER_ID } from '@/lib/demo-user';
 import { useProjects } from '@/hooks/useProjects';
+import { useTranslation } from '@/lib/i18n';
 import { toast } from 'sonner';
 
 interface Props {
@@ -17,6 +18,7 @@ interface Props {
 
 export function AddProjectHoursDialog({ open, onOpenChange }: Props) {
   const projects = useProjects();
+  const { t } = useTranslation();
   const [projectId, setProjectId] = useState('');
   const [hours, setHours] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
@@ -25,7 +27,7 @@ export function AddProjectHoursDialog({ open, onOpenChange }: Props) {
 
   const handleSave = async () => {
     if (!projectId || !hours) {
-      toast.error('Please fill required fields');
+      toast.error(t('projectHours.fillRequired'));
       return;
     }
     setSaving(true);
@@ -38,10 +40,10 @@ export function AddProjectHoursDialog({ open, onOpenChange }: Props) {
     });
     setSaving(false);
     if (error) {
-      toast.error('Failed to save');
+      toast.error(t('projectHours.failedToSave'));
       return;
     }
-    toast.success('Project hours added');
+    toast.success(t('projectHours.added'));
     onOpenChange(false);
     setProjectId(''); setHours(''); setDescription('');
   };
@@ -50,13 +52,13 @@ export function AddProjectHoursDialog({ open, onOpenChange }: Props) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-sm mx-auto">
         <DialogHeader>
-          <DialogTitle className="font-display">Add Project Hours</DialogTitle>
+          <DialogTitle className="font-display">{t('projectHours.title')}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <div>
-            <Label>Project *</Label>
+            <Label>{t('projectHours.project')} *</Label>
             <Select value={projectId} onValueChange={setProjectId}>
-              <SelectTrigger><SelectValue placeholder="Select project" /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder={t('projectHours.selectProject')} /></SelectTrigger>
               <SelectContent>
                 {projects.map(p => (
                   <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
@@ -65,19 +67,19 @@ export function AddProjectHoursDialog({ open, onOpenChange }: Props) {
             </Select>
           </div>
           <div>
-            <Label>Hours *</Label>
+            <Label>{t('projectHours.hours')} *</Label>
             <Input type="number" step="0.5" min="0" value={hours} onChange={e => setHours(e.target.value)} placeholder="8" />
           </div>
           <div>
-            <Label>Date</Label>
+            <Label>{t('projectHours.date')}</Label>
             <Input type="date" value={date} onChange={e => setDate(e.target.value)} />
           </div>
           <div>
-            <Label>Description</Label>
-            <Textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="What did you work on?" />
+            <Label>{t('projectHours.description')}</Label>
+            <Textarea value={description} onChange={e => setDescription(e.target.value)} placeholder={t('projectHours.descriptionPlaceholder')} />
           </div>
           <Button onClick={handleSave} disabled={saving} className="w-full touch-target">
-            {saving ? 'Saving...' : 'Save Hours'}
+            {saving ? t('projectHours.saving') : t('projectHours.save')}
           </Button>
         </div>
       </DialogContent>
