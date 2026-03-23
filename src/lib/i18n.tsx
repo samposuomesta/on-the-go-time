@@ -187,6 +187,8 @@ const translations = {
     'admin.vacationApprovalsDesc': 'Review vacation requests',
     'admin.absencesDesc': 'Sick leave & absences',
     'admin.projectsDesc': 'Manage projects',
+    'admin.projectManagement': 'Project Management',
+    'admin.projectManagementDesc': 'Track project progress',
     'admin.workplacesDesc': 'Geofence locations',
     'admin.remindersDesc': 'Notification rules',
     'admin.employeesDesc': 'Manage team members',
