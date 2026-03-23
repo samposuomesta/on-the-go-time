@@ -625,6 +625,43 @@ function ApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
   const pendingTravel = filteredTravel.filter((t: any) => t.status === 'pending');
   const pendingHours = filteredHours.filter((h: any) => h.status === 'pending');
 
+  const pendingTimeEntryIds = pendingTimeEntries.map((te: any) => te.id);
+  const allPendingSelected = pendingTimeEntryIds.length > 0 && pendingTimeEntryIds.every((id: string) => selectedTimeEntries.has(id));
+  const somePendingSelected = pendingTimeEntryIds.some((id: string) => selectedTimeEntries.has(id));
+
+  const toggleSelectAll = () => {
+    if (allPendingSelected) {
+      setSelectedTimeEntries(new Set());
+    } else {
+      setSelectedTimeEntries(new Set(pendingTimeEntryIds));
+    }
+  };
+
+  const toggleSelectOne = (id: string) => {
+    setSelectedTimeEntries(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const handleBulkAction = async (status: 'approved' | 'rejected') => {
+    if (selectedTimeEntries.size === 0) return;
+    setBulkProcessing(true);
+    try {
+      const promises = Array.from(selectedTimeEntries).map(id =>
+        admin.approveTimeEntry.mutateAsync({ id, status })
+      );
+      await Promise.all(promises);
+      toast.success(`${selectedTimeEntries.size} entries ${status}`);
+      setSelectedTimeEntries(new Set());
+    } catch {
+      toast.error('Some entries failed to update');
+    } finally {
+      setBulkProcessing(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
