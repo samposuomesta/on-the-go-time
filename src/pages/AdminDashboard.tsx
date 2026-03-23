@@ -594,6 +594,8 @@ function ApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
   const [employeeFilter, setEmployeeFilter] = useState('all');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
+  const [selectedTimeEntries, setSelectedTimeEntries] = useState<Set<string>>(new Set());
+  const [bulkProcessing, setBulkProcessing] = useState(false);
 
   const employees = (admin.employees.data ?? []).filter((e: any) => canSeeUser(e.id));
 
