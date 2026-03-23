@@ -266,6 +266,10 @@ const translations = {
     'reminders.clockOut': 'Clock-Out Reminder',
     'reminders.vacationApproval': 'Vacation Approval',
     'reminders.managerApproval': 'Manager Approval',
+    'reminders.hoursApproval': 'Monthly Hours Approval',
+    'reminders.dayOfMonth': 'Day of Month',
+    'reminders.resendAfterDays': 'Resend After (days)',
+    'reminders.resendAfterDaysHelp': 'If not accepted, resend reminder after this many days',
 
     // Common
     'common.save': 'Save Changes',
@@ -551,6 +555,10 @@ const translations = {
     'reminders.clockOut': 'Uloskirjausmuistutus',
     'reminders.vacationApproval': 'Lomahyväksyntä',
     'reminders.managerApproval': 'Esimiehen hyväksyntä',
+    'reminders.hoursApproval': 'Kuukausittainen tuntihyväksyntä',
+    'reminders.dayOfMonth': 'Kuukauden päivä',
+    'reminders.resendAfterDays': 'Lähetä uudelleen (päivää)',
+    'reminders.resendAfterDaysHelp': 'Jos ei hyväksytty, lähetä muistutus uudelleen tämän monen päivän jälkeen',
 
     // Common
     'common.save': 'Tallenna muutokset',
