@@ -4,8 +4,9 @@ import {
   ArrowLeft, Users, Briefcase, Car, Clock, CalendarOff,
   CalendarDays, Plus, Pencil, MapPin, Bell, Building2, Trash2, CheckCircle2, XCircle, X, BarChart3, CalendarIcon, FileText
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { useAdminData } from '@/hooks/useAdminData';
+import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useTranslation, getLocalizedField } from '@/lib/i18n';
 import { VacationTimeline } from '@/components/admin/VacationTimeline';
 import { getFinnishHolidaySet } from '@/lib/finnish-holidays';
