@@ -271,6 +271,10 @@ const translations = {
     'reminders.resendAfterDays': 'Resend After (days)',
     'reminders.resendAfterDaysHelp': 'If not accepted, resend reminder after this many days',
 
+    'employee.workBankAdjustment': 'Work Bank Adjustment (hours)',
+    'employee.workBankAdjustmentHelp': 'Add or subtract hours from the work bank. Positive = add, negative = subtract.',
+    'employee.currentBankBalance': 'Current Bank Balance',
+
     // Common
     'common.save': 'Save Changes',
     'common.cancel': 'Cancel',
