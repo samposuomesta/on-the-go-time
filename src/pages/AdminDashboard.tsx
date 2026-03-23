@@ -756,10 +756,13 @@ function VacationApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser:
   const companies = admin.companies.data ?? [];
   const companyCountry = companies[0]?.country ?? undefined;
 
+  const filteredEmployees = (admin.employees.data ?? []).filter((e: any) => canSeeUser(e.id));
+  const filteredVacations = (admin.vacationRequests.data ?? []).filter((v: any) => canSeeUser(v.user_id));
+
   return (
     <VacationTimeline
-      employees={admin.employees.data ?? []}
-      vacationRequests={admin.vacationRequests.data ?? []}
+      employees={filteredEmployees}
+      vacationRequests={filteredVacations}
       userManagers={admin.userManagers.data ?? []}
       companyCountry={companyCountry}
       onApprove={(id, status) => admin.approveVacation.mutate({ id, status })}
