@@ -30,7 +30,7 @@ import {
 const APP_VERSION = '0.1.0';
 
 export function Dashboard() {
-  const { activeEntry, loading, startWork, stopWork } = useTimeTracking();
+  const { activeEntry, loading, startWork, stopWork, addFullWorkday } = useTimeTracking();
   const { balance: bankBalance } = useWorkBank();
   const { data: currentUser } = useCurrentUser();
   const { t } = useTranslation();
