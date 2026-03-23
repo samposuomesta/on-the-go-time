@@ -349,6 +349,8 @@ const translations = {
     'dashboard.workingSince': 'Työssä alkaen',
     'dashboard.notClockedIn': 'Ei kirjautunut',
     'dashboard.startYourDay': 'Aloita päiväsi',
+    'dashboard.workDayMarked': 'Työpäivä kirjattu',
+    'dashboard.workDayCompleted': 'Työpäivä kirjattu tälle päivälle',
     'dashboard.timeBank': 'Tuntipankki',
     'dashboard.sickDayRecorded': 'Sairauspäivä kirjattu',
     'dashboard.absenceRecorded': 'Poissaolo kirjattu',

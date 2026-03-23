@@ -24,26 +24,37 @@ export function StatusCard({ activeEntry, loading, bankBalance, todayCompleted }
     );
   }
 
+  const getStatus = () => {
+    if (activeEntry) return 'active';
+    if (todayCompleted) return 'completed';
+    return 'idle';
+  };
+  const status = getStatus();
+
   return (
-    <Card className={activeEntry ? 'border-success/30 bg-success/5' : ''}>
+    <Card className={status === 'active' ? 'border-success/30 bg-success/5' : status === 'completed' ? 'border-success/30 bg-success/5' : ''}>
       <CardContent className="p-4 space-y-3">
         <div className="flex items-center gap-3">
           <div className={`flex h-10 w-10 items-center justify-center rounded-full ${
-            activeEntry ? 'bg-success/20 animate-pulse-success' : 'bg-muted'
+            status === 'active' ? 'bg-success/20 animate-pulse-success' : status === 'completed' ? 'bg-success/20' : 'bg-muted'
           }`}>
-            {activeEntry ? (
+            {status === 'active' ? (
               <Timer className="h-5 w-5 text-success" />
+            ) : status === 'completed' ? (
+              <CheckCircle2 className="h-5 w-5 text-success" />
             ) : (
               <Clock className="h-5 w-5 text-muted-foreground" />
             )}
           </div>
           <div>
             <p className="text-sm font-medium text-muted-foreground">
-              {activeEntry ? t('dashboard.workingSince') : t('dashboard.notClockedIn')}
+              {status === 'active' ? t('dashboard.workingSince') : status === 'completed' ? t('dashboard.workDayMarked') : t('dashboard.notClockedIn')}
             </p>
             <p className="text-lg font-display font-semibold">
-              {activeEntry
-                ? formatDistanceToNow(new Date(activeEntry.start_time), { addSuffix: false })
+              {status === 'active'
+                ? formatDistanceToNow(new Date(activeEntry!.start_time), { addSuffix: false })
+                : status === 'completed'
+                ? t('dashboard.workDayCompleted')
                 : t('dashboard.startYourDay')}
             </p>
           </div>

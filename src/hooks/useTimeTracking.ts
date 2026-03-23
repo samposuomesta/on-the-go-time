@@ -141,5 +141,5 @@ export function useTimeTracking() {
     fetchActive();
   };
 
-  return { activeEntry, loading, startWork, stopWork, addFullWorkday, refetch: fetchActive };
+  return { activeEntry, todayCompleted, loading, startWork, stopWork, addFullWorkday, refetch: fetchActive };
 }

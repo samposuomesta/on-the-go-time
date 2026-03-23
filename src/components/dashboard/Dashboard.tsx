@@ -109,7 +109,7 @@ export function Dashboard() {
       {/* Main Content */}
       <main className="flex-1 px-4 py-4 space-y-5 max-w-lg mx-auto w-full">
         {/* Status */}
-        <StatusCard activeEntry={activeEntry} loading={loading} bankBalance={bankBalance} />
+        <StatusCard activeEntry={activeEntry} loading={loading} bankBalance={bankBalance} todayCompleted={todayCompleted} />
 
         {/* Clock Actions */}
         <section>
