@@ -107,6 +107,18 @@ export function useAdminData() {
     },
   });
 
+  const allTravel = useQuery({
+    queryKey: ['admin-all-travel'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('travel_expenses')
+        .select('*, users(name), projects(name)')
+        .order('date', { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const pendingHours = useQuery({
     queryKey: ['admin-hours'],
     queryFn: async () => {
@@ -120,6 +132,18 @@ export function useAdminData() {
     },
   });
 
+  const allHours = useQuery({
+    queryKey: ['admin-all-hours'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('project_hours')
+        .select('*, users(name), projects(name)')
+        .order('date', { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const pendingTimeEntries = useQuery({
     queryKey: ['admin-pending-time-entries'],
     queryFn: async () => {
@@ -127,6 +151,18 @@ export function useAdminData() {
         .from('time_entries')
         .select('*, users(name), projects(name)')
         .eq('status', 'pending')
+        .order('start_time', { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const allTimeEntriesWithNames = useQuery({
+    queryKey: ['admin-all-time-entries-names'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('time_entries')
+        .select('*, users(name), projects(name)')
         .order('start_time', { ascending: false });
       if (error) throw error;
       return data;
@@ -447,7 +483,7 @@ export function useAdminData() {
   return {
     employees, projects, companies, workplaces, reminderRules, userManagers, absenceReasons, auditLog,
     pendingTravel, pendingHours, pendingTimeEntries, absences, vacationRequests,
-    allTimeEntries, allWorkBank,
+    allTimeEntries, allWorkBank, allTravel, allHours, allTimeEntriesWithNames,
     approveTravel, approveHours, approveAbsence, approveVacation, approveTimeEntry, updateTimeEntry,
     updateEmployee, toggleProject, createProject, updateProject, createEmployee,
     createCompany, updateCompany,

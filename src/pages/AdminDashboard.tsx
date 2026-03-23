@@ -2,10 +2,11 @@ import { useState, useMemo } from 'react';
 import { format, parseISO, differenceInBusinessDays, differenceInHours, differenceInMinutes, eachDayOfInterval, isWeekend, startOfYear, subMonths, startOfMonth, endOfMonth, isWithinInterval, isAfter, isBefore } from 'date-fns';
 import {
   ArrowLeft, Users, Briefcase, Car, Clock, CalendarOff,
-  CalendarDays, Plus, Pencil, MapPin, Bell, Building2, Trash2, CheckCircle2, XCircle, X, BarChart3, CalendarIcon, FileText
+  CalendarDays, Plus, Pencil, MapPin, Bell, Building2, Trash2, CheckCircle2, XCircle, X, BarChart3, CalendarIcon, FileText, Download
 } from 'lucide-react';
 import { Link, Navigate } from 'react-router-dom';
 import { useAdminData } from '@/hooks/useAdminData';
+import { exportAdminWorkingHoursCSV, exportAdminTravelExpensesCSV, exportAdminProjectHoursCSV, exportAuditTrailCSV } from '@/lib/csv-export';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useTranslation, getLocalizedField } from '@/lib/i18n';
 import { VacationTimeline } from '@/components/admin/VacationTimeline';
@@ -588,15 +589,72 @@ function EditTimeEntryDialog({ entry, onSave }: { entry: any; onSave: (data: any
 }
 
 function ApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: string) => boolean }) {
-  const travel = (admin.pendingTravel.data ?? []).filter((t: any) => canSeeUser(t.user_id));
-  const hours = (admin.pendingHours.data ?? []).filter((h: any) => canSeeUser(h.user_id));
-  const timeEntries = (admin.pendingTimeEntries.data ?? []).filter((te: any) => canSeeUser(te.user_id));
+  const [employeeFilter, setEmployeeFilter] = useState('all');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+
+  const employees = (admin.employees.data ?? []).filter((e: any) => canSeeUser(e.id));
+
+  // Use all records (not just pending) so filters and export cover everything
+  const allTravel = (admin.allTravel.data ?? []).filter((t: any) => canSeeUser(t.user_id));
+  const allHours = (admin.allHours.data ?? []).filter((h: any) => canSeeUser(h.user_id));
+  const allTimeEntries = (admin.allTimeEntriesWithNames.data ?? []).filter((te: any) => canSeeUser(te.user_id));
+
+  const filterByEmployeeAndDate = (items: any[], dateField: string | ((item: any) => string)) => {
+    return items.filter((item: any) => {
+      if (employeeFilter !== 'all' && item.user_id !== employeeFilter) return false;
+      const d = typeof dateField === 'function' ? dateField(item) : item[dateField];
+      if (!d) return false;
+      const dateStr = d.slice(0, 10);
+      if (dateFrom && dateStr < dateFrom) return false;
+      if (dateTo && dateStr > dateTo) return false;
+      return true;
+    });
+  };
+
+  const filteredTimeEntries = filterByEmployeeAndDate(allTimeEntries, (te: any) => te.start_time);
+  const filteredTravel = filterByEmployeeAndDate(allTravel, 'date');
+  const filteredHours = filterByEmployeeAndDate(allHours, 'date');
+
+  // Separate pending for action buttons
+  const pendingTimeEntries = filteredTimeEntries.filter((te: any) => te.status === 'pending');
+  const pendingTravel = filteredTravel.filter((t: any) => t.status === 'pending');
+  const pendingHours = filteredHours.filter((h: any) => h.status === 'pending');
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-xl font-display font-bold">Approvals</h2>
-        <p className="text-sm text-muted-foreground">Review pending working hours, travel expenses and project hours</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-display font-bold">Approvals</h2>
+          <p className="text-sm text-muted-foreground">Review working hours, travel expenses and project hours</p>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div className="flex flex-wrap gap-3 items-end">
+        <div className="space-y-1">
+          <Label className="text-xs">Employee</Label>
+          <Select value={employeeFilter} onValueChange={setEmployeeFilter}>
+            <SelectTrigger className="w-[180px]"><SelectValue placeholder="All employees" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All employees</SelectItem>
+              {employees.map((e: any) => <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1">
+          <Label className="text-xs">From</Label>
+          <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="w-[150px] dark:[color-scheme:dark]" />
+        </div>
+        <div className="space-y-1">
+          <Label className="text-xs">To</Label>
+          <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="w-[150px] dark:[color-scheme:dark]" />
+        </div>
+        {(employeeFilter !== 'all' || dateFrom || dateTo) && (
+          <Button variant="ghost" size="sm" onClick={() => { setEmployeeFilter('all'); setDateFrom(''); setDateTo(''); }}>
+            <X className="h-3.5 w-3.5 mr-1" /> Clear
+          </Button>
+        )}
       </div>
 
       {/* Working Hours (Time Entries) */}
@@ -606,8 +664,11 @@ function ApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
             <div className="flex items-center gap-2">
               <Clock className="h-5 w-5 text-muted-foreground" />
               <CardTitle className="text-base font-display">Working Hours</CardTitle>
+              <Badge variant="secondary">{pendingTimeEntries.length} pending</Badge>
             </div>
-            <Badge variant="secondary">{timeEntries.length} pending</Badge>
+            <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => exportAdminWorkingHoursCSV(filteredTimeEntries)}>
+              <Download className="h-3.5 w-3.5" /> CSV
+            </Button>
           </div>
         </CardHeader>
         <CardContent className="p-0">
@@ -627,9 +688,9 @@ function ApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {timeEntries.length === 0 ? (
-                  <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-8">No pending working hours</TableCell></TableRow>
-                ) : timeEntries.map((te: any) => {
+                {filteredTimeEntries.length === 0 ? (
+                  <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-8">No working hours found</TableCell></TableRow>
+                ) : filteredTimeEntries.slice(0, 200).map((te: any) => {
                   const netMins = te.end_time ? differenceInMinutes(new Date(te.end_time), new Date(te.start_time)) - (te.break_minutes ?? 0) : 0;
                   return (
                     <TableRow key={te.id} className="hover:bg-muted/30">
@@ -672,8 +733,11 @@ function ApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
             <div className="flex items-center gap-2">
               <Car className="h-5 w-5 text-muted-foreground" />
               <CardTitle className="text-base font-display">Travel Expenses</CardTitle>
+              <Badge variant="secondary">{pendingTravel.length} pending</Badge>
             </div>
-            <Badge variant="secondary">{travel.length} pending</Badge>
+            <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => exportAdminTravelExpensesCSV(filteredTravel)}>
+              <Download className="h-3.5 w-3.5" /> CSV
+            </Button>
           </div>
         </CardHeader>
         <CardContent className="p-0">
@@ -692,9 +756,9 @@ function ApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {travel.length === 0 ? (
-                  <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">No pending travel expenses</TableCell></TableRow>
-                ) : travel.map((t: any) => (
+                {filteredTravel.length === 0 ? (
+                  <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">No travel expenses found</TableCell></TableRow>
+                ) : filteredTravel.slice(0, 200).map((t: any) => (
                   <TableRow key={t.id} className="hover:bg-muted/30">
                     <TableCell className="font-medium">{t.users?.name ?? 'Unknown'}</TableCell>
                     <TableCell className="text-muted-foreground">{t.projects?.name ?? '—'}</TableCell>
@@ -723,8 +787,11 @@ function ApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
             <div className="flex items-center gap-2">
               <Clock className="h-5 w-5 text-muted-foreground" />
               <CardTitle className="text-base font-display">Project Hours</CardTitle>
+              <Badge variant="secondary">{pendingHours.length} pending</Badge>
             </div>
-            <Badge variant="secondary">{hours.length} pending</Badge>
+            <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => exportAdminProjectHoursCSV(filteredHours)}>
+              <Download className="h-3.5 w-3.5" /> CSV
+            </Button>
           </div>
         </CardHeader>
         <CardContent className="p-0">
@@ -742,9 +809,9 @@ function ApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {hours.length === 0 ? (
-                  <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">No pending project hours</TableCell></TableRow>
-                ) : hours.map((h: any) => (
+                {filteredHours.length === 0 ? (
+                  <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">No project hours found</TableCell></TableRow>
+                ) : filteredHours.slice(0, 200).map((h: any) => (
                   <TableRow key={h.id} className="hover:bg-muted/30">
                     <TableCell className="font-medium">{h.users?.name ?? 'Unknown'}</TableCell>
                     <TableCell className="text-muted-foreground">{h.projects?.name ?? '—'}</TableCell>
@@ -1725,6 +1792,8 @@ function EditReminderDialog({ reminder, onSave }: { reminder: any; onSave: (data
 function AuditTrailPanel({ admin }: { admin: any }) {
   const [tableFilter, setTableFilter] = useState('all');
   const [actionFilter, setActionFilter] = useState('all');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
   const logs = admin.auditLog.data ?? [];
   const employees = admin.employees.data ?? [];
 
@@ -1743,9 +1812,11 @@ function AuditTrailPanel({ admin }: { admin: any }) {
     return logs.filter((l: any) => {
       if (tableFilter !== 'all' && l.table_name !== tableFilter) return false;
       if (actionFilter !== 'all' && l.action !== actionFilter) return false;
+      if (dateFrom && l.created_at && l.created_at.slice(0, 10) < dateFrom) return false;
+      if (dateTo && l.created_at && l.created_at.slice(0, 10) > dateTo) return false;
       return true;
     });
-  }, [logs, tableFilter, actionFilter]);
+  }, [logs, tableFilter, actionFilter, dateFrom, dateTo]);
 
   const formatChanges = (log: any) => {
     if (log.action === 'INSERT') {
@@ -1787,7 +1858,7 @@ function AuditTrailPanel({ admin }: { admin: any }) {
         <p className="text-sm text-muted-foreground">Track all changes across the system</p>
       </div>
 
-      <div className="flex flex-wrap gap-3">
+      <div className="flex flex-wrap gap-3 items-end">
         <Select value={tableFilter} onValueChange={setTableFilter}>
           <SelectTrigger className="w-[180px]"><SelectValue placeholder="All tables" /></SelectTrigger>
           <SelectContent>
@@ -1804,7 +1875,25 @@ function AuditTrailPanel({ admin }: { admin: any }) {
             <SelectItem value="DELETE">Delete</SelectItem>
           </SelectContent>
         </Select>
-        <span className="text-xs text-muted-foreground self-center ml-auto">{filtered.length} entries</span>
+        <div className="space-y-1">
+          <Label className="text-xs">From</Label>
+          <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="w-[150px] dark:[color-scheme:dark]" />
+        </div>
+        <div className="space-y-1">
+          <Label className="text-xs">To</Label>
+          <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="w-[150px] dark:[color-scheme:dark]" />
+        </div>
+        {(tableFilter !== 'all' || actionFilter !== 'all' || dateFrom || dateTo) && (
+          <Button variant="ghost" size="sm" onClick={() => { setTableFilter('all'); setActionFilter('all'); setDateFrom(''); setDateTo(''); }}>
+            <X className="h-3.5 w-3.5 mr-1" /> Clear
+          </Button>
+        )}
+        <div className="flex items-center gap-2 ml-auto">
+          <span className="text-xs text-muted-foreground">{filtered.length} entries</span>
+          <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => exportAuditTrailCSV(filtered)}>
+            <Download className="h-3.5 w-3.5" /> CSV
+          </Button>
+        </div>
       </div>
 
       <Card>
