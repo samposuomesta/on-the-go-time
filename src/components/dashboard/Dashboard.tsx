@@ -114,7 +114,7 @@ export function Dashboard() {
         {/* Clock Actions */}
         <section>
           <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">{t('dashboard.clock')}</h2>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 gap-3">
             <ActionButton
               icon={Play}
               label={t('dashboard.startWork')}
@@ -128,13 +128,6 @@ export function Dashboard() {
               onClick={stopWork}
               variant="destructive"
               disabled={!activeEntry || loading}
-            />
-            <ActionButton
-              icon={CalendarCheck}
-              label={t('dashboard.fullWorkday')}
-              onClick={addFullWorkday}
-              variant="default"
-              disabled={!!activeEntry || loading}
             />
           </div>
         </section>
