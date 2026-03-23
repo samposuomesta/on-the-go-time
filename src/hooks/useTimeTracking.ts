@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { startOfToday } from 'date-fns';
 import { DEMO_USER_ID } from '@/lib/demo-user';
 import { toast } from 'sonner';
 
