@@ -219,6 +219,28 @@ export function useAdminData() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-absences'] }),
   });
 
+  const approveTimeEntry = useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: 'approved' | 'rejected' }) => {
+      const { error } = await supabase.from('time_entries').update({ status }).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-pending-time-entries'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-all-time-entries'] });
+    },
+  });
+
+  const updateTimeEntry = useMutation({
+    mutationFn: async ({ id, ...data }: { id: string; start_time?: string; end_time?: string; break_minutes?: number }) => {
+      const { error } = await supabase.from('time_entries').update(data).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-pending-time-entries'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-all-time-entries'] });
+    },
+  });
+
   const approveVacation = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: 'approved' | 'rejected' }) => {
       const { error } = await supabase.from('vacation_requests').update({ status }).eq('id', id);
