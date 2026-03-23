@@ -569,10 +569,10 @@ function EditTimeEntryDialog({ entry, onSave }: { entry: any; onSave: (data: any
   );
 }
 
-function ApprovalsPanel({ admin }: { admin: any }) {
-  const travel = admin.pendingTravel.data ?? [];
-  const hours = admin.pendingHours.data ?? [];
-  const timeEntries = admin.pendingTimeEntries.data ?? [];
+function ApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: string) => boolean }) {
+  const travel = (admin.pendingTravel.data ?? []).filter((t: any) => canSeeUser(t.user_id));
+  const hours = (admin.pendingHours.data ?? []).filter((h: any) => canSeeUser(h.user_id));
+  const timeEntries = (admin.pendingTimeEntries.data ?? []).filter((te: any) => canSeeUser(te.user_id));
 
   return (
     <div className="space-y-6">
