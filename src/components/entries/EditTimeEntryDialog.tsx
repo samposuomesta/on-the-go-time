@@ -69,11 +69,11 @@ export function EditTimeEntryDialog({ entry, open, onOpenChange }: Props) {
         <div className="space-y-4 py-2">
           <div>
             <Label>{t('entries.startTime')}</Label>
-            <Input type="datetime-local" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
+            <Input type="datetime-local" value={startTime} onChange={(e) => setStartTime(e.target.value)} className="dark:[color-scheme:dark]" />
           </div>
           <div>
             <Label>{t('entries.endTime')}</Label>
-            <Input type="datetime-local" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
+            <Input type="datetime-local" value={endTime} onChange={(e) => setEndTime(e.target.value)} className="dark:[color-scheme:dark]" />
           </div>
           <div>
             <Label>{t('entries.breakMinutes')}</Label>
