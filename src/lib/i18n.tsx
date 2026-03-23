@@ -271,6 +271,10 @@ const translations = {
     'reminders.resendAfterDays': 'Resend After (days)',
     'reminders.resendAfterDaysHelp': 'If not accepted, resend reminder after this many days',
 
+    'employee.workBankAdjustment': 'Work Bank Adjustment (hours)',
+    'employee.workBankAdjustmentHelp': 'Add or subtract hours from the work bank. Positive = add, negative = subtract.',
+    'employee.currentBankBalance': 'Current Bank Balance',
+
     // Common
     'common.save': 'Save Changes',
     'common.cancel': 'Cancel',
@@ -559,6 +563,10 @@ const translations = {
     'reminders.dayOfMonth': 'Kuukauden päivä',
     'reminders.resendAfterDays': 'Lähetä uudelleen (päivää)',
     'reminders.resendAfterDaysHelp': 'Jos ei hyväksytty, lähetä muistutus uudelleen tämän monen päivän jälkeen',
+
+    'employee.workBankAdjustment': 'Tuntipankin muutos (tunnit)',
+    'employee.workBankAdjustmentHelp': 'Lisää tai vähennä tunteja tuntipankista. Positiivinen = lisää, negatiivinen = vähennä.',
+    'employee.currentBankBalance': 'Nykyinen pankkisaldo',
 
     // Common
     'common.save': 'Tallenna muutokset',
