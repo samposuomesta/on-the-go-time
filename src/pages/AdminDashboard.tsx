@@ -77,7 +77,7 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('statistics');
 
   const pendingCounts = {
-    approvals: (admin.pendingTravel.data?.length ?? 0) + (admin.pendingHours.data?.length ?? 0),
+    approvals: (admin.pendingTravel.data?.length ?? 0) + (admin.pendingHours.data?.length ?? 0) + (admin.pendingTimeEntries.data?.length ?? 0),
     'vacation-approvals': admin.vacationRequests.data?.filter((v: any) => v.status === 'pending').length ?? 0,
     absences: admin.absences.data?.filter((a: any) => a.status === 'pending').length ?? 0,
   };
