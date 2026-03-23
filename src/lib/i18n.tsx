@@ -53,6 +53,10 @@ const translations = {
     'dashboard.sickDayRecorded': 'Sick day recorded',
     'dashboard.absenceRecorded': 'Absence recorded',
     'dashboard.failedToRecord': 'Failed to record',
+    'dashboard.duplicateTitle': 'Overlapping Entry Found',
+    'dashboard.duplicateDescription': 'An entry already exists for this time period. Do you want to replace it or discard the new entry?',
+    'dashboard.replace': 'Replace',
+    'dashboard.discard': 'Discard',
 
     // Menu
     'menu.title': 'Menu',
@@ -355,6 +359,10 @@ const translations = {
     'dashboard.sickDayRecorded': 'Sairauspäivä kirjattu',
     'dashboard.absenceRecorded': 'Poissaolo kirjattu',
     'dashboard.failedToRecord': 'Kirjaus epäonnistui',
+    'dashboard.duplicateTitle': 'Päällekkäinen kirjaus löytyi',
+    'dashboard.duplicateDescription': 'Tälle aikavälille on jo kirjaus. Haluatko korvata sen vai hylätä uuden kirjauksen?',
+    'dashboard.replace': 'Korvaa',
+    'dashboard.discard': 'Hylkää',
 
     // Menu
     'menu.title': 'Valikko',

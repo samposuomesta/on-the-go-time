@@ -5,7 +5,7 @@ import {
   Thermometer, UserX, Menu, CalendarDays, FileText, 
   BarChart3, Receipt, Settings, LogOut, AlertTriangle, Shield, CalendarCheck
 } from 'lucide-react';
-import { useTimeTracking } from '@/hooks/useTimeTracking';
+import { useTimeTracking, OverlapEntry } from '@/hooks/useTimeTracking';
 import { useWorkBank } from '@/hooks/useWorkBank';
 import { useOfflineSync } from '@/hooks/useOfflineSync';
 import { useWorkplaceDetection } from '@/hooks/useWorkplaceDetection';
@@ -26,6 +26,16 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 const APP_VERSION = '0.1.0';
 
@@ -41,8 +51,24 @@ export function Dashboard() {
   const [expenseMode, setExpenseMode] = useState<'kilometers' | 'parking' | 'receipt' | null>(null);
   const [showAbsenceDialog, setShowAbsenceDialog] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [overlapEntries, setOverlapEntries] = useState<OverlapEntry[]>([]);
+  const [showOverlapDialog, setShowOverlapDialog] = useState(false);
 
   const isAdminOrManager = currentUser?.role === 'admin' || currentUser?.role === 'manager';
+
+  const handleAddFullWorkday = async () => {
+    const result = await addFullWorkday();
+    if (result?.overlaps) {
+      setOverlapEntries(result.overlaps);
+      setShowOverlapDialog(true);
+    }
+  };
+
+  const handleReplaceOverlap = async () => {
+    setShowOverlapDialog(false);
+    await addFullWorkday(overlapEntries.map(e => e.id));
+    setOverlapEntries([]);
+  };
 
   const markAbsence = async (type: 'sick' | 'absence') => {
     const { error } = await supabase.from('absences').insert({
@@ -148,7 +174,7 @@ export function Dashboard() {
             <ActionButton
               icon={CalendarCheck}
               label={t('dashboard.fullWorkday')}
-              onClick={addFullWorkday}
+              onClick={handleAddFullWorkday}
               variant="success"
               disabled={!!activeEntry || loading}
             />
@@ -217,6 +243,25 @@ export function Dashboard() {
         />
       )}
       <AbsenceReasonDialog open={showAbsenceDialog} onOpenChange={setShowAbsenceDialog} />
+
+      <AlertDialog open={showOverlapDialog} onOpenChange={setShowOverlapDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('dashboard.duplicateTitle')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('dashboard.duplicateDescription')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => { setShowOverlapDialog(false); setOverlapEntries([]); }}>
+              {t('dashboard.discard')}
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleReplaceOverlap}>
+              {t('dashboard.replace')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
