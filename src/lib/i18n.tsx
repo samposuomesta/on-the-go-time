@@ -333,7 +333,7 @@ const translations = {
     'dashboard.startWork': 'Aloita työ',
     'dashboard.stopWork': 'Lopeta työ',
     'dashboard.clock': 'Kello',
-    'dashboard.fullWorkday': 'Työpäivä 8–16',
+    'dashboard.fullWorkday': 'Työpäivä',
     'dashboard.projectHours': 'Projektitunnit',
     'dashboard.addProjectHours': 'Lisää projektitunnit',
     'dashboard.expenses': 'Kulut',
