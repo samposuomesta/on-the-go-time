@@ -4,8 +4,9 @@ import {
   ArrowLeft, Users, Briefcase, Car, Clock, CalendarOff,
   CalendarDays, Plus, Pencil, MapPin, Bell, Building2, Trash2, CheckCircle2, XCircle, X, BarChart3, CalendarIcon, FileText
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { useAdminData } from '@/hooks/useAdminData';
+import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useTranslation, getLocalizedField } from '@/lib/i18n';
 import { VacationTimeline } from '@/components/admin/VacationTimeline';
 import { getFinnishHolidaySet } from '@/lib/finnish-holidays';
@@ -73,13 +74,39 @@ function ApproveRejectButtons({ id, onApprove, isPending }: {
 
 export default function AdminDashboard() {
   const admin = useAdminData();
+  const { data: currentUser, isLoading: userLoading } = useCurrentUser();
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState('statistics');
 
+  const isManager = currentUser?.role === 'manager';
+  const currentUserId = currentUser?.id;
+
+  // For managers: get list of employee IDs they manage
+  const managedUserIds = useMemo(() => {
+    if (!isManager || !currentUserId) return null; // null = no filter (admin sees all)
+    const userManagers = admin.userManagers.data ?? [];
+    return userManagers
+      .filter((um: any) => um.manager_id === currentUserId)
+      .map((um: any) => um.user_id);
+  }, [isManager, currentUserId, admin.userManagers.data]);
+
+  // Filter helper: returns true if userId should be visible
+  const canSeeUser = (userId: string) => {
+    if (!managedUserIds) return true; // admin sees all
+    return managedUserIds.includes(userId);
+  };
+
+  // Block employees from accessing admin panel
+  if (!userLoading && currentUser && currentUser.role === 'employee') {
+    return <Navigate to="/" replace />;
+  }
+
   const pendingCounts = {
-    approvals: (admin.pendingTravel.data?.length ?? 0) + (admin.pendingHours.data?.length ?? 0) + (admin.pendingTimeEntries.data?.length ?? 0),
-    'vacation-approvals': admin.vacationRequests.data?.filter((v: any) => v.status === 'pending').length ?? 0,
-    absences: admin.absences.data?.filter((a: any) => a.status === 'pending').length ?? 0,
+    approvals: (admin.pendingTravel.data?.filter((t: any) => canSeeUser(t.user_id)).length ?? 0) 
+      + (admin.pendingHours.data?.filter((h: any) => canSeeUser(h.user_id)).length ?? 0) 
+      + (admin.pendingTimeEntries.data?.filter((te: any) => canSeeUser(te.user_id)).length ?? 0),
+    'vacation-approvals': admin.vacationRequests.data?.filter((v: any) => v.status === 'pending' && canSeeUser(v.user_id)).length ?? 0,
+    absences: admin.absences.data?.filter((a: any) => a.status === 'pending' && canSeeUser(a.user_id)).length ?? 0,
   };
 
   return (
@@ -153,31 +180,31 @@ export default function AdminDashboard() {
             })}
           </div>
           <main className="p-4">
-            <AdminContent activeTab={activeTab} admin={admin} />
+            <AdminContent activeTab={activeTab} admin={admin} canSeeUser={canSeeUser} isManager={isManager} />
           </main>
         </div>
 
         {/* Desktop content */}
         <main className="hidden md:block flex-1 p-6 lg:p-8 overflow-auto max-w-6xl">
-          <AdminContent activeTab={activeTab} admin={admin} />
+          <AdminContent activeTab={activeTab} admin={admin} canSeeUser={canSeeUser} isManager={isManager} />
         </main>
       </div>
     </div>
   );
 }
 
-function AdminContent({ activeTab, admin }: { activeTab: string; admin: any }) {
+function AdminContent({ activeTab, admin, canSeeUser, isManager }: { activeTab: string; admin: any; canSeeUser: (id: string) => boolean; isManager: boolean }) {
   switch (activeTab) {
-    case 'statistics': return <StatisticsPanel admin={admin} />;
-    case 'employees': return <EmployeesPanel admin={admin} />;
-    case 'approvals': return <ApprovalsPanel admin={admin} />;
+    case 'statistics': return <StatisticsPanel admin={admin} canSeeUser={canSeeUser} />;
+    case 'employees': return <EmployeesPanel admin={admin} canSeeUser={canSeeUser} />;
+    case 'approvals': return <ApprovalsPanel admin={admin} canSeeUser={canSeeUser} />;
     case 'projects': return <ProjectsPanel admin={admin} />;
-    case 'absences': return <AbsencesPanel admin={admin} />;
-    case 'vacation-approvals': return <VacationApprovalsPanel admin={admin} />;
-    case 'companies': return <CompaniesPanel admin={admin} />;
+    case 'absences': return <AbsencesPanel admin={admin} canSeeUser={canSeeUser} />;
+    case 'vacation-approvals': return <VacationApprovalsPanel admin={admin} canSeeUser={canSeeUser} />;
+    case 'companies': return isManager ? null : <CompaniesPanel admin={admin} />;
     case 'workplaces': return <WorkplacesPanel admin={admin} />;
     case 'reminders': return <RemindersPanel admin={admin} />;
-    case 'audit': return <AuditTrailPanel admin={admin} />;
+    case 'audit': return isManager ? null : <AuditTrailPanel admin={admin} />;
     default: return null;
   }
 }
@@ -196,12 +223,12 @@ function countBusinessDays(startDate: string, endDate: string, holidaySet?: Set<
   }).length;
 }
 
-function StatisticsPanel({ admin }: { admin: any }) {
-  const employees = admin.employees.data ?? [];
-  const timeEntries = admin.allTimeEntries.data ?? [];
-  const absences = admin.absences.data ?? [];
-  const vacationRequests = admin.vacationRequests.data ?? [];
-  const workBank = admin.allWorkBank.data ?? [];
+function StatisticsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: string) => boolean }) {
+  const employees = (admin.employees.data ?? []).filter((e: any) => canSeeUser(e.id));
+  const timeEntries = (admin.allTimeEntries.data ?? []).filter((te: any) => canSeeUser(te.user_id));
+  const absences = (admin.absences.data ?? []).filter((a: any) => canSeeUser(a.user_id));
+  const vacationRequests = (admin.vacationRequests.data ?? []).filter((v: any) => canSeeUser(v.user_id));
+  const workBank = (admin.allWorkBank.data ?? []).filter((wb: any) => canSeeUser(wb.user_id));
   const companies = admin.companies.data ?? [];
 
   // Get holiday set if company country is Finland
@@ -400,8 +427,8 @@ function StatisticsPanel({ admin }: { admin: any }) {
 
 /* ===== EMPLOYEES ===== */
 
-function EmployeesPanel({ admin }: { admin: any }) {
-  const employees = admin.employees.data ?? [];
+function EmployeesPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: string) => boolean }) {
+  const employees = (admin.employees.data ?? []).filter((e: any) => canSeeUser(e.id));
   const userManagers = admin.userManagers.data ?? [];
   const managerNames = (userId: string) => {
     const mgrIds = userManagers.filter((um: any) => um.user_id === userId).map((um: any) => um.manager_id);
@@ -542,10 +569,10 @@ function EditTimeEntryDialog({ entry, onSave }: { entry: any; onSave: (data: any
   );
 }
 
-function ApprovalsPanel({ admin }: { admin: any }) {
-  const travel = admin.pendingTravel.data ?? [];
-  const hours = admin.pendingHours.data ?? [];
-  const timeEntries = admin.pendingTimeEntries.data ?? [];
+function ApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: string) => boolean }) {
+  const travel = (admin.pendingTravel.data ?? []).filter((t: any) => canSeeUser(t.user_id));
+  const hours = (admin.pendingHours.data ?? []).filter((h: any) => canSeeUser(h.user_id));
+  const timeEntries = (admin.pendingTimeEntries.data ?? []).filter((te: any) => canSeeUser(te.user_id));
 
   return (
     <div className="space-y-6">
@@ -725,14 +752,17 @@ function ApprovalsPanel({ admin }: { admin: any }) {
 
 /* ===== VACATION APPROVALS ===== */
 
-function VacationApprovalsPanel({ admin }: { admin: any }) {
+function VacationApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: string) => boolean }) {
   const companies = admin.companies.data ?? [];
   const companyCountry = companies[0]?.country ?? undefined;
 
+  const filteredEmployees = (admin.employees.data ?? []).filter((e: any) => canSeeUser(e.id));
+  const filteredVacations = (admin.vacationRequests.data ?? []).filter((v: any) => canSeeUser(v.user_id));
+
   return (
     <VacationTimeline
-      employees={admin.employees.data ?? []}
-      vacationRequests={admin.vacationRequests.data ?? []}
+      employees={filteredEmployees}
+      vacationRequests={filteredVacations}
       userManagers={admin.userManagers.data ?? []}
       companyCountry={companyCountry}
       onApprove={(id, status) => admin.approveVacation.mutate({ id, status })}
@@ -743,9 +773,9 @@ function VacationApprovalsPanel({ admin }: { admin: any }) {
 
 /* ===== ABSENCES ===== */
 
-function AbsencesPanel({ admin }: { admin: any }) {
+function AbsencesPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: string) => boolean }) {
   const { language, t } = useTranslation();
-  const absences = admin.absences.data ?? [];
+  const absences = (admin.absences.data ?? []).filter((a: any) => canSeeUser(a.user_id));
   const absenceReasons = admin.absenceReasons.data ?? [];
   const pending = absences.filter((a: any) => a.status === 'pending');
   const handled = absences.filter((a: any) => a.status !== 'pending');

@@ -9,6 +9,7 @@ import { useTimeTracking } from '@/hooks/useTimeTracking';
 import { useWorkBank } from '@/hooks/useWorkBank';
 import { useOfflineSync } from '@/hooks/useOfflineSync';
 import { useWorkplaceDetection } from '@/hooks/useWorkplaceDetection';
+import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { StatusCard } from './StatusCard';
 import { ActionButton } from './ActionButton';
 import { AddProjectHoursDialog } from './AddProjectHoursDialog';
@@ -30,6 +31,7 @@ const APP_VERSION = '0.1.0';
 export function Dashboard() {
   const { activeEntry, loading, startWork, stopWork } = useTimeTracking();
   const { balance: bankBalance } = useWorkBank();
+  const { data: currentUser } = useCurrentUser();
   useOfflineSync();
   useWorkplaceDetection(!!activeEntry);
   const navigate = useNavigate();
@@ -37,6 +39,8 @@ export function Dashboard() {
   const [expenseMode, setExpenseMode] = useState<'kilometers' | 'parking' | 'receipt' | null>(null);
   const [showAbsenceDialog, setShowAbsenceDialog] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+
+  const isAdminOrManager = currentUser?.role === 'admin' || currentUser?.role === 'manager';
 
   const markAbsence = async (type: 'sick' | 'absence') => {
     const { error } = await supabase.from('absences').insert({
@@ -75,7 +79,7 @@ export function Dashboard() {
                 { icon: FileText, label: 'My Entries', path: '/my-entries' },
                 { icon: BarChart3, label: 'My Statistics', path: '/my-statistics' },
                 { icon: Receipt, label: 'Travel Expenses', path: '/travel-expenses' },
-                { icon: Shield, label: 'Admin Panel', path: '/admin' },
+                ...(isAdminOrManager ? [{ icon: Shield, label: 'Admin Panel', path: '/admin' }] : []),
                 { icon: Settings, label: 'Settings', path: '/settings' },
                 { icon: LogOut, label: 'Logout', path: null },
               ].map(({ icon: Icon, label, path }) => (
