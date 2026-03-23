@@ -135,12 +135,19 @@ export function Dashboard() {
         {/* Project Hours */}
         <section>
           <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">{t('dashboard.projectHours')}</h2>
-          <div className="grid grid-cols-1 gap-3">
+          <div className="grid grid-cols-2 gap-3">
             <ActionButton
               icon={Clock}
               label={t('dashboard.addProjectHours')}
               onClick={() => setShowProjectHours(true)}
               variant="default"
+            />
+            <ActionButton
+              icon={CalendarCheck}
+              label={t('dashboard.fullWorkday')}
+              onClick={addFullWorkday}
+              variant="default"
+              disabled={!!activeEntry || loading}
             />
           </div>
         </section>
