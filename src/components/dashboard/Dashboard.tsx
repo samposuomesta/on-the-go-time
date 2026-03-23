@@ -132,9 +132,12 @@ export function Dashboard() {
           </div>
         </section>
 
-        {/* Project Hours */}
+        {/* Project Hours & Work Day */}
         <section>
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">{t('dashboard.projectHours')}</h2>
+          <div className="grid grid-cols-2 gap-3 mb-2">
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t('dashboard.projectHours')}</h2>
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t('dashboard.workDay')}</h2>
+          </div>
           <div className="grid grid-cols-2 gap-3">
             <ActionButton
               icon={Clock}
