@@ -454,6 +454,6 @@ export function useAdminData() {
     createWorkplace, deleteWorkplace,
     createReminder, updateReminder, toggleReminder, deleteReminder,
     createAbsenceReason, updateAbsenceReason, toggleAbsenceReason, deleteAbsenceReason,
-    setEmployeeManagers, addBankAdjustment,
+    setEmployeeManagers, addBankAdjustment, setBankBalance,
   };
 }
