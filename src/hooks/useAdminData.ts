@@ -310,8 +310,8 @@ export function useAdminData() {
   });
 
   const updateProject = useMutation({
-    mutationFn: async ({ id, ...data }: { id: string; name?: string; customer?: string | null }) => {
-      const { error } = await supabase.from('projects').update(data).eq('id', id);
+    mutationFn: async ({ id, ...data }: { id: string; name?: string; customer?: string | null; target_hours?: number | null }) => {
+      const { error } = await supabase.from('projects').update(data as any).eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-projects'] }),

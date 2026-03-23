@@ -1508,22 +1508,24 @@ function AddProjectDialog({ onCreate }: { onCreate: (data: { name: string; custo
   );
 }
 
-function EditProjectDialog({ project, onSave }: { project: any; onSave: (data: { name?: string; customer?: string | null }) => void }) {
+function EditProjectDialog({ project, onSave }: { project: any; onSave: (data: { name?: string; customer?: string | null; target_hours?: number | null }) => void }) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState(project.name);
   const [customer, setCustomer] = useState(project.customer || '');
+  const [targetHours, setTargetHours] = useState(String(project.target_hours ?? ''));
 
   return (
-    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (o) { setName(project.name); setCustomer(project.customer || ''); } }}>
+    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (o) { setName(project.name); setCustomer(project.customer || ''); setTargetHours(String(project.target_hours ?? '')); } }}>
       <DialogTrigger asChild><Button size="icon" variant="ghost" className="h-8 w-8"><Pencil className="h-3.5 w-3.5" /></Button></DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader><DialogTitle className="font-display">{t('projects.edit')}</DialogTitle></DialogHeader>
         <div className="space-y-4 mt-2">
           <div className="space-y-1.5"><Label>{t('projects.name')}</Label><Input value={name} onChange={(e) => setName(e.target.value)} /></div>
           <div className="space-y-1.5"><Label>{t('projects.customerOptional')}</Label><Input value={customer} onChange={(e) => setCustomer(e.target.value)} /></div>
+          <div className="space-y-1.5"><Label>{t('projects.targetHours')}</Label><Input type="number" min="0" step="1" value={targetHours} onChange={(e) => setTargetHours(e.target.value)} placeholder="Leave empty for no target" /></div>
           <Button className="w-full" disabled={!name.trim()} onClick={() => {
-            onSave({ name: name.trim(), customer: customer.trim() || null });
+            onSave({ name: name.trim(), customer: customer.trim() || null, target_hours: targetHours ? parseFloat(targetHours) : null });
             setOpen(false);
           }}>{t('common.save')}</Button>
         </div>
