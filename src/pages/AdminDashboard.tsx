@@ -594,6 +594,7 @@ function ApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
   const [employeeFilter, setEmployeeFilter] = useState('all');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
+  const [showOnlyPending, setShowOnlyPending] = useState(true);
   const [selectedTimeEntries, setSelectedTimeEntries] = useState<Set<string>>(new Set());
   const [bulkProcessing, setBulkProcessing] = useState(false);
 
@@ -606,6 +607,7 @@ function ApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
 
   const filterByEmployeeAndDate = (items: any[], dateField: string | ((item: any) => string)) => {
     return items.filter((item: any) => {
+      if (showOnlyPending && item.status !== 'pending') return false;
       if (employeeFilter !== 'all' && item.user_id !== employeeFilter) return false;
       const d = typeof dateField === 'function' ? dateField(item) : item[dateField];
       if (!d) return false;
