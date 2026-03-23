@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { startOfToday } from 'date-fns';
 import { DEMO_USER_ID } from '@/lib/demo-user';
 import { toast } from 'sonner';
 
@@ -102,5 +103,29 @@ export function useTimeTracking() {
     setActiveEntry(null);
   };
 
-  return { activeEntry, loading, startWork, stopWork, refetch: fetchActive };
+  const addFullWorkday = async () => {
+    const today = startOfToday();
+    const startTime = new Date(today);
+    startTime.setHours(8, 0, 0, 0);
+    const endTime = new Date(today);
+    endTime.setHours(16, 0, 0, 0);
+
+    const { error } = await supabase.from('time_entries').insert({
+      user_id: DEMO_USER_ID,
+      start_time: startTime.toISOString(),
+      end_time: endTime.toISOString(),
+      break_minutes: 30,
+    });
+
+    if (error) {
+      toast.error('Failed to add workday');
+      console.error(error);
+      return;
+    }
+
+    toast.success('Workday 8:00–16:00 added (7.5h effective)');
+    fetchActive();
+  };
+
+  return { activeEntry, loading, startWork, stopWork, addFullWorkday, refetch: fetchActive };
 }
