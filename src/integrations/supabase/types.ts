@@ -727,7 +727,9 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      auth_user_company_id: { Args: never; Returns: string }
+      auth_user_id: { Args: never; Returns: string }
+      auth_user_role: { Args: never; Returns: string }
     }
     Enums: {
       absence_type: "sick" | "absence"
