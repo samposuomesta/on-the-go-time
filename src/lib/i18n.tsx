@@ -422,6 +422,11 @@ const translations = {
     'entries.approved': 'Hyväksytty',
     'entries.rejected': 'Hylätty',
 
+    // Update
+    'update.available': 'Päivitys saatavilla',
+    'update.description': 'Uusi versio on valmis. Käynnistä uudelleen.',
+    'update.action': 'Päivitä nyt',
+
     // Vacation Requests
     'vacation.title': 'Lomapyynnöt',
     'vacation.new': 'Uusi',
