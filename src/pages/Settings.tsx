@@ -265,7 +265,7 @@ export default function SettingsPage() {
             <CardContent className="p-4 space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">{t('settings.version')}</span>
-                <span className="font-medium font-display">{(() => { try { return require('@/lib/version').APP_VERSION; } catch { return '0.2.0'; } })()}</span>
+                <span className="font-medium font-display">{APP_VERSION}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">{t('settings.platform')}</span>
