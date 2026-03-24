@@ -107,8 +107,8 @@ function SickLeaveApproveButtons({ id, onApprove, isPending }: {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setCertDialogOpen(false)}>No</AlertDialogCancel>
-            <AlertDialogAction onClick={() => { onApprove(id, 'approved'); setCertDialogOpen(false); toast.success('Approved'); }}>
+            <AlertDialogCancel className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={() => setCertDialogOpen(false)}>No</AlertDialogCancel>
+            <AlertDialogAction className="bg-success text-success-foreground hover:bg-success/90" onClick={() => { onApprove(id, 'approved'); setCertDialogOpen(false); toast.success('Approved'); }}>
               Yes
             </AlertDialogAction>
           </AlertDialogFooter>

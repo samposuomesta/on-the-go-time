@@ -270,10 +270,10 @@ export function Dashboard() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => { setShowOverlapDialog(false); setOverlapEntries([]); }}>
+            <AlertDialogCancel className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={() => { setShowOverlapDialog(false); setOverlapEntries([]); }}>
               {t('dashboard.discard')}
             </AlertDialogCancel>
-            <AlertDialogAction onClick={handleReplaceOverlap}>
+            <AlertDialogAction className="bg-success text-success-foreground hover:bg-success/90" onClick={handleReplaceOverlap}>
               {t('dashboard.replace')}
             </AlertDialogAction>
           </AlertDialogFooter>
