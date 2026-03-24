@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 import { exportTravelExpensesCSV } from '@/lib/csv-export';
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { DEMO_USER_ID } from '@/lib/demo-user';
+import { useUserId } from '@/contexts/AuthContext';
 import { useTranslation } from '@/lib/i18n';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
@@ -14,6 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
 export default function TravelExpenses() {
+  const userId = useUserId();
   const { t } = useTranslation();
   const now = new Date();
   const [range, setRange] = useState({ from: startOfMonth(now), to: endOfMonth(now) });
@@ -26,7 +27,7 @@ export default function TravelExpenses() {
       const { data, error } = await supabase
         .from('travel_expenses')
         .select('*, projects(name)')
-        .eq('user_id', DEMO_USER_ID)
+        .eq('user_id', userId)
         .gte('date', format(range.from, 'yyyy-MM-dd'))
         .lte('date', format(range.to, 'yyyy-MM-dd'))
         .order('date', { ascending: false });

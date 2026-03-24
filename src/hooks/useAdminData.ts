@@ -1,8 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { DEMO_COMPANY_ID } from '@/lib/demo-user';
+import { useCompanyId } from '@/contexts/AuthContext';
 
 export function useAdminData() {
+  const companyId = useCompanyId();
   const queryClient = useQueryClient();
 
   const employees = useQuery({
@@ -11,7 +12,7 @@ export function useAdminData() {
       const { data, error } = await supabase
         .from('users')
         .select('*')
-        .eq('company_id', DEMO_COMPANY_ID)
+        .eq('company_id', companyId)
         .order('name');
       if (error) throw error;
       return data;
@@ -36,7 +37,7 @@ export function useAdminData() {
       const { data, error } = await supabase
         .from('projects')
         .select('*')
-        .eq('company_id', DEMO_COMPANY_ID)
+        .eq('company_id', companyId)
         .order('name');
       if (error) throw error;
       return data;
@@ -61,7 +62,7 @@ export function useAdminData() {
       const { data, error } = await supabase
         .from('workplaces')
         .select('*')
-        .eq('company_id', DEMO_COMPANY_ID)
+        .eq('company_id', companyId)
         .order('name');
       if (error) throw error;
       return data;
@@ -74,7 +75,7 @@ export function useAdminData() {
       const { data, error } = await supabase
         .from('absence_reasons')
         .select('*')
-        .eq('company_id', DEMO_COMPANY_ID)
+        .eq('company_id', companyId)
         .order('label');
       if (error) throw error;
       return data;
@@ -87,7 +88,7 @@ export function useAdminData() {
       const { data, error } = await supabase
         .from('reminder_rules' as any)
         .select('*')
-        .eq('company_id', DEMO_COMPANY_ID)
+        .eq('company_id', companyId)
         .order('created_at');
       if (error) throw error;
       return data as any[];
@@ -303,7 +304,7 @@ export function useAdminData() {
 
   const createProject = useMutation({
     mutationFn: async (data: { name: string; customer: string | null; target_hours?: number | null }) => {
-      const { error } = await supabase.from('projects').insert({ ...data, company_id: DEMO_COMPANY_ID } as any);
+      const { error } = await supabase.from('projects').insert({ ...data, company_id: companyId } as any);
       if (error) throw error;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-projects'] }),
@@ -319,7 +320,7 @@ export function useAdminData() {
 
   const createEmployee = useMutation({
     mutationFn: async (data: { name: string; email: string; role: 'employee' | 'manager' | 'admin'; company_id?: string; contract_start_date?: string; annual_vacation_days?: number; daily_work_hours?: number; auto_subtract_lunch?: boolean; lunch_threshold_hours?: number; employee_number?: string | null }) => {
-      const { error } = await supabase.from('users').insert({ ...data, company_id: data.company_id || DEMO_COMPANY_ID });
+      const { error } = await supabase.from('users').insert({ ...data, company_id: data.company_id || companyId });
       if (error) throw error;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-employees'] }),
@@ -343,7 +344,7 @@ export function useAdminData() {
 
   const createWorkplace = useMutation({
     mutationFn: async (data: { name: string; latitude: number; longitude: number; radius_meters: number }) => {
-      const { error } = await supabase.from('workplaces').insert({ ...data, company_id: DEMO_COMPANY_ID });
+      const { error } = await supabase.from('workplaces').insert({ ...data, company_id: companyId });
       if (error) throw error;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-workplaces'] }),
@@ -359,7 +360,7 @@ export function useAdminData() {
 
   const createReminder = useMutation({
     mutationFn: async (data: { type: string; time: string; message: string; message_fi?: string; day_of_month?: number; resend_after_days?: number }) => {
-      const { error } = await supabase.from('reminder_rules' as any).insert({ ...data, company_id: DEMO_COMPANY_ID } as any);
+      const { error } = await supabase.from('reminder_rules' as any).insert({ ...data, company_id: companyId } as any);
       if (error) throw error;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-reminders'] }),
@@ -391,7 +392,7 @@ export function useAdminData() {
 
   const createAbsenceReason = useMutation({
     mutationFn: async (data: { label: string; label_fi?: string }) => {
-      const { error } = await supabase.from('absence_reasons').insert({ ...data, company_id: DEMO_COMPANY_ID } as any);
+      const { error } = await supabase.from('absence_reasons').insert({ ...data, company_id: companyId } as any);
       if (error) throw error;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-absence-reasons'] }),

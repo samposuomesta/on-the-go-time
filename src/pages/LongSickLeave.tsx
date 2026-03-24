@@ -4,7 +4,7 @@ import { format, parseISO } from 'date-fns';
 import { ArrowLeft, CalendarIcon, Plus, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { DEMO_USER_ID } from '@/lib/demo-user';
+import { useUserId } from '@/contexts/AuthContext';
 import { useTranslation } from '@/lib/i18n';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
@@ -16,6 +16,7 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
 export default function LongSickLeave() {
+  const userId = useUserId();
   const queryClient = useQueryClient();
   const { t } = useTranslation();
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -30,7 +31,7 @@ export default function LongSickLeave() {
       const { data, error } = await supabase
         .from('absences')
         .select('*')
-        .eq('user_id', DEMO_USER_ID)
+        .eq('user_id', userId)
         .eq('type', 'sick')
         .order('created_at', { ascending: false });
       if (error) throw error;
@@ -42,7 +43,7 @@ export default function LongSickLeave() {
     mutationFn: async () => {
       if (!startDate || !endDate) throw new Error('Select both dates');
       const { error } = await supabase.from('absences').insert({
-        user_id: DEMO_USER_ID,
+        user_id: userId,
         type: 'sick' as const,
         start_date: format(startDate, 'yyyy-MM-dd'),
         end_date: format(endDate, 'yyyy-MM-dd'),

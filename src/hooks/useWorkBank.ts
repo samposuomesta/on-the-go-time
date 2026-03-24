@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { DEMO_USER_ID } from '@/lib/demo-user';
+import { useUserId } from '@/contexts/AuthContext';
 import { format, eachDayOfInterval, isWeekend, startOfYear } from 'date-fns';
 import { isFinnishHoliday } from '@/lib/finnish-holidays';
 
@@ -19,16 +19,16 @@ interface TimeEntry {
 }
 
 export function useWorkBank() {
+  const userId = useUserId();
   const [balance, setBalance] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function calculate() {
-      // Fetch user settings
       const { data: user } = await supabase
         .from('users')
         .select('daily_work_hours, auto_subtract_lunch, lunch_threshold_hours, contract_start_date')
-        .eq('id', DEMO_USER_ID)
+        .eq('id', userId)
         .single();
 
       if (!user) {
@@ -43,11 +43,10 @@ export function useWorkBank() {
         contract_start_date: user.contract_start_date,
       };
 
-      // Fetch all completed time entries (approved or pending - not rejected)
       const { data: entries } = await supabase
         .from('time_entries')
         .select('start_time, end_time, break_minutes, status')
-        .eq('user_id', DEMO_USER_ID)
+        .eq('user_id', userId)
         .not('end_time', 'is', null)
         .neq('status', 'rejected');
 
@@ -56,7 +55,6 @@ export function useWorkBank() {
         return;
       }
 
-      // Group worked hours by date
       const workedByDate: Record<string, number> = {};
 
       for (const entry of entries as TimeEntry[]) {
@@ -67,16 +65,14 @@ export function useWorkBank() {
         const breakHours = (entry.break_minutes ?? 0) / 60;
         let netHours = rawHours - breakHours;
 
-        // Auto-subtract lunch if enabled and over threshold
         if (settings.auto_subtract_lunch && rawHours > settings.lunch_threshold_hours) {
-          netHours -= 0.5; // 30 min lunch
+          netHours -= 0.5;
         }
 
         netHours = Math.max(0, netHours);
         workedByDate[dateKey] = (workedByDate[dateKey] ?? 0) + netHours;
       }
 
-      // Calculate from contract start date (or start of year if no contract date)
       const periodStart = settings.contract_start_date
         ? new Date(settings.contract_start_date)
         : startOfYear(new Date());
@@ -92,19 +88,16 @@ export function useWorkBank() {
         const worked = workedByDate[dateKey] ?? 0;
 
         if (isWorkDay) {
-          // Expected vs actual
           totalBalance += worked - settings.daily_work_hours;
         } else {
-          // Weekend/holiday work is all positive balance
           totalBalance += worked;
         }
       }
 
-      // Also add any manual adjustment transactions
       const { data: adjustments } = await supabase
         .from('work_bank_transactions')
         .select('hours')
-        .eq('user_id', DEMO_USER_ID)
+        .eq('user_id', userId)
         .eq('type', 'adjustment');
 
       if (adjustments) {
@@ -118,7 +111,7 @@ export function useWorkBank() {
     }
 
     calculate();
-  }, []);
+  }, [userId]);
 
   return { balance, loading };
 }

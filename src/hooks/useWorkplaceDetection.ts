@@ -1,6 +1,6 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { DEMO_COMPANY_ID } from '@/lib/demo-user';
+import { useCompanyId } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
 interface Workplace {
@@ -23,6 +23,7 @@ function haversineDistance(lat1: number, lon1: number, lat2: number, lon2: numbe
 }
 
 export function useWorkplaceDetection(isClockedIn: boolean) {
+  const companyId = useCompanyId();
   const shownRef = useRef<Set<string>>(new Set());
   const lastStateRef = useRef<Map<string, boolean>>(new Map());
 
@@ -43,7 +44,7 @@ export function useWorkplaceDetection(isClockedIn: boolean) {
     const { data: workplaces } = await supabase
       .from('workplaces')
       .select('*')
-      .eq('company_id', DEMO_COMPANY_ID);
+      .eq('company_id', companyId);
 
     if (!workplaces?.length) return;
 

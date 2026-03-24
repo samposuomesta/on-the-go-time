@@ -4,7 +4,7 @@ import { format, parseISO } from 'date-fns';
 import { ArrowLeft, CalendarIcon, Plus, Clock, CheckCircle2, XCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { DEMO_USER_ID } from '@/lib/demo-user';
+import { useUserId } from '@/contexts/AuthContext';
 import { useTranslation } from '@/lib/i18n';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
@@ -17,6 +17,7 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
 export default function VacationRequests() {
+  const userId = useUserId();
   const queryClient = useQueryClient();
   const { t } = useTranslation();
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -32,7 +33,7 @@ export default function VacationRequests() {
       const { data, error } = await supabase
         .from('vacation_requests')
         .select('*')
-        .eq('user_id', DEMO_USER_ID)
+        .eq('user_id', userId)
         .order('created_at', { ascending: false });
       if (error) throw error;
       return data;
@@ -43,7 +44,7 @@ export default function VacationRequests() {
     mutationFn: async () => {
       if (!startDate || !endDate) throw new Error('Select both dates');
       const { error } = await supabase.from('vacation_requests').insert({
-        user_id: DEMO_USER_ID,
+        user_id: userId,
         start_date: format(startDate, 'yyyy-MM-dd'),
         end_date: format(endDate, 'yyyy-MM-dd'),
         comment: comment.trim() || null,

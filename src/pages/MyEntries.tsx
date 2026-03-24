@@ -5,7 +5,7 @@ import { ArrowLeft, Clock, Briefcase, Car, CalendarIcon, Filter, Download, Penci
 import { Link } from 'react-router-dom';
 import { exportTimeEntriesCSV, exportProjectHoursCSV, exportTravelExpensesCSV } from '@/lib/csv-export';
 import { supabase } from '@/integrations/supabase/client';
-import { DEMO_USER_ID } from '@/lib/demo-user';
+import { useUserId } from '@/contexts/AuthContext';
 import { useTranslation } from '@/lib/i18n';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -26,6 +26,7 @@ function StatusBadge({ status, t }: { status: string; t: (k: any) => string }) {
 }
 
 export default function MyEntries() {
+  const userId = useUserId();
   const { t } = useTranslation();
   const now = new Date();
   const [range, setRange] = useState<DateRange>({
@@ -44,7 +45,7 @@ export default function MyEntries() {
       const { data, error } = await supabase
         .from('time_entries')
         .select('*')
-        .eq('user_id', DEMO_USER_ID)
+        .eq('user_id', userId)
         .gte('start_time', range.from.toISOString())
         .lte('start_time', range.to.toISOString())
         .order('start_time', { ascending: false });
@@ -59,7 +60,7 @@ export default function MyEntries() {
       const { data, error } = await supabase
         .from('project_hours')
         .select('*, projects(name)')
-        .eq('user_id', DEMO_USER_ID)
+        .eq('user_id', userId)
         .gte('date', format(range.from, 'yyyy-MM-dd'))
         .lte('date', format(range.to, 'yyyy-MM-dd'))
         .order('date', { ascending: false });
@@ -74,7 +75,7 @@ export default function MyEntries() {
       const { data, error } = await supabase
         .from('travel_expenses')
         .select('*, projects(name)')
-        .eq('user_id', DEMO_USER_ID)
+        .eq('user_id', userId)
         .gte('date', format(range.from, 'yyyy-MM-dd'))
         .lte('date', format(range.to, 'yyyy-MM-dd'))
         .order('date', { ascending: false });
@@ -89,7 +90,7 @@ export default function MyEntries() {
       const { data, error } = await supabase
         .from('absences')
         .select('*, absence_reasons(label, label_fi)')
-        .eq('user_id', DEMO_USER_ID)
+        .eq('user_id', userId)
         .gte('start_date', format(range.from, 'yyyy-MM-dd'))
         .lte('start_date', format(range.to, 'yyyy-MM-dd'))
         .order('start_date', { ascending: false });
@@ -104,7 +105,7 @@ export default function MyEntries() {
       const { data, error } = await supabase
         .from('vacation_requests')
         .select('*')
-        .eq('user_id', DEMO_USER_ID)
+        .eq('user_id', userId)
         .gte('start_date', format(range.from, 'yyyy-MM-dd'))
         .lte('start_date', format(range.to, 'yyyy-MM-dd'))
         .order('start_date', { ascending: false });

@@ -17,7 +17,8 @@ import { AddProjectHoursDialog } from './AddProjectHoursDialog';
 import { AbsenceReasonDialog } from './AbsenceReasonDialog';
 import { AddExpenseDialog } from './AddExpenseDialog';
 import { supabase } from '@/integrations/supabase/client';
-import { DEMO_USER_ID } from '@/lib/demo-user';
+import { useUserId } from '@/contexts/AuthContext';
+import { useAuthContext } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import {
   Sheet,
@@ -40,6 +41,8 @@ import {
 const APP_VERSION = '0.1.0';
 
 export function Dashboard() {
+  const userId = useUserId();
+  const { signOut } = useAuthContext();
   const { activeEntry, todayCompleted, loading, startWork, stopWork, addFullWorkday } = useTimeTracking();
   const { balance: bankBalance } = useWorkBank();
   const { data: currentUser } = useCurrentUser();
@@ -89,7 +92,7 @@ export function Dashboard() {
 
   const markAbsence = async (type: 'sick' | 'absence') => {
     const { error } = await supabase.from('absences').insert({
-      user_id: DEMO_USER_ID,
+      user_id: userId,
       type,
     });
     if (error) {
@@ -131,12 +134,13 @@ export function Dashboard() {
                 <button
                   key={label}
                   className="flex w-full items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-foreground hover:bg-muted touch-target"
-                  onClick={() => {
+                  onClick={async () => {
                     setMenuOpen(false);
                     if (path) {
                       navigate(path);
                     } else {
-                      toast.info(`${label} — coming soon`);
+                      await signOut();
+                      navigate('/login');
                     }
                   }}
                 >

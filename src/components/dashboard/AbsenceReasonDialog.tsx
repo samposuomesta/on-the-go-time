@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { DEMO_USER_ID, DEMO_COMPANY_ID } from '@/lib/demo-user';
+import { useUserId, useCompanyId } from '@/contexts/AuthContext';
 import { useTranslation, getLocalizedField } from '@/lib/i18n';
 import { toast } from 'sonner';
 import {
@@ -19,16 +19,18 @@ interface AbsenceReasonDialogProps {
 }
 
 export function AbsenceReasonDialog({ open, onOpenChange }: AbsenceReasonDialogProps) {
+  const userId = useUserId();
+  const companyId = useCompanyId();
   const [submitting, setSubmitting] = useState(false);
   const { language, t } = useTranslation();
 
   const { data: reasons } = useQuery({
-    queryKey: ['absence-reasons', DEMO_COMPANY_ID],
+    queryKey: ['absence-reasons', companyId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('absence_reasons')
         .select('*')
-        .eq('company_id', DEMO_COMPANY_ID)
+        .eq('company_id', companyId)
         .eq('active', true)
         .order('label');
       if (error) throw error;
@@ -39,7 +41,7 @@ export function AbsenceReasonDialog({ open, onOpenChange }: AbsenceReasonDialogP
   const submit = async (reasonId: string | null) => {
     setSubmitting(true);
     const { error } = await supabase.from('absences').insert({
-      user_id: DEMO_USER_ID,
+      user_id: userId,
       type: 'absence' as const,
       reason_id: reasonId,
     });

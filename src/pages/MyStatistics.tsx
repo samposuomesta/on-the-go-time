@@ -3,7 +3,7 @@ import { format, startOfMonth, endOfMonth, eachDayOfInterval, differenceInMinute
 import { ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { DEMO_USER_ID } from '@/lib/demo-user';
+import { useUserId } from '@/contexts/AuthContext';
 import { useTranslation } from '@/lib/i18n';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 const COLORS = ['hsl(220,25%,18%)', 'hsl(152,60%,40%)', 'hsl(38,92%,50%)', 'hsl(210,80%,52%)', 'hsl(0,72%,51%)'];
 
 export default function MyStatistics() {
+  const userId = useUserId();
   const { t } = useTranslation();
   const now = new Date();
   const monthStart = startOfMonth(now);
@@ -22,7 +23,7 @@ export default function MyStatistics() {
       const { data, error } = await supabase
         .from('time_entries')
         .select('*')
-        .eq('user_id', DEMO_USER_ID)
+        .eq('user_id', userId)
         .gte('start_time', monthStart.toISOString())
         .lte('start_time', monthEnd.toISOString())
         .not('end_time', 'is', null);
@@ -37,7 +38,7 @@ export default function MyStatistics() {
       const { data, error } = await supabase
         .from('project_hours')
         .select('*, projects(name)')
-        .eq('user_id', DEMO_USER_ID)
+        .eq('user_id', userId)
         .gte('date', format(monthStart, 'yyyy-MM-dd'))
         .lte('date', format(monthEnd, 'yyyy-MM-dd'));
       if (error) throw error;
