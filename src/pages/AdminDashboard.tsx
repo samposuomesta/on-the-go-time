@@ -288,26 +288,10 @@ function countBusinessDays(startDate: string, endDate: string, holidaySet?: Set<
   }).length;
 }
 
-function StatisticsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: string) => boolean }) {
-  const now = new Date();
-  const [fromDate, setFromDate] = useState<Date>(() => {
-    const d = new Date(now);
-    d.setDate(d.getDate() - 120);
-    return d;
-  });
-  const [toDate, setToDate] = useState<Date>(now);
-
-  const employees = (admin.employees.data ?? []).filter((e: any) => canSeeUser(e.id));
-  const allTimeEntries = (admin.allTimeEntries.data ?? []).filter((te: any) => canSeeUser(te.user_id));
-  const allAbsences = (admin.absences.data ?? []).filter((a: any) => canSeeUser(a.user_id));
-  const allVacationRequests = (admin.vacationRequests.data ?? []).filter((v: any) => canSeeUser(v.user_id));
-  const workBank = (admin.allWorkBank.data ?? []).filter((wb: any) => canSeeUser(wb.user_id));
-  const companies = admin.companies.data ?? [];
-
-  const fromStr = format(fromDate, 'yyyy-MM-dd');
-  const toStr = format(toDate, 'yyyy-MM-dd');
-
-  // Filter data by date range
+function useFilteredStats(
+  employees: any[], allTimeEntries: any[], allAbsences: any[], allVacationRequests: any[], workBank: any[],
+  fromStr: string, toStr: string, holidaySet?: Set<string>
+) {
   const timeEntries = useMemo(() => allTimeEntries.filter((te: any) => {
     const d = format(new Date(te.start_time), 'yyyy-MM-dd');
     return d >= fromStr && d <= toStr;
@@ -321,16 +305,6 @@ function StatisticsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: s
     return v.start_date <= toStr && v.end_date >= fromStr;
   }), [allVacationRequests, fromStr, toStr]);
 
-  // Get holiday set if company country is Finland
-  const companyCountry = companies[0]?.country;
-  const currentYear = new Date().getFullYear();
-  const holidaySet = useMemo(() => {
-    if (companyCountry === 'Finland') {
-      return getFinnishHolidaySet([currentYear - 1, currentYear, currentYear + 1]);
-    }
-    return undefined;
-  }, [companyCountry, currentYear]);
-
   const stats = useMemo(() => {
     const perUser: Record<string, {
       name: string; role: string;
@@ -340,46 +314,32 @@ function StatisticsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: s
       bankBalance: number;
     }> = {};
 
-    // Init per user
     employees.forEach((emp: any) => {
       perUser[emp.id] = {
-        name: emp.name,
-        role: emp.role,
-        workedHours: 0,
-        projectHours: 0,
-        vacationDaysUsed: 0,
-        vacationDaysTotal: emp.annual_vacation_days ?? 25,
-        sickDays: 0,
-        absenceDays: 0,
-        bankBalance: 0,
+        name: emp.name, role: emp.role, workedHours: 0, projectHours: 0,
+        vacationDaysUsed: 0, vacationDaysTotal: emp.annual_vacation_days ?? 25,
+        sickDays: 0, absenceDays: 0, bankBalance: 0,
       };
     });
 
-    // Time entries (clock in/out)
     timeEntries.forEach((te: any) => {
       if (!te.end_time || !perUser[te.user_id]) return;
       const mins = differenceInMinutes(new Date(te.end_time), new Date(te.start_time)) - (te.break_minutes ?? 0);
       perUser[te.user_id].workedHours += Math.max(0, mins / 60);
     });
 
-    // Approved vacation days
     vacationRequests.forEach((vr: any) => {
       if (vr.status !== 'approved' || !perUser[vr.user_id]) return;
       perUser[vr.user_id].vacationDaysUsed += countBusinessDays(vr.start_date, vr.end_date, holidaySet);
     });
 
-    // Absences (sick & other)
     absences.forEach((ab: any) => {
       if (!perUser[ab.user_id]) return;
       const days = countBusinessDays(ab.start_date, ab.end_date, holidaySet);
-      if (ab.type === 'sick') {
-        perUser[ab.user_id].sickDays += days;
-      } else {
-        perUser[ab.user_id].absenceDays += days;
-      }
+      if (ab.type === 'sick') perUser[ab.user_id].sickDays += days;
+      else perUser[ab.user_id].absenceDays += days;
     });
 
-    // Work bank
     workBank.forEach((wb: any) => {
       if (!perUser[wb.user_id]) return;
       perUser[wb.user_id].bankBalance += Number(wb.hours);
@@ -388,14 +348,88 @@ function StatisticsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: s
     return perUser;
   }, [employees, timeEntries, absences, vacationRequests, workBank, holidaySet]);
 
-  const userList = Object.values(stats);
-  const managersData = userList.filter((u: any) => u.role === 'manager' || u.role === 'admin');
-  const employeesData = userList.filter((u: any) => u.role === 'employee');
+  return stats;
+}
 
-  const totalWorkedHours = userList.reduce((s, u) => s + u.workedHours, 0);
-  const totalVacationDays = userList.reduce((s, u) => s + u.vacationDaysUsed, 0);
-  const totalSickDays = userList.reduce((s, u) => s + u.sickDays, 0);
-  const totalAbsenceDays = userList.reduce((s, u) => s + u.absenceDays, 0);
+function StatisticsDatePicker({ fromDate, toDate, setFromDate, setToDate }: {
+  fromDate: Date; toDate: Date; setFromDate: (d: Date) => void; setToDate: (d: Date) => void;
+}) {
+  return (
+    <div className="flex items-center gap-2">
+      <div className="flex flex-col gap-1">
+        <Label className="text-xs text-muted-foreground">From</Label>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="outline" className={cn("w-[140px] justify-start text-left font-normal h-9 text-sm")}>
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {format(fromDate, 'dd.MM.yyyy')}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar mode="single" selected={fromDate} onSelect={(d) => d && setFromDate(d)} initialFocus className="p-3 pointer-events-auto" disabled={(d) => isAfter(d, toDate)} />
+          </PopoverContent>
+        </Popover>
+      </div>
+      <div className="flex flex-col gap-1">
+        <Label className="text-xs text-muted-foreground">To</Label>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="outline" className={cn("w-[140px] justify-start text-left font-normal h-9 text-sm")}>
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {format(toDate, 'dd.MM.yyyy')}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="end">
+            <Calendar mode="single" selected={toDate} onSelect={(d) => d && setToDate(d)} initialFocus className="p-3 pointer-events-auto" disabled={(d) => isBefore(d, fromDate)} />
+          </PopoverContent>
+        </Popover>
+      </div>
+    </div>
+  );
+}
+
+function StatisticsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: string) => boolean }) {
+  const now = new Date();
+  const defaultFrom = () => { const d = new Date(now); d.setDate(d.getDate() - 120); return d; };
+
+  const [overviewFrom, setOverviewFrom] = useState<Date>(defaultFrom);
+  const [overviewTo, setOverviewTo] = useState<Date>(now);
+  const [breakdownFrom, setBreakdownFrom] = useState<Date>(defaultFrom);
+  const [breakdownTo, setBreakdownTo] = useState<Date>(now);
+
+  const employees = (admin.employees.data ?? []).filter((e: any) => canSeeUser(e.id));
+  const allTimeEntries = (admin.allTimeEntries.data ?? []).filter((te: any) => canSeeUser(te.user_id));
+  const allAbsences = (admin.absences.data ?? []).filter((a: any) => canSeeUser(a.user_id));
+  const allVacationRequests = (admin.vacationRequests.data ?? []).filter((v: any) => canSeeUser(v.user_id));
+  const workBank = (admin.allWorkBank.data ?? []).filter((wb: any) => canSeeUser(wb.user_id));
+  const companies = admin.companies.data ?? [];
+
+  const companyCountry = companies[0]?.country;
+  const currentYear = new Date().getFullYear();
+  const holidaySet = useMemo(() => {
+    if (companyCountry === 'Finland') {
+      return getFinnishHolidaySet([currentYear - 1, currentYear, currentYear + 1]);
+    }
+    return undefined;
+  }, [companyCountry, currentYear]);
+
+  // Overview stats
+  const overviewFromStr = format(overviewFrom, 'yyyy-MM-dd');
+  const overviewToStr = format(overviewTo, 'yyyy-MM-dd');
+  const overviewStats = useFilteredStats(employees, allTimeEntries, allAbsences, allVacationRequests, workBank, overviewFromStr, overviewToStr, holidaySet);
+  const overviewList = Object.values(overviewStats);
+  const totalWorkedHours = overviewList.reduce((s, u) => s + u.workedHours, 0);
+  const totalVacationDays = overviewList.reduce((s, u) => s + u.vacationDaysUsed, 0);
+  const totalSickDays = overviewList.reduce((s, u) => s + u.sickDays, 0);
+  const totalAbsenceDays = overviewList.reduce((s, u) => s + u.absenceDays, 0);
+
+  // Breakdown stats (separate date range)
+  const breakdownFromStr = format(breakdownFrom, 'yyyy-MM-dd');
+  const breakdownToStr = format(breakdownTo, 'yyyy-MM-dd');
+  const breakdownStats = useFilteredStats(employees, allTimeEntries, allAbsences, allVacationRequests, workBank, breakdownFromStr, breakdownToStr, holidaySet);
+  const breakdownList = Object.values(breakdownStats);
+  const managersData = breakdownList.filter((u: any) => u.role === 'manager' || u.role === 'admin');
+  const employeesData = breakdownList.filter((u: any) => u.role === 'employee');
 
   return (
     <div className="space-y-6">
@@ -404,36 +438,7 @@ function StatisticsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: s
           <h2 className="text-xl font-display font-bold">Statistics Overview</h2>
           <p className="text-sm text-muted-foreground">Company-wide metrics and per-employee breakdown</p>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="flex flex-col gap-1">
-            <Label className="text-xs text-muted-foreground">From</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className={cn("w-[140px] justify-start text-left font-normal h-9 text-sm", !fromDate && "text-muted-foreground")}>
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {format(fromDate, 'dd.MM.yyyy')}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar mode="single" selected={fromDate} onSelect={(d) => d && setFromDate(d)} initialFocus className="p-3 pointer-events-auto" disabled={(d) => isAfter(d, toDate)} />
-              </PopoverContent>
-            </Popover>
-          </div>
-          <div className="flex flex-col gap-1">
-            <Label className="text-xs text-muted-foreground">To</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className={cn("w-[140px] justify-start text-left font-normal h-9 text-sm", !toDate && "text-muted-foreground")}>
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {format(toDate, 'dd.MM.yyyy')}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="end">
-                <Calendar mode="single" selected={toDate} onSelect={(d) => d && setToDate(d)} initialFocus className="p-3 pointer-events-auto" disabled={(d) => isBefore(d, fromDate)} />
-              </PopoverContent>
-            </Popover>
-          </div>
-        </div>
+        <StatisticsDatePicker fromDate={overviewFrom} toDate={overviewTo} setFromDate={setOverviewFrom} setToDate={setOverviewTo} />
       </div>
 
       {/* Summary cards */}
@@ -487,8 +492,13 @@ function StatisticsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: s
       {/* Per-employee table */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base font-display">Employee & Manager Breakdown</CardTitle>
-          <CardDescription>Individual statistics for all team members</CardDescription>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <CardTitle className="text-base font-display">Employee & Manager Breakdown</CardTitle>
+              <CardDescription>Individual statistics for all team members</CardDescription>
+            </div>
+            <StatisticsDatePicker fromDate={breakdownFrom} toDate={breakdownTo} setFromDate={setBreakdownFrom} setToDate={setBreakdownTo} />
+          </div>
         </CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
@@ -535,7 +545,7 @@ function StatisticsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: s
                     </TableRow>
                   );
                 })}
-                {userList.length === 0 && (
+                {breakdownList.length === 0 && (
                   <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">No employees found</TableCell></TableRow>
                 )}
               </TableBody>
