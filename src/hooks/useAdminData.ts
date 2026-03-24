@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { DEMO_COMPANY_ID } from '@/lib/demo-user';
+import { useCompanyId } from '@/contexts/AuthContext';
 
 export function useAdminData() {
   const queryClient = useQueryClient();

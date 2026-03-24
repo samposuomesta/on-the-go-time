@@ -1,6 +1,6 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { DEMO_COMPANY_ID } from '@/lib/demo-user';
+import { useCompanyId } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
 interface Workplace {

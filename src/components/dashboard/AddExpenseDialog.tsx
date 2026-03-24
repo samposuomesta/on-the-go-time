@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { supabase } from '@/integrations/supabase/client';
-import { userId } from '@/lib/demo-user';
+import { useUserId } from '@/contexts/AuthContext';
 import { useProjects } from '@/hooks/useProjects';
 import { useTranslation } from '@/lib/i18n';
 import { toast } from 'sonner';

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { userId, companyId } from '@/lib/demo-user';
+import { useUserId, useCompanyId } from '@/contexts/AuthContext';
 import { useTranslation, getLocalizedField } from '@/lib/i18n';
 import { toast } from 'sonner';
 import {

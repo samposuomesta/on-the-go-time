@@ -11,7 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { cn } from '@/lib/utils';
 import { Textarea } from '@/components/ui/textarea';
 import { supabase } from '@/integrations/supabase/client';
-import { userId } from '@/lib/demo-user';
+import { useUserId } from '@/contexts/AuthContext';
 import { useProjects } from '@/hooks/useProjects';
 import { useTranslation } from '@/lib/i18n';
 import { toast } from 'sonner';
