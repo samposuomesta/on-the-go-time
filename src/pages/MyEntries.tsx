@@ -190,7 +190,7 @@ export default function MyEntries() {
 
       <main className="flex-1 px-4 pb-4 max-w-lg mx-auto w-full">
         <Tabs defaultValue="time" className="mt-2">
-          <TabsList className="w-full grid grid-cols-3">
+          <TabsList className="w-full grid grid-cols-4">
             <TabsTrigger value="time" className="gap-1.5 text-xs">
               <Clock className="h-3.5 w-3.5" />
               {t('entries.time')} ({timeEntries.length})
@@ -202,6 +202,10 @@ export default function MyEntries() {
             <TabsTrigger value="expenses" className="gap-1.5 text-xs">
               <Car className="h-3.5 w-3.5" />
               {t('entries.expenses')} ({expenses.length})
+            </TabsTrigger>
+            <TabsTrigger value="absences" className="gap-1.5 text-xs">
+              <CalendarOff className="h-3.5 w-3.5" />
+              Absences ({absences.length + vacations.length})
             </TabsTrigger>
           </TabsList>
 
