@@ -29,3 +29,39 @@ self.addEventListener('fetch', (event) => {
       .catch(() => caches.match(event.request).then((r) => r || caches.match('/index.html')))
   );
 });
+
+// Web Push notification handler
+self.addEventListener('push', (event) => {
+  let data = { title: 'TimeTrack', body: 'You have a new notification' };
+  
+  if (event.data) {
+    try {
+      data = event.data.json();
+    } catch (e) {
+      data.body = event.data.text();
+    }
+  }
+
+  const options = {
+    body: data.body,
+    icon: '/manifest-icon-192.maskable.png',
+    badge: '/manifest-icon-192.maskable.png',
+    vibrate: [100, 50, 100],
+    data: { type: data.type || 'general' },
+    actions: [],
+  };
+
+  event.waitUntil(self.registration.showNotification(data.title, options));
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      if (clientList.length > 0) {
+        return clientList[0].focus();
+      }
+      return clients.openWindow('/');
+    })
+  );
+});
