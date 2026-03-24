@@ -318,8 +318,8 @@ export function useAdminData() {
   });
 
   const createEmployee = useMutation({
-    mutationFn: async (data: { name: string; email: string; role: 'employee' | 'manager' | 'admin'; contract_start_date?: string; annual_vacation_days?: number }) => {
-      const { error } = await supabase.from('users').insert({ ...data, company_id: DEMO_COMPANY_ID });
+    mutationFn: async (data: { name: string; email: string; role: 'employee' | 'manager' | 'admin'; company_id?: string; contract_start_date?: string; annual_vacation_days?: number; daily_work_hours?: number; auto_subtract_lunch?: boolean; lunch_threshold_hours?: number; employee_number?: string | null }) => {
+      const { error } = await supabase.from('users').insert({ ...data, company_id: data.company_id || DEMO_COMPANY_ID });
       if (error) throw error;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-employees'] }),
