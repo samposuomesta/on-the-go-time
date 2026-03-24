@@ -161,7 +161,7 @@ export function Dashboard() {
             <ActionButton
               icon={Play}
               label={t('dashboard.startWork')}
-              onClick={startWork}
+              onClick={handleStartWork}
               variant="success"
               disabled={!!activeEntry || loading}
             />
