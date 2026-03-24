@@ -41,6 +41,8 @@ import {
 const APP_VERSION = '0.1.0';
 
 export function Dashboard() {
+  const userId = useUserId();
+  const { signOut } = useAuthContext();
   const { activeEntry, todayCompleted, loading, startWork, stopWork, addFullWorkday } = useTimeTracking();
   const { balance: bankBalance } = useWorkBank();
   const { data: currentUser } = useCurrentUser();
