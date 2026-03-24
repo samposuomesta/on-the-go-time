@@ -109,31 +109,53 @@ export default function MyEntries() {
       </header>
 
       <div className="px-4 pt-4 pb-2 max-w-lg mx-auto w-full">
-        <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
-          <PopoverTrigger asChild>
-            <Button variant="outline" className="w-full justify-start text-left font-normal gap-2">
-              <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-              <span>
-                {format(range.from, 'MMM d, yyyy')} — {format(range.to, 'MMM d, yyyy')}
-              </span>
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
-            <Calendar
-              mode="range"
-              selected={calendarSelection as any}
-              onSelect={(val: any) => {
-                setCalendarSelection(val || {});
-                if (val?.from && val?.to) {
-                  setRange({ from: val.from, to: val.to });
-                  setCalendarOpen(false);
-                }
-              }}
-              numberOfMonths={1}
-              className={cn("p-3 pointer-events-auto")}
-            />
-          </PopoverContent>
-        </Popover>
+        <div className="flex gap-2">
+          <Popover open={fromOpen} onOpenChange={setFromOpen}>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className="flex-1 justify-start text-left font-normal gap-2">
+                <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+                <span>{format(range.from, 'MMM d, yyyy')}</span>
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={range.from}
+                onSelect={(date) => {
+                  if (date) {
+                    setRange(prev => ({ ...prev, from: date > prev.to ? prev.to : date }));
+                    setFromOpen(false);
+                  }
+                }}
+                initialFocus
+                className={cn("p-3 pointer-events-auto")}
+              />
+            </PopoverContent>
+          </Popover>
+          <span className="flex items-center text-muted-foreground text-sm">—</span>
+          <Popover open={toOpen} onOpenChange={setToOpen}>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className="flex-1 justify-start text-left font-normal gap-2">
+                <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+                <span>{format(range.to, 'MMM d, yyyy')}</span>
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={range.to}
+                onSelect={(date) => {
+                  if (date) {
+                    setRange(prev => ({ ...prev, to: date < prev.from ? prev.from : date }));
+                    setToOpen(false);
+                  }
+                }}
+                initialFocus
+                className={cn("p-3 pointer-events-auto")}
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
       </div>
 
       <main className="flex-1 px-4 pb-4 max-w-lg mx-auto w-full">
