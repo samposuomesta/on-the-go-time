@@ -15,7 +15,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction, AlertDialogCancel } from '@/components/ui/alert-dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { Switch } from '@/components/ui/switch';
@@ -71,6 +72,49 @@ function ApproveRejectButtons({ id, onApprove, isPending }: {
         <XCircle className="h-3.5 w-3.5" /> Reject
       </Button>
     </div>
+  );
+}
+
+function SickLeaveApproveButtons({ id, onApprove, isPending }: {
+  id: string;
+  onApprove: (id: string, status: 'approved' | 'rejected') => void;
+  isPending?: boolean;
+}) {
+  const [certDialogOpen, setCertDialogOpen] = useState(false);
+
+  return (
+    <>
+      <div className="flex gap-1.5">
+        <Button size="sm" variant="outline"
+          className="gap-1 text-xs h-8 text-success hover:text-success border-success/30 hover:bg-success/10"
+          disabled={isPending}
+          onClick={() => setCertDialogOpen(true)}>
+          <CheckCircle2 className="h-3.5 w-3.5" /> Approve
+        </Button>
+        <Button size="sm" variant="outline"
+          className="gap-1 text-xs h-8 text-destructive hover:text-destructive border-destructive/30 hover:bg-destructive/10"
+          disabled={isPending}
+          onClick={() => { onApprove(id, 'rejected'); toast.success('Rejected'); }}>
+          <XCircle className="h-3.5 w-3.5" /> Reject
+        </Button>
+      </div>
+      <AlertDialog open={certDialogOpen} onOpenChange={setCertDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Sick Leave Certificate</AlertDialogTitle>
+            <AlertDialogDescription>
+              Have you seen the sick leave certificate for this request?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setCertDialogOpen(false)}>No</AlertDialogCancel>
+            <AlertDialogAction onClick={() => { onApprove(id, 'approved'); setCertDialogOpen(false); toast.success('Approved'); }}>
+              Yes
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
 
@@ -1000,7 +1044,11 @@ function AbsencesPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: str
                     <TableCell>{format(parseISO(a.end_date), 'MMM d, yyyy')}</TableCell>
                     <TableCell><StatusBadge status={a.status} /></TableCell>
                     <TableCell className="text-right">
-                      <ApproveRejectButtons id={a.id} onApprove={(id, status) => admin.approveAbsence.mutate({ id, status })} isPending={admin.approveAbsence.isPending} />
+                      {a.type === 'sick' ? (
+                        <SickLeaveApproveButtons id={a.id} onApprove={(id, status) => admin.approveAbsence.mutate({ id, status })} isPending={admin.approveAbsence.isPending} />
+                      ) : (
+                        <ApproveRejectButtons id={a.id} onApprove={(id, status) => admin.approveAbsence.mutate({ id, status })} isPending={admin.approveAbsence.isPending} />
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}
