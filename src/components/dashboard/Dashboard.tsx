@@ -56,17 +56,34 @@ export function Dashboard() {
 
   const isAdminOrManager = currentUser?.role === 'admin' || currentUser?.role === 'manager';
 
+  const [overlapSource, setOverlapSource] = useState<'workday' | 'start'>('workday');
+
   const handleAddFullWorkday = async () => {
     const result = await addFullWorkday();
     if (result?.overlaps) {
       setOverlapEntries(result.overlaps);
+      setOverlapSource('workday');
+      setShowOverlapDialog(true);
+    }
+  };
+
+  const handleStartWork = async () => {
+    const result = await startWork();
+    if (result?.overlaps) {
+      setOverlapEntries(result.overlaps);
+      setOverlapSource('start');
       setShowOverlapDialog(true);
     }
   };
 
   const handleReplaceOverlap = async () => {
     setShowOverlapDialog(false);
-    await addFullWorkday(overlapEntries.map(e => e.id));
+    const ids = overlapEntries.map(e => e.id);
+    if (overlapSource === 'workday') {
+      await addFullWorkday(ids);
+    } else {
+      await startWork(ids);
+    }
     setOverlapEntries([]);
   };
 
@@ -144,7 +161,7 @@ export function Dashboard() {
             <ActionButton
               icon={Play}
               label={t('dashboard.startWork')}
-              onClick={startWork}
+              onClick={handleStartWork}
               variant="success"
               disabled={!!activeEntry || loading}
             />
