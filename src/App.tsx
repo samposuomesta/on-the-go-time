@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { I18nProvider } from "@/lib/i18n";
 import { PushSubscriptionProvider } from "@/components/PushSubscriptionProvider";
+import { UpdatePrompt } from "@/components/UpdatePrompt";
 import { AuthProvider, useAuthContext } from "@/contexts/AuthContext";
 import Index from "./pages/Index.tsx";
 import MyEntries from "./pages/MyEntries.tsx";
