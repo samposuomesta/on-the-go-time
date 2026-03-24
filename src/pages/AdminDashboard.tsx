@@ -582,19 +582,22 @@ function FennoaImportDialog({ onCreate, companies }: { onCreate: (data: any) => 
   const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const { read, utils } = await import('xlsx');
+    const ExcelJS = (await import('exceljs')).default;
+    const workbook = new ExcelJS.Workbook();
     const data = await file.arrayBuffer();
-    const wb = read(data);
-    const ws = wb.Sheets[wb.SheetNames[0]];
-    const rows: any[][] = utils.sheet_to_json(ws, { header: 1 });
+    await workbook.xlsx.load(data);
+    const ws = workbook.worksheets[0];
+    if (!ws) { toast.error('No worksheet found'); return; }
+    const rows: any[][] = [];
+    ws.eachRow((row) => { rows.push(row.values as any[]); });
     if (rows.length < 2) { toast.error('File must have at least 2 rows'); return; }
     const defaultCompanyId = companies.length > 0 ? companies[0].id : '';
     const parsed = rows.slice(1).filter((r: any[]) => r.some(c => c != null && String(c).trim())).map((r: any[]) => {
-      const empNum = String(r[0] ?? '').trim();
-      const firstName = String(r[1] ?? '').trim();
-      const lastName = String(r[2] ?? '').trim();
-      const email = String(r[10] ?? '').trim();
-      const contractDateRaw = r[15];
+      const empNum = String(r[1] ?? '').trim();
+      const firstName = String(r[2] ?? '').trim();
+      const lastName = String(r[3] ?? '').trim();
+      const email = String(r[11] ?? '').trim();
+      const contractDateRaw = r[16];
       const contractDate = parseDate(contractDateRaw != null ? String(contractDateRaw) : '') || '';
       return {
         firstName,
