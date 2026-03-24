@@ -114,6 +114,13 @@ export default function SettingsPage() {
     { type: 'clock_out', labelKey: 'settings.clockOutReminder' as const, defaultTime: '16:00' },
   ];
 
+  const isManagerOrAdmin = currentUser?.role === 'manager' || currentUser?.role === 'admin';
+
+  const vacationReminderTypes = [
+    ...(isManagerOrAdmin ? [{ type: 'vacation_pending', labelKey: 'settings.vacationPendingReminder' as const, defaultTime: '09:00', hintKey: 'settings.vacationPendingHint' as const }] : []),
+    { type: 'vacation_status', labelKey: 'settings.vacationStatusReminder' as const, defaultTime: '09:00', hintKey: 'settings.vacationStatusHint' as const },
+  ];
+
   const themeOptions: { value: Theme; icon: typeof Sun; labelKey: 'theme.light' | 'theme.dark' | 'theme.system' }[] = [
     { value: 'light', icon: Sun, labelKey: 'theme.light' },
     { value: 'dark', icon: Moon, labelKey: 'theme.dark' },
@@ -214,7 +221,43 @@ export default function SettingsPage() {
           </Card>
         </section>
 
-        {/* App Info */}
+        {/* Vacation Reminders */}
+        <section>
+          <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t('settings.vacationReminders')}</Label>
+          <Card className="mt-2">
+            <CardContent className="p-4 space-y-4">
+              {vacationReminderTypes.map(({ type, labelKey, defaultTime, hintKey }) => {
+                const reminder = getReminder(type);
+                const isEnabled = reminder?.enabled ?? false;
+                const time = reminder?.time ?? defaultTime;
+                return (
+                  <div key={type} className="space-y-1">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
+                        <Bell className="h-4 w-4 text-muted-foreground shrink-0" />
+                        <span className="text-sm font-medium truncate">{t(labelKey)}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          type="time"
+                          value={time}
+                          onChange={(e) => handleTimeChange(type, e.target.value)}
+                          className="w-24 h-8 text-xs"
+                          disabled={!isEnabled}
+                        />
+                        <Switch
+                          checked={isEnabled}
+                          onCheckedChange={() => handleToggle(type, defaultTime)}
+                        />
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground ml-7">{t(hintKey)}</p>
+                  </div>
+                );
+              })}
+            </CardContent>
+          </Card>
+        </section>
         <section>
           <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t('settings.about')}</Label>
           <Card className="mt-2">
