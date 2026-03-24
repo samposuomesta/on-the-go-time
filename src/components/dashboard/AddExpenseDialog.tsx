@@ -19,6 +19,7 @@ interface Props {
 }
 
 export function AddExpenseDialog({ open, onOpenChange, mode }: Props) {
+  const userId = useUserId();
   const projects = useProjects();
   const { t } = useTranslation();
   const [projectId, setProjectId] = useState('');

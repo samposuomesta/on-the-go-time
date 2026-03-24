@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useCompanyId } from '@/contexts/AuthContext';
 
 export function useAdminData() {
+  const companyId = useCompanyId();
   const queryClient = useQueryClient();
 
   const employees = useQuery({
