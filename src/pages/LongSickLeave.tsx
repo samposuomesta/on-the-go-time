@@ -60,6 +60,18 @@ export default function LongSickLeave() {
     onError: () => toast.error(t('sickLeave.failedToSubmit')),
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('absences').delete().eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['sick-absences'] });
+      toast.success(t('common.deleted'));
+    },
+    onError: () => toast.error(t('sickLeave.failedToSubmit')),
+  });
+
   const statusColors: Record<string, string> = {
     pending: 'bg-warning/15 text-warning border-warning/30',
     approved: 'bg-success/15 text-success border-success/30',

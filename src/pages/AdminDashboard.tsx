@@ -75,6 +75,49 @@ function ApproveRejectButtons({ id, onApprove, isPending }: {
   );
 }
 
+function SickLeaveApproveButtons({ id, onApprove, isPending }: {
+  id: string;
+  onApprove: (id: string, status: 'approved' | 'rejected') => void;
+  isPending?: boolean;
+}) {
+  const [certDialogOpen, setCertDialogOpen] = useState(false);
+
+  return (
+    <>
+      <div className="flex gap-1.5">
+        <Button size="sm" variant="outline"
+          className="gap-1 text-xs h-8 text-success hover:text-success border-success/30 hover:bg-success/10"
+          disabled={isPending}
+          onClick={() => setCertDialogOpen(true)}>
+          <CheckCircle2 className="h-3.5 w-3.5" /> Approve
+        </Button>
+        <Button size="sm" variant="outline"
+          className="gap-1 text-xs h-8 text-destructive hover:text-destructive border-destructive/30 hover:bg-destructive/10"
+          disabled={isPending}
+          onClick={() => { onApprove(id, 'rejected'); toast.success('Rejected'); }}>
+          <XCircle className="h-3.5 w-3.5" /> Reject
+        </Button>
+      </div>
+      <AlertDialog open={certDialogOpen} onOpenChange={setCertDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Sick Leave Certificate</AlertDialogTitle>
+            <AlertDialogDescription>
+              Have you seen the sick leave certificate for this request?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setCertDialogOpen(false)}>No</AlertDialogCancel>
+            <AlertDialogAction onClick={() => { onApprove(id, 'approved'); setCertDialogOpen(false); toast.success('Approved'); }}>
+              Yes
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  );
+}
+
 export default function AdminDashboard() {
   const admin = useAdminData();
   const { data: currentUser, isLoading: userLoading } = useCurrentUser();
