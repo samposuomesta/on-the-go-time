@@ -593,11 +593,11 @@ function FennoaImportDialog({ onCreate, companies }: { onCreate: (data: any) => 
     if (rows.length < 2) { toast.error('File must have at least 2 rows'); return; }
     const defaultCompanyId = companies.length > 0 ? companies[0].id : '';
     const parsed = rows.slice(1).filter((r: any[]) => r.some(c => c != null && String(c).trim())).map((r: any[]) => {
-      const empNum = String(r[0] ?? '').trim();
-      const firstName = String(r[1] ?? '').trim();
-      const lastName = String(r[2] ?? '').trim();
-      const email = String(r[10] ?? '').trim();
-      const contractDateRaw = r[15];
+      const empNum = String(r[1] ?? '').trim();
+      const firstName = String(r[2] ?? '').trim();
+      const lastName = String(r[3] ?? '').trim();
+      const email = String(r[11] ?? '').trim();
+      const contractDateRaw = r[16];
       const contractDate = parseDate(contractDateRaw != null ? String(contractDateRaw) : '') || '';
       return {
         firstName,
