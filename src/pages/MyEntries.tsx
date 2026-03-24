@@ -32,11 +32,8 @@ export default function MyEntries() {
     from: startOfMonth(now),
     to: endOfMonth(now),
   });
-  const [calendarOpen, setCalendarOpen] = useState(false);
-  const [calendarSelection, setCalendarSelection] = useState<{ from?: Date; to?: Date }>({
-    from: range.from,
-    to: range.to,
-  });
+  const [fromOpen, setFromOpen] = useState(false);
+  const [toOpen, setToOpen] = useState(false);
   const [editTimeEntry, setEditTimeEntry] = useState<any>(null);
   const [editProjectHour, setEditProjectHour] = useState<any>(null);
   const [editExpense, setEditExpense] = useState<any>(null);
