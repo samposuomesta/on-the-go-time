@@ -14,6 +14,7 @@ import { getFinnishHolidaySet } from '@/lib/finnish-holidays';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction, AlertDialogCancel } from '@/components/ui/alert-dialog';
@@ -654,6 +655,267 @@ function EditTimeEntryDialog({ entry, onSave }: { entry: any; onSave: (data: any
   );
 }
 
+function EditProjectHoursDialog({ entry, onSave, isHistory, onAuditReason }: { entry: any; onSave: (data: any) => void; isHistory?: boolean; onAuditReason?: (tableName: string, recordId: string, oldData: any, newData: any, reason: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const [hours, setHours] = useState('');
+  const [date, setDate] = useState('');
+  const [description, setDescription] = useState('');
+  const [reasonOpen, setReasonOpen] = useState(false);
+  const [reason, setReason] = useState('');
+  const [pendingData, setPendingData] = useState<any>(null);
+
+  const handleOpen = (isOpen: boolean) => {
+    if (isOpen) {
+      setHours(String(entry.hours ?? ''));
+      setDate(entry.date ?? '');
+      setDescription(entry.description ?? '');
+    }
+    setOpen(isOpen);
+  };
+
+  const handleSave = () => {
+    const data = { hours: Number(hours), date, description: description || null };
+    if (isHistory && onAuditReason) {
+      setPendingData(data);
+      setOpen(false);
+      setReason('');
+      setReasonOpen(true);
+    } else {
+      onSave(data);
+      setOpen(false);
+      toast.success('Project hours updated');
+    }
+  };
+
+  const handleReasonConfirm = () => {
+    if (!reason.trim()) { toast.error('Please provide a reason'); return; }
+    onSave(pendingData);
+    onAuditReason?.('project_hours', entry.id, entry, { ...entry, ...pendingData }, reason.trim());
+    setReasonOpen(false);
+    toast.success('Project hours updated');
+  };
+
+  return (
+    <>
+      <Dialog open={open} onOpenChange={handleOpen}>
+        <DialogTrigger asChild>
+          <Button size="sm" variant="ghost" className="h-8 w-8 p-0"><Pencil className="h-3.5 w-3.5" /></Button>
+        </DialogTrigger>
+        <DialogContent className="max-w-sm">
+          <DialogHeader><DialogTitle className="font-display">Edit Project Hours</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label className="text-xs">Date</Label>
+              <Input type="date" value={date} onChange={e => setDate(e.target.value)} className="dark:[color-scheme:dark]" />
+            </div>
+            <div>
+              <Label className="text-xs">Hours</Label>
+              <Input type="number" min="0" step="0.5" value={hours} onChange={e => setHours(e.target.value)} />
+            </div>
+            <div>
+              <Label className="text-xs">Description</Label>
+              <Input value={description} onChange={e => setDescription(e.target.value)} />
+            </div>
+            <Button className="w-full" onClick={handleSave}>Save Changes</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+      <AlertDialog open={reasonOpen} onOpenChange={setReasonOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Reason for Change</AlertDialogTitle>
+            <AlertDialogDescription>This record has already been processed. Please provide a reason for this modification.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <Textarea placeholder="Enter reason for modification..." value={reason} onChange={e => setReason(e.target.value)} className="min-h-[80px]" />
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Cancel</AlertDialogCancel>
+            <AlertDialogAction className="bg-success text-success-foreground hover:bg-success/90" onClick={handleReasonConfirm}>Confirm</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  );
+}
+
+function EditTravelExpenseDialog({ entry, onSave, isHistory, onAuditReason }: { entry: any; onSave: (data: any) => void; isHistory?: boolean; onAuditReason?: (tableName: string, recordId: string, oldData: any, newData: any, reason: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const [date, setDate] = useState('');
+  const [kilometers, setKilometers] = useState('');
+  const [parkingCost, setParkingCost] = useState('');
+  const [description, setDescription] = useState('');
+  const [reasonOpen, setReasonOpen] = useState(false);
+  const [reason, setReason] = useState('');
+  const [pendingData, setPendingData] = useState<any>(null);
+
+  const handleOpen = (isOpen: boolean) => {
+    if (isOpen) {
+      setDate(entry.date ?? '');
+      setKilometers(String(entry.kilometers ?? 0));
+      setParkingCost(String(entry.parking_cost ?? 0));
+      setDescription(entry.description ?? '');
+    }
+    setOpen(isOpen);
+  };
+
+  const handleSave = () => {
+    const data = { date, kilometers: Number(kilometers), parking_cost: Number(parkingCost), description: description || null };
+    if (isHistory && onAuditReason) {
+      setPendingData(data);
+      setOpen(false);
+      setReason('');
+      setReasonOpen(true);
+    } else {
+      onSave(data);
+      setOpen(false);
+      toast.success('Travel expense updated');
+    }
+  };
+
+  const handleReasonConfirm = () => {
+    if (!reason.trim()) { toast.error('Please provide a reason'); return; }
+    onSave(pendingData);
+    onAuditReason?.('travel_expenses', entry.id, entry, { ...entry, ...pendingData }, reason.trim());
+    setReasonOpen(false);
+    toast.success('Travel expense updated');
+  };
+
+  return (
+    <>
+      <Dialog open={open} onOpenChange={handleOpen}>
+        <DialogTrigger asChild>
+          <Button size="sm" variant="ghost" className="h-8 w-8 p-0"><Pencil className="h-3.5 w-3.5" /></Button>
+        </DialogTrigger>
+        <DialogContent className="max-w-sm">
+          <DialogHeader><DialogTitle className="font-display">Edit Travel Expense</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label className="text-xs">Date</Label>
+              <Input type="date" value={date} onChange={e => setDate(e.target.value)} className="dark:[color-scheme:dark]" />
+            </div>
+            <div>
+              <Label className="text-xs">Kilometers</Label>
+              <Input type="number" min="0" step="0.1" value={kilometers} onChange={e => setKilometers(e.target.value)} />
+            </div>
+            <div>
+              <Label className="text-xs">Parking Cost (€)</Label>
+              <Input type="number" min="0" step="0.01" value={parkingCost} onChange={e => setParkingCost(e.target.value)} />
+            </div>
+            <div>
+              <Label className="text-xs">Description</Label>
+              <Input value={description} onChange={e => setDescription(e.target.value)} />
+            </div>
+            <Button className="w-full" onClick={handleSave}>Save Changes</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+      <AlertDialog open={reasonOpen} onOpenChange={setReasonOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Reason for Change</AlertDialogTitle>
+            <AlertDialogDescription>This record has already been processed. Please provide a reason for this modification.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <Textarea placeholder="Enter reason for modification..." value={reason} onChange={e => setReason(e.target.value)} className="min-h-[80px]" />
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Cancel</AlertDialogCancel>
+            <AlertDialogAction className="bg-success text-success-foreground hover:bg-success/90" onClick={handleReasonConfirm}>Confirm</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  );
+}
+
+function EditTimeEntryHistoryDialog({ entry, onSave, isHistory, onAuditReason }: { entry: any; onSave: (data: any) => void; isHistory?: boolean; onAuditReason?: (tableName: string, recordId: string, oldData: any, newData: any, reason: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const [startTime, setStartTime] = useState('');
+  const [endTime, setEndTime] = useState('');
+  const [breakMins, setBreakMins] = useState('0');
+  const [reasonOpen, setReasonOpen] = useState(false);
+  const [reason, setReason] = useState('');
+  const [pendingData, setPendingData] = useState<any>(null);
+
+  const handleOpen = (isOpen: boolean) => {
+    if (isOpen) {
+      setStartTime(entry.start_time ? format(new Date(entry.start_time), "yyyy-MM-dd'T'HH:mm") : '');
+      setEndTime(entry.end_time ? format(new Date(entry.end_time), "yyyy-MM-dd'T'HH:mm") : '');
+      setBreakMins(String(entry.break_minutes ?? 0));
+    }
+    setOpen(isOpen);
+  };
+
+  const handleSave = () => {
+    const data = {
+      start_time: new Date(startTime).toISOString(),
+      end_time: new Date(endTime).toISOString(),
+      break_minutes: Number(breakMins),
+    };
+    if (isHistory && onAuditReason) {
+      setPendingData(data);
+      setOpen(false);
+      setReason('');
+      setReasonOpen(true);
+    } else {
+      onSave(data);
+      setOpen(false);
+      toast.success('Hours updated');
+    }
+  };
+
+  const handleReasonConfirm = () => {
+    if (!reason.trim()) { toast.error('Please provide a reason'); return; }
+    onSave(pendingData);
+    onAuditReason?.('time_entries', entry.id, entry, { ...entry, ...pendingData }, reason.trim());
+    setReasonOpen(false);
+    toast.success('Hours updated');
+  };
+
+  return (
+    <>
+      <Dialog open={open} onOpenChange={handleOpen}>
+        <DialogTrigger asChild>
+          <Button size="sm" variant="ghost" className="h-8 w-8 p-0"><Pencil className="h-3.5 w-3.5" /></Button>
+        </DialogTrigger>
+        <DialogContent className="max-w-sm">
+          <DialogHeader><DialogTitle className="font-display">Edit Working Hours</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label className="text-xs">Start Time</Label>
+              <Input type="datetime-local" value={startTime} onChange={e => setStartTime(e.target.value)} />
+            </div>
+            <div>
+              <Label className="text-xs">End Time</Label>
+              <Input type="datetime-local" value={endTime} onChange={e => setEndTime(e.target.value)} />
+            </div>
+            <div>
+              <Label className="text-xs">Break (minutes)</Label>
+              <Input type="number" min="0" value={breakMins} onChange={e => setBreakMins(e.target.value)} />
+            </div>
+            {startTime && endTime && (
+              <div className="text-xs text-muted-foreground">
+                Net hours: {Math.max(0, (differenceInMinutes(new Date(endTime), new Date(startTime)) - Number(breakMins)) / 60).toFixed(1)}h
+              </div>
+            )}
+            <Button className="w-full" onClick={handleSave}>Save Changes</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+      <AlertDialog open={reasonOpen} onOpenChange={setReasonOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Reason for Change</AlertDialogTitle>
+            <AlertDialogDescription>This record has already been processed. Please provide a reason for this modification.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <Textarea placeholder="Enter reason for modification..." value={reason} onChange={e => setReason(e.target.value)} className="min-h-[80px]" />
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Cancel</AlertDialogCancel>
+            <AlertDialogAction className="bg-success text-success-foreground hover:bg-success/90" onClick={handleReasonConfirm}>Confirm</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  );
+}
+
 function ApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: string) => boolean }) {
   const [employeeFilter, setEmployeeFilter] = useState('all');
   const [dateFrom, setDateFrom] = useState('');
@@ -852,19 +1114,30 @@ function ApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
                       <TableCell className="text-muted-foreground">{te.projects?.name ?? '—'}</TableCell>
                       <TableCell><StatusBadge status={te.status} /></TableCell>
                       <TableCell className="text-right">
-                        {isPending && (
-                          <div className="flex items-center justify-end gap-1">
-                            <EditTimeEntryDialog
+                        <div className="flex items-center justify-end gap-1">
+                          {isPending ? (
+                            <>
+                              <EditTimeEntryDialog
+                                entry={te}
+                                onSave={(data) => admin.updateTimeEntry.mutate({ id: te.id, ...data })}
+                              />
+                              <ApproveRejectButtons
+                                id={te.id}
+                                onApprove={(id, status) => admin.approveTimeEntry.mutate({ id, status })}
+                                isPending={admin.approveTimeEntry.isPending}
+                              />
+                            </>
+                          ) : (
+                            <EditTimeEntryHistoryDialog
                               entry={te}
+                              isHistory
                               onSave={(data) => admin.updateTimeEntry.mutate({ id: te.id, ...data })}
+                              onAuditReason={(tableName, recordId, oldData, newData, reason) =>
+                                admin.insertAuditReason.mutate({ tableName, recordId, action: 'ADMIN_EDIT', oldData, newData, reason })
+                              }
                             />
-                            <ApproveRejectButtons
-                              id={te.id}
-                              onApprove={(id, status) => admin.approveTimeEntry.mutate({ id, status })}
-                              isPending={admin.approveTimeEntry.isPending}
-                            />
-                          </div>
-                        )}
+                          )}
+                        </div>
                       </TableCell>
                     </TableRow>
                   );
@@ -915,9 +1188,19 @@ function ApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
                     <TableCell className="text-muted-foreground max-w-[200px] truncate">{h.description || '—'}</TableCell>
                     <TableCell><StatusBadge status={h.status} /></TableCell>
                     <TableCell className="text-right">
-                      {h.status === 'pending' && (
-                        <ApproveRejectButtons id={h.id} onApprove={(id, status) => admin.approveHours.mutate({ id, status })} isPending={admin.approveHours.isPending} />
-                      )}
+                      <div className="flex items-center justify-end gap-1">
+                        <EditProjectHoursDialog
+                          entry={h}
+                          isHistory={h.status !== 'pending'}
+                          onSave={(data) => admin.updateProjectHours.mutate({ id: h.id, ...data })}
+                          onAuditReason={(tableName, recordId, oldData, newData, reason) =>
+                            admin.insertAuditReason.mutate({ tableName, recordId, action: 'ADMIN_EDIT', oldData, newData, reason })
+                          }
+                        />
+                        {h.status === 'pending' && (
+                          <ApproveRejectButtons id={h.id} onApprove={(id, status) => admin.approveHours.mutate({ id, status })} isPending={admin.approveHours.isPending} />
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -969,9 +1252,19 @@ function ApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
                     <TableCell className="text-muted-foreground max-w-[200px] truncate">{t.description || '—'}</TableCell>
                     <TableCell><StatusBadge status={t.status} /></TableCell>
                     <TableCell className="text-right">
-                      {t.status === 'pending' && (
-                        <ApproveRejectButtons id={t.id} onApprove={(id, status) => admin.approveTravel.mutate({ id, status })} isPending={admin.approveTravel.isPending} />
-                      )}
+                      <div className="flex items-center justify-end gap-1">
+                        <EditTravelExpenseDialog
+                          entry={t}
+                          isHistory={t.status !== 'pending'}
+                          onSave={(data) => admin.updateTravelExpense.mutate({ id: t.id, ...data })}
+                          onAuditReason={(tableName, recordId, oldData, newData, reason) =>
+                            admin.insertAuditReason.mutate({ tableName, recordId, action: 'ADMIN_EDIT', oldData, newData, reason })
+                          }
+                        />
+                        {t.status === 'pending' && (
+                          <ApproveRejectButtons id={t.id} onApprove={(id, status) => admin.approveTravel.mutate({ id, status })} isPending={admin.approveTravel.isPending} />
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}

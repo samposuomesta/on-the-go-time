@@ -442,6 +442,43 @@ export function useAdminData() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-user-managers'] }),
   });
 
+  const updateProjectHours = useMutation({
+    mutationFn: async ({ id, ...data }: { id: string; hours?: number; date?: string; description?: string | null; project_id?: string }) => {
+      const { error } = await supabase.from('project_hours').update(data as any).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-hours'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-all-hours'] });
+    },
+  });
+
+  const updateTravelExpense = useMutation({
+    mutationFn: async ({ id, ...data }: { id: string; kilometers?: number; parking_cost?: number; date?: string; description?: string | null; project_id?: string | null }) => {
+      const { error } = await supabase.from('travel_expenses').update(data as any).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-travel'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-all-travel'] });
+    },
+  });
+
+  const insertAuditReason = useMutation({
+    mutationFn: async ({ tableName, recordId, action, oldData, newData, reason }: { tableName: string; recordId: string; action: string; oldData?: any; newData?: any; reason: string }) => {
+      const { error } = await supabase.from('audit_log' as any).insert({
+        table_name: tableName,
+        record_id: recordId,
+        action,
+        old_data: oldData ? JSON.parse(JSON.stringify(oldData)) : null,
+        new_data: newData ? JSON.parse(JSON.stringify(newData)) : null,
+        changed_by: reason,
+      } as any);
+      if (error) throw error;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-audit-log'] }),
+  });
+
   // Work bank adjustment mutation
   const addBankAdjustment = useMutation({
     mutationFn: async ({ userId, hours }: { userId: string; hours: number }) => {
@@ -485,6 +522,7 @@ export function useAdminData() {
     pendingTravel, pendingHours, pendingTimeEntries, absences, vacationRequests,
     allTimeEntries, allWorkBank, allTravel, allHours, allTimeEntriesWithNames,
     approveTravel, approveHours, approveAbsence, approveVacation, approveTimeEntry, updateTimeEntry,
+    updateProjectHours, updateTravelExpense, insertAuditReason,
     updateEmployee, toggleProject, createProject, updateProject, createEmployee,
     createCompany, updateCompany,
     createWorkplace, deleteWorkplace,
