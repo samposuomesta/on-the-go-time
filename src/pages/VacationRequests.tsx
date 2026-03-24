@@ -32,7 +32,7 @@ export default function VacationRequests() {
       const { data, error } = await supabase
         .from('vacation_requests')
         .select('*')
-        .eq('user_id', DEMO_USER_ID)
+        .eq('user_id', userId)
         .order('created_at', { ascending: false });
       if (error) throw error;
       return data;
@@ -43,7 +43,7 @@ export default function VacationRequests() {
     mutationFn: async () => {
       if (!startDate || !endDate) throw new Error('Select both dates');
       const { error } = await supabase.from('vacation_requests').insert({
-        user_id: DEMO_USER_ID,
+        user_id: userId,
         start_date: format(startDate, 'yyyy-MM-dd'),
         end_date: format(endDate, 'yyyy-MM-dd'),
         comment: comment.trim() || null,

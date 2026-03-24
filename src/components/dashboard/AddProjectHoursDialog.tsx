@@ -11,7 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { cn } from '@/lib/utils';
 import { Textarea } from '@/components/ui/textarea';
 import { supabase } from '@/integrations/supabase/client';
-import { DEMO_USER_ID } from '@/lib/demo-user';
+import { userId } from '@/lib/demo-user';
 import { useProjects } from '@/hooks/useProjects';
 import { useTranslation } from '@/lib/i18n';
 import { toast } from 'sonner';
@@ -37,7 +37,7 @@ export function AddProjectHoursDialog({ open, onOpenChange }: Props) {
     }
     setSaving(true);
     const { error } = await supabase.from('project_hours').insert({
-      user_id: DEMO_USER_ID,
+      user_id: userId,
       project_id: projectId,
       hours: parseFloat(hours),
       date,

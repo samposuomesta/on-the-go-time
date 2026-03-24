@@ -26,7 +26,7 @@ export default function TravelExpenses() {
       const { data, error } = await supabase
         .from('travel_expenses')
         .select('*, projects(name)')
-        .eq('user_id', DEMO_USER_ID)
+        .eq('user_id', userId)
         .gte('date', format(range.from, 'yyyy-MM-dd'))
         .lte('date', format(range.to, 'yyyy-MM-dd'))
         .order('date', { ascending: false });

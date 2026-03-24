@@ -30,7 +30,7 @@ export default function LongSickLeave() {
       const { data, error } = await supabase
         .from('absences')
         .select('*')
-        .eq('user_id', DEMO_USER_ID)
+        .eq('user_id', userId)
         .eq('type', 'sick')
         .order('created_at', { ascending: false });
       if (error) throw error;
@@ -42,7 +42,7 @@ export default function LongSickLeave() {
     mutationFn: async () => {
       if (!startDate || !endDate) throw new Error('Select both dates');
       const { error } = await supabase.from('absences').insert({
-        user_id: DEMO_USER_ID,
+        user_id: userId,
         type: 'sick' as const,
         start_date: format(startDate, 'yyyy-MM-dd'),
         end_date: format(endDate, 'yyyy-MM-dd'),

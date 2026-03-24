@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { supabase } from '@/integrations/supabase/client';
-import { DEMO_USER_ID } from '@/lib/demo-user';
+import { userId } from '@/lib/demo-user';
 import { useProjects } from '@/hooks/useProjects';
 import { useTranslation } from '@/lib/i18n';
 import { toast } from 'sonner';
@@ -59,7 +59,7 @@ export function AddExpenseDialog({ open, onOpenChange, mode }: Props) {
   const uploadReceipt = async (): Promise<string | null> => {
     if (!receiptFile) return null;
     const ext = receiptFile.name.split('.').pop() || 'jpg';
-    const path = `${DEMO_USER_ID}/${Date.now()}.${ext}`;
+    const path = `${userId}/${Date.now()}.${ext}`;
     const { error } = await supabase.storage
       .from('receipts')
       .upload(path, receiptFile, { contentType: receiptFile.type });
@@ -85,7 +85,7 @@ export function AddExpenseDialog({ open, onOpenChange, mode }: Props) {
     }
 
     const { error } = await supabase.from('travel_expenses').insert({
-      user_id: DEMO_USER_ID,
+      user_id: userId,
       project_id: projectId || null,
       date,
       kilometers: mode === 'kilometers' ? parseFloat(kilometers) || 0 : 0,

@@ -22,7 +22,7 @@ export default function MyStatistics() {
       const { data, error } = await supabase
         .from('time_entries')
         .select('*')
-        .eq('user_id', DEMO_USER_ID)
+        .eq('user_id', userId)
         .gte('start_time', monthStart.toISOString())
         .lte('start_time', monthEnd.toISOString())
         .not('end_time', 'is', null);
@@ -37,7 +37,7 @@ export default function MyStatistics() {
       const { data, error } = await supabase
         .from('project_hours')
         .select('*, projects(name)')
-        .eq('user_id', DEMO_USER_ID)
+        .eq('user_id', userId)
         .gte('date', format(monthStart, 'yyyy-MM-dd'))
         .lte('date', format(monthEnd, 'yyyy-MM-dd'));
       if (error) throw error;

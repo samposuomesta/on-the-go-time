@@ -44,7 +44,7 @@ export default function MyEntries() {
       const { data, error } = await supabase
         .from('time_entries')
         .select('*')
-        .eq('user_id', DEMO_USER_ID)
+        .eq('user_id', userId)
         .gte('start_time', range.from.toISOString())
         .lte('start_time', range.to.toISOString())
         .order('start_time', { ascending: false });
@@ -59,7 +59,7 @@ export default function MyEntries() {
       const { data, error } = await supabase
         .from('project_hours')
         .select('*, projects(name)')
-        .eq('user_id', DEMO_USER_ID)
+        .eq('user_id', userId)
         .gte('date', format(range.from, 'yyyy-MM-dd'))
         .lte('date', format(range.to, 'yyyy-MM-dd'))
         .order('date', { ascending: false });
@@ -74,7 +74,7 @@ export default function MyEntries() {
       const { data, error } = await supabase
         .from('travel_expenses')
         .select('*, projects(name)')
-        .eq('user_id', DEMO_USER_ID)
+        .eq('user_id', userId)
         .gte('date', format(range.from, 'yyyy-MM-dd'))
         .lte('date', format(range.to, 'yyyy-MM-dd'))
         .order('date', { ascending: false });
@@ -89,7 +89,7 @@ export default function MyEntries() {
       const { data, error } = await supabase
         .from('absences')
         .select('*, absence_reasons(label, label_fi)')
-        .eq('user_id', DEMO_USER_ID)
+        .eq('user_id', userId)
         .gte('start_date', format(range.from, 'yyyy-MM-dd'))
         .lte('start_date', format(range.to, 'yyyy-MM-dd'))
         .order('start_date', { ascending: false });
@@ -104,7 +104,7 @@ export default function MyEntries() {
       const { data, error } = await supabase
         .from('vacation_requests')
         .select('*')
-        .eq('user_id', DEMO_USER_ID)
+        .eq('user_id', userId)
         .gte('start_date', format(range.from, 'yyyy-MM-dd'))
         .lte('start_date', format(range.to, 'yyyy-MM-dd'))
         .order('start_date', { ascending: false });
