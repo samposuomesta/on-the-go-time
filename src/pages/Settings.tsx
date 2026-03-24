@@ -114,6 +114,13 @@ export default function SettingsPage() {
     { type: 'clock_out', labelKey: 'settings.clockOutReminder' as const, defaultTime: '16:00' },
   ];
 
+  const isManagerOrAdmin = currentUser?.role === 'manager' || currentUser?.role === 'admin';
+
+  const vacationReminderTypes = [
+    ...(isManagerOrAdmin ? [{ type: 'vacation_pending', labelKey: 'settings.vacationPendingReminder' as const, defaultTime: '09:00', hintKey: 'settings.vacationPendingHint' as const }] : []),
+    { type: 'vacation_status', labelKey: 'settings.vacationStatusReminder' as const, defaultTime: '09:00', hintKey: 'settings.vacationStatusHint' as const },
+  ];
+
   const themeOptions: { value: Theme; icon: typeof Sun; labelKey: 'theme.light' | 'theme.dark' | 'theme.system' }[] = [
     { value: 'light', icon: Sun, labelKey: 'theme.light' },
     { value: 'dark', icon: Moon, labelKey: 'theme.dark' },
