@@ -661,7 +661,7 @@ const I18nContext = createContext<I18nContextType>({
 
 export function I18nProvider({ children }: { children: ReactNode }) {
   const [language, setLanguageState] = useState<Language>(() => {
-    return (localStorage.getItem('timetrack-language') as Language) || 'en';
+    return (localStorage.getItem('timetrack-language') as Language) || 'fi';
   });
 
   const setLanguage = (lang: Language) => {
