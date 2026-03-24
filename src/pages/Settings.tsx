@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { APP_VERSION, BUILD_DATE } from '@/lib/version';
 import { ArrowLeft, Moon, Sun, Monitor, Bell } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Label } from '@/components/ui/label';
@@ -264,7 +265,7 @@ export default function SettingsPage() {
             <CardContent className="p-4 space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">{t('settings.version')}</span>
-                <span className="font-medium font-display">0.1.0</span>
+                <span className="font-medium font-display">{APP_VERSION}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">{t('settings.platform')}</span>

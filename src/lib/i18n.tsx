@@ -102,6 +102,11 @@ const translations = {
     'entries.approved': 'Approved',
     'entries.rejected': 'Rejected',
 
+    // Update
+    'update.available': 'Update available',
+    'update.description': 'A new version is ready. Restart to apply.',
+    'update.action': 'Update now',
+
     // Vacation Requests
     'vacation.title': 'Vacation Requests',
     'vacation.new': 'New',
@@ -416,6 +421,11 @@ const translations = {
     'entries.pending': 'Odottaa',
     'entries.approved': 'Hyväksytty',
     'entries.rejected': 'Hylätty',
+
+    // Update
+    'update.available': 'Päivitys saatavilla',
+    'update.description': 'Uusi versio on valmis. Käynnistä uudelleen.',
+    'update.action': 'Päivitä nyt',
 
     // Vacation Requests
     'vacation.title': 'Lomapyynnöt',

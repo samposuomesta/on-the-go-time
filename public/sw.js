@@ -1,11 +1,17 @@
-const CACHE_NAME = 'timetrack-v1';
+const CACHE_NAME = 'timetrack-v2';
 const OFFLINE_URLS = ['/', '/index.html'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(OFFLINE_URLS))
   );
-  self.skipWaiting();
+  // Do NOT skipWaiting automatically — wait for user to accept update
+});
+
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
 
 self.addEventListener('activate', (event) => {
