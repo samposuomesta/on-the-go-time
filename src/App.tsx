@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { I18nProvider } from "@/lib/i18n";
+import { PushSubscriptionProvider } from "@/components/PushSubscriptionProvider";
 import Index from "./pages/Index.tsx";
 import MyEntries from "./pages/MyEntries.tsx";
 import VacationRequests from "./pages/VacationRequests.tsx";
@@ -24,6 +25,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <PushSubscriptionProvider />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/my-entries" element={<MyEntries />} />
