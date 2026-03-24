@@ -102,6 +102,11 @@ const translations = {
     'entries.approved': 'Approved',
     'entries.rejected': 'Rejected',
 
+    // Update
+    'update.available': 'Update available',
+    'update.description': 'A new version is ready. Restart to apply.',
+    'update.action': 'Update now',
+
     // Vacation Requests
     'vacation.title': 'Vacation Requests',
     'vacation.new': 'New',
