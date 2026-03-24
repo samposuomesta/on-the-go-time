@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { APP_VERSION, BUILD_DATE } from '@/lib/version';
 import { ArrowLeft, Moon, Sun, Monitor, Bell } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Label } from '@/components/ui/label';
