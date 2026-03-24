@@ -313,6 +313,49 @@ export default function MyEntries() {
               ))
             )}
           </TabsContent>
+          <TabsContent value="absences" className="mt-3 space-y-2">
+            {absences.length === 0 && vacations.length === 0 ? (
+              <EmptyState label="No absences in this period" />
+            ) : (
+              <>
+                {vacations.map((v: any) => (
+                  <div key={v.id} className="bg-card rounded-lg border border-border p-3">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-medium">Vacation</p>
+                          <StatusBadge status={v.status} t={t} />
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {format(parseISO(v.start_date), 'MMM d')} — {format(parseISO(v.end_date), 'MMM d, yyyy')}
+                        </p>
+                      </div>
+                      <Badge variant="outline" className="text-[10px] bg-primary/10 text-primary border-primary/30">Vacation</Badge>
+                    </div>
+                    {v.comment && <p className="text-xs text-muted-foreground mt-1">{v.comment}</p>}
+                  </div>
+                ))}
+                {absences.map((a: any) => (
+                  <div key={a.id} className="bg-card rounded-lg border border-border p-3">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-medium">{a.type === 'sick' ? 'Sick Leave' : (a.absence_reasons?.label || 'Absence')}</p>
+                          <StatusBadge status={a.status} t={t} />
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {format(parseISO(a.start_date), 'MMM d')}{a.start_date !== a.end_date ? ` — ${format(parseISO(a.end_date), 'MMM d, yyyy')}` : `, ${format(parseISO(a.start_date), 'yyyy')}`}
+                        </p>
+                      </div>
+                      <Badge variant="outline" className={cn("text-[10px]", a.type === 'sick' ? 'bg-destructive/10 text-destructive border-destructive/30' : 'bg-warning/10 text-warning border-warning/30')}>
+                        {a.type === 'sick' ? 'Sick' : 'Absence'}
+                      </Badge>
+                    </div>
+                  </div>
+                ))}
+              </>
+            )}
+          </TabsContent>
         </Tabs>
       </main>
 
