@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 const COLORS = ['hsl(220,25%,18%)', 'hsl(152,60%,40%)', 'hsl(38,92%,50%)', 'hsl(210,80%,52%)', 'hsl(0,72%,51%)'];
 
 export default function MyStatistics() {
+  const userId = useUserId();
   const { t } = useTranslation();
   const now = new Date();
   const monthStart = startOfMonth(now);

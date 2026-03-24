@@ -17,6 +17,7 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
 export default function VacationRequests() {
+  const userId = useUserId();
   const queryClient = useQueryClient();
   const { t } = useTranslation();
   const [dialogOpen, setDialogOpen] = useState(false);

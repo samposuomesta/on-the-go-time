@@ -14,6 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
 export default function TravelExpenses() {
+  const userId = useUserId();
   const { t } = useTranslation();
   const now = new Date();
   const [range, setRange] = useState({ from: startOfMonth(now), to: endOfMonth(now) });

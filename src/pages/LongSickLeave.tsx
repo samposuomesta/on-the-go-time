@@ -16,6 +16,7 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
 export default function LongSickLeave() {
+  const userId = useUserId();
   const queryClient = useQueryClient();
   const { t } = useTranslation();
   const [dialogOpen, setDialogOpen] = useState(false);

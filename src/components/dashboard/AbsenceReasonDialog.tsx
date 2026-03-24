@@ -19,6 +19,8 @@ interface AbsenceReasonDialogProps {
 }
 
 export function AbsenceReasonDialog({ open, onOpenChange }: AbsenceReasonDialogProps) {
+  const userId = useUserId();
+  const companyId = useCompanyId();
   const [submitting, setSubmitting] = useState(false);
   const { language, t } = useTranslation();
 
