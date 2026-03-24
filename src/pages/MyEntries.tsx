@@ -83,6 +83,36 @@ export default function MyEntries() {
     },
   });
 
+  const { data: absences = [] } = useQuery({
+    queryKey: ['my-absences', range.from.toISOString(), range.to.toISOString()],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('absences')
+        .select('*, absence_reasons(label, label_fi)')
+        .eq('user_id', DEMO_USER_ID)
+        .gte('start_date', format(range.from, 'yyyy-MM-dd'))
+        .lte('start_date', format(range.to, 'yyyy-MM-dd'))
+        .order('start_date', { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: vacations = [] } = useQuery({
+    queryKey: ['my-vacations', range.from.toISOString(), range.to.toISOString()],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('vacation_requests')
+        .select('*')
+        .eq('user_id', DEMO_USER_ID)
+        .gte('start_date', format(range.from, 'yyyy-MM-dd'))
+        .lte('start_date', format(range.to, 'yyyy-MM-dd'))
+        .order('start_date', { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const formatDuration = (start: string, end: string | null) => {
     if (!end) return t('entries.inProgress');
     const ms = new Date(end).getTime() - new Date(start).getTime();
