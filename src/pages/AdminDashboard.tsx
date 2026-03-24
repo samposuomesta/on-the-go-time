@@ -289,12 +289,37 @@ function countBusinessDays(startDate: string, endDate: string, holidaySet?: Set<
 }
 
 function StatisticsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: string) => boolean }) {
+  const now = new Date();
+  const [fromDate, setFromDate] = useState<Date>(() => {
+    const d = new Date(now);
+    d.setDate(d.getDate() - 120);
+    return d;
+  });
+  const [toDate, setToDate] = useState<Date>(now);
+
   const employees = (admin.employees.data ?? []).filter((e: any) => canSeeUser(e.id));
-  const timeEntries = (admin.allTimeEntries.data ?? []).filter((te: any) => canSeeUser(te.user_id));
-  const absences = (admin.absences.data ?? []).filter((a: any) => canSeeUser(a.user_id));
-  const vacationRequests = (admin.vacationRequests.data ?? []).filter((v: any) => canSeeUser(v.user_id));
+  const allTimeEntries = (admin.allTimeEntries.data ?? []).filter((te: any) => canSeeUser(te.user_id));
+  const allAbsences = (admin.absences.data ?? []).filter((a: any) => canSeeUser(a.user_id));
+  const allVacationRequests = (admin.vacationRequests.data ?? []).filter((v: any) => canSeeUser(v.user_id));
   const workBank = (admin.allWorkBank.data ?? []).filter((wb: any) => canSeeUser(wb.user_id));
   const companies = admin.companies.data ?? [];
+
+  const fromStr = format(fromDate, 'yyyy-MM-dd');
+  const toStr = format(toDate, 'yyyy-MM-dd');
+
+  // Filter data by date range
+  const timeEntries = useMemo(() => allTimeEntries.filter((te: any) => {
+    const d = format(new Date(te.start_time), 'yyyy-MM-dd');
+    return d >= fromStr && d <= toStr;
+  }), [allTimeEntries, fromStr, toStr]);
+
+  const absences = useMemo(() => allAbsences.filter((a: any) => {
+    return a.start_date <= toStr && a.end_date >= fromStr;
+  }), [allAbsences, fromStr, toStr]);
+
+  const vacationRequests = useMemo(() => allVacationRequests.filter((v: any) => {
+    return v.start_date <= toStr && v.end_date >= fromStr;
+  }), [allVacationRequests, fromStr, toStr]);
 
   // Get holiday set if company country is Finland
   const companyCountry = companies[0]?.country;
@@ -374,9 +399,41 @@ function StatisticsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: s
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-xl font-display font-bold">Statistics Overview</h2>
-        <p className="text-sm text-muted-foreground">Company-wide metrics and per-employee breakdown</p>
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <div>
+          <h2 className="text-xl font-display font-bold">Statistics Overview</h2>
+          <p className="text-sm text-muted-foreground">Company-wide metrics and per-employee breakdown</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="flex flex-col gap-1">
+            <Label className="text-xs text-muted-foreground">From</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className={cn("w-[140px] justify-start text-left font-normal h-9 text-sm", !fromDate && "text-muted-foreground")}>
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {format(fromDate, 'dd.MM.yyyy')}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar mode="single" selected={fromDate} onSelect={(d) => d && setFromDate(d)} initialFocus className="p-3 pointer-events-auto" disabled={(d) => isAfter(d, toDate)} />
+              </PopoverContent>
+            </Popover>
+          </div>
+          <div className="flex flex-col gap-1">
+            <Label className="text-xs text-muted-foreground">To</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className={cn("w-[140px] justify-start text-left font-normal h-9 text-sm", !toDate && "text-muted-foreground")}>
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {format(toDate, 'dd.MM.yyyy')}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="end">
+                <Calendar mode="single" selected={toDate} onSelect={(d) => d && setToDate(d)} initialFocus className="p-3 pointer-events-auto" disabled={(d) => isBefore(d, fromDate)} />
+              </PopoverContent>
+            </Popover>
+          </div>
+        </div>
       </div>
 
       {/* Summary cards */}
