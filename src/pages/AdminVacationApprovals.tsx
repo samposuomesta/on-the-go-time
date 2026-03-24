@@ -81,6 +81,11 @@ export default function AdminVacationApprovals() {
     );
   };
 
+  // Block employees
+  if (!userLoading && currentUser && currentUser.role === 'employee') {
+    return <Navigate to="/" replace />;
+  }
+
   if (userLoading) {
     return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Loading…</div>;
   }
