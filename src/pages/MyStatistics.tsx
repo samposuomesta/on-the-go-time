@@ -3,7 +3,7 @@ import { format, startOfMonth, endOfMonth, eachDayOfInterval, differenceInMinute
 import { ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { DEMO_USER_ID } from '@/lib/demo-user';
+import { useUserId } from '@/contexts/AuthContext';
 import { useTranslation } from '@/lib/i18n';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';

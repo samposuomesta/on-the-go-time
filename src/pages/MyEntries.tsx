@@ -5,7 +5,7 @@ import { ArrowLeft, Clock, Briefcase, Car, CalendarIcon, Filter, Download, Penci
 import { Link } from 'react-router-dom';
 import { exportTimeEntriesCSV, exportProjectHoursCSV, exportTravelExpensesCSV } from '@/lib/csv-export';
 import { supabase } from '@/integrations/supabase/client';
-import { DEMO_USER_ID } from '@/lib/demo-user';
+import { useUserId } from '@/contexts/AuthContext';
 import { useTranslation } from '@/lib/i18n';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';

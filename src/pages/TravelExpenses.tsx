@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 import { exportTravelExpensesCSV } from '@/lib/csv-export';
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { DEMO_USER_ID } from '@/lib/demo-user';
+import { useUserId } from '@/contexts/AuthContext';
 import { useTranslation } from '@/lib/i18n';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
