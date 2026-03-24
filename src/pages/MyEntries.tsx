@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { format, startOfMonth, endOfMonth, parseISO } from 'date-fns';
-import { ArrowLeft, Clock, Briefcase, Car, CalendarIcon, Filter, Download, Pencil } from 'lucide-react';
+import { ArrowLeft, Clock, Briefcase, Car, CalendarIcon, Filter, Download, Pencil, CalendarOff } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { exportTimeEntriesCSV, exportProjectHoursCSV, exportTravelExpensesCSV } from '@/lib/csv-export';
 import { supabase } from '@/integrations/supabase/client';
@@ -78,6 +78,36 @@ export default function MyEntries() {
         .gte('date', format(range.from, 'yyyy-MM-dd'))
         .lte('date', format(range.to, 'yyyy-MM-dd'))
         .order('date', { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: absences = [] } = useQuery({
+    queryKey: ['my-absences', range.from.toISOString(), range.to.toISOString()],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('absences')
+        .select('*, absence_reasons(label, label_fi)')
+        .eq('user_id', DEMO_USER_ID)
+        .gte('start_date', format(range.from, 'yyyy-MM-dd'))
+        .lte('start_date', format(range.to, 'yyyy-MM-dd'))
+        .order('start_date', { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: vacations = [] } = useQuery({
+    queryKey: ['my-vacations', range.from.toISOString(), range.to.toISOString()],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('vacation_requests')
+        .select('*')
+        .eq('user_id', DEMO_USER_ID)
+        .gte('start_date', format(range.from, 'yyyy-MM-dd'))
+        .lte('start_date', format(range.to, 'yyyy-MM-dd'))
+        .order('start_date', { ascending: false });
       if (error) throw error;
       return data;
     },
@@ -160,7 +190,7 @@ export default function MyEntries() {
 
       <main className="flex-1 px-4 pb-4 max-w-lg mx-auto w-full">
         <Tabs defaultValue="time" className="mt-2">
-          <TabsList className="w-full grid grid-cols-3">
+          <TabsList className="w-full grid grid-cols-4">
             <TabsTrigger value="time" className="gap-1.5 text-xs">
               <Clock className="h-3.5 w-3.5" />
               {t('entries.time')} ({timeEntries.length})
@@ -172,6 +202,10 @@ export default function MyEntries() {
             <TabsTrigger value="expenses" className="gap-1.5 text-xs">
               <Car className="h-3.5 w-3.5" />
               {t('entries.expenses')} ({expenses.length})
+            </TabsTrigger>
+            <TabsTrigger value="absences" className="gap-1.5 text-xs">
+              <CalendarOff className="h-3.5 w-3.5" />
+              Absences ({absences.length + vacations.length})
             </TabsTrigger>
           </TabsList>
 
@@ -277,6 +311,49 @@ export default function MyEntries() {
                   )}
                 </div>
               ))
+            )}
+          </TabsContent>
+          <TabsContent value="absences" className="mt-3 space-y-2">
+            {absences.length === 0 && vacations.length === 0 ? (
+              <EmptyState label="No absences in this period" />
+            ) : (
+              <>
+                {vacations.map((v: any) => (
+                  <div key={v.id} className="bg-card rounded-lg border border-border p-3">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-medium">Vacation</p>
+                          <StatusBadge status={v.status} t={t} />
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {format(parseISO(v.start_date), 'MMM d')} — {format(parseISO(v.end_date), 'MMM d, yyyy')}
+                        </p>
+                      </div>
+                      <Badge variant="outline" className="text-[10px] bg-primary/10 text-primary border-primary/30">Vacation</Badge>
+                    </div>
+                    {v.comment && <p className="text-xs text-muted-foreground mt-1">{v.comment}</p>}
+                  </div>
+                ))}
+                {absences.map((a: any) => (
+                  <div key={a.id} className="bg-card rounded-lg border border-border p-3">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-medium">{a.type === 'sick' ? 'Sick Leave' : (a.absence_reasons?.label || 'Absence')}</p>
+                          <StatusBadge status={a.status} t={t} />
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {format(parseISO(a.start_date), 'MMM d')}{a.start_date !== a.end_date ? ` — ${format(parseISO(a.end_date), 'MMM d, yyyy')}` : `, ${format(parseISO(a.start_date), 'yyyy')}`}
+                        </p>
+                      </div>
+                      <Badge variant="outline" className={cn("text-[10px]", a.type === 'sick' ? 'bg-destructive/10 text-destructive border-destructive/30' : 'bg-warning/10 text-warning border-warning/30')}>
+                        {a.type === 'sick' ? 'Sick' : 'Absence'}
+                      </Badge>
+                    </div>
+                  </div>
+                ))}
+              </>
             )}
           </TabsContent>
         </Tabs>
