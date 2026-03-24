@@ -134,12 +134,13 @@ export function Dashboard() {
                 <button
                   key={label}
                   className="flex w-full items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-foreground hover:bg-muted touch-target"
-                  onClick={() => {
+                  onClick={async () => {
                     setMenuOpen(false);
                     if (path) {
                       navigate(path);
                     } else {
-                      toast.info(`${label} — coming soon`);
+                      await signOut();
+                      navigate('/login');
                     }
                   }}
                 >
