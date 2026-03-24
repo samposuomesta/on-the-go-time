@@ -584,6 +584,7 @@ function EmployeesPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
           <p className="text-sm text-muted-foreground">{employees.length} team members</p>
         </div>
         <div className="flex gap-2">
+          <FennoaImportDialog companies={admin.companies.data || []} onCreate={(data) => { admin.createEmployee.mutate(data); }} />
           <ImportEmployeesDialog companies={admin.companies.data || []} onCreate={(data) => { admin.createEmployee.mutate(data); }} />
           <AddEmployeeDialog companies={admin.companies.data || []} onCreate={(data) => { admin.createEmployee.mutate(data); toast.success('Employee added'); }} />
         </div>
