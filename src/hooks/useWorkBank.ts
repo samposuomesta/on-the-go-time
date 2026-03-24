@@ -43,6 +43,32 @@ export function useWorkBank() {
         contract_start_date: user.contract_start_date,
       };
 
+      // Fetch adjustments first to determine baseline
+      const { data: adjustments } = await supabase
+        .from('work_bank_transactions')
+        .select('hours, created_at')
+        .eq('user_id', userId)
+        .eq('type', 'adjustment')
+        .order('created_at', { ascending: false });
+
+      // If there's a "set balance" adjustment, use its date as calculation start
+      // and its value as the starting balance
+      let startingBalance = 0;
+      let calculationStart = settings.contract_start_date
+        ? new Date(settings.contract_start_date)
+        : startOfYear(new Date());
+
+      if (adjustments && adjustments.length > 0) {
+        // Latest adjustment is the "set balance" reset point
+        const latest = adjustments[0];
+        startingBalance = Number(latest.hours);
+        // Start calculation from the day AFTER the adjustment
+        const adjDate = new Date(latest.created_at);
+        adjDate.setDate(adjDate.getDate() + 1);
+        adjDate.setHours(0, 0, 0, 0);
+        calculationStart = adjDate;
+      }
+
       const { data: entries } = await supabase
         .from('time_entries')
         .select('start_time, end_time, break_minutes, status')
@@ -51,6 +77,7 @@ export function useWorkBank() {
         .neq('status', 'rejected');
 
       if (!entries) {
+        setBalance(Math.round(startingBalance * 10) / 10);
         setLoading(false);
         return;
       }
@@ -73,14 +100,18 @@ export function useWorkBank() {
         workedByDate[dateKey] = (workedByDate[dateKey] ?? 0) + netHours;
       }
 
-      const periodStart = settings.contract_start_date
-        ? new Date(settings.contract_start_date)
-        : startOfYear(new Date());
       const today = new Date();
 
-      const days = eachDayOfInterval({ start: periodStart, end: today });
+      // Only calculate from the baseline date forward
+      if (calculationStart > today) {
+        setBalance(Math.round(startingBalance * 10) / 10);
+        setLoading(false);
+        return;
+      }
 
-      let totalBalance = 0;
+      const days = eachDayOfInterval({ start: calculationStart, end: today });
+
+      let totalBalance = startingBalance;
 
       for (const day of days) {
         const dateKey = format(day, 'yyyy-MM-dd');
@@ -91,18 +122,6 @@ export function useWorkBank() {
           totalBalance += worked - settings.daily_work_hours;
         } else {
           totalBalance += worked;
-        }
-      }
-
-      const { data: adjustments } = await supabase
-        .from('work_bank_transactions')
-        .select('hours')
-        .eq('user_id', userId)
-        .eq('type', 'adjustment');
-
-      if (adjustments) {
-        for (const adj of adjustments) {
-          totalBalance += Number(adj.hours);
         }
       }
 
