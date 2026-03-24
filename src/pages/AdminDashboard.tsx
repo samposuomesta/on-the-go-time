@@ -1604,8 +1604,9 @@ function AddEmployeeDialog({ onCreate }: { onCreate: (data: any) => void }) {
             )}
           </div>
         </div>
-        <Button className="w-full mt-2" disabled={!name.trim() || !email.trim()} onClick={() => {
-          onCreate({ name: name.trim(), email: email.trim(), employee_number: employeeNumber.trim() || null, role, contract_start_date: contractDate || null, annual_vacation_days: parseInt(vacationDays) || 25, daily_work_hours: parseFloat(dailyWorkHours) || 7.5, auto_subtract_lunch: autoSubtractLunch, lunch_threshold_hours: parseFloat(lunchThreshold) || 5 });
+        <Button className="w-full mt-2" disabled={!firstName.trim() || !lastName.trim() || !email.trim()} onClick={() => {
+          const fullName = `${firstName.trim()} ${lastName.trim()}`;
+          onCreate({ name: fullName, email: email.trim(), employee_number: employeeNumber.trim() || null, role, contract_start_date: contractDate || null, annual_vacation_days: parseInt(vacationDays) || 25, daily_work_hours: parseFloat(dailyWorkHours) || 7.5, auto_subtract_lunch: autoSubtractLunch, lunch_threshold_hours: parseFloat(lunchThreshold) || 5 });
           setOpen(false); reset();
         }}>Add Employee</Button>
       </DialogContent>
