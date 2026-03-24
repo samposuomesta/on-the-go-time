@@ -1558,6 +1558,130 @@ function RemindersPanel({ admin }: { admin: any }) {
 
 /* ===== SUB-DIALOGS ===== */
 
+function ImportEmployeesDialog({ onCreate, companies }: { onCreate: (data: any) => void; companies: any[] }) {
+  const [open, setOpen] = useState(false);
+  const [preview, setPreview] = useState<Array<{ firstName: string; lastName: string; email: string; company: string; employeeNumber: string; contractDate: string; companyId: string; error?: string }>>([]);
+  const fileRef = React.useRef<HTMLInputElement>(null);
+
+  const parseDate = (val: string): string | null => {
+    if (!val) return null;
+    const m = val.trim().match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
+    if (m) return `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`;
+    const iso = val.trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (iso) return val.trim();
+    return null;
+  };
+
+  const resolveCompany = (name: string): string => {
+    if (!name || !name.trim()) return companies.length > 0 ? companies[0].id : '';
+    const found = companies.find(c => c.name.toLowerCase() === name.trim().toLowerCase());
+    return found ? found.id : (companies.length > 0 ? companies[0].id : '');
+  };
+
+  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const text = ev.target?.result as string;
+      const lines = text.split(/\r?\n/).filter(l => l.trim());
+      if (lines.length < 2) { toast.error('CSV must have a header row and at least one data row'); return; }
+      // Detect separator
+      const sep = lines[0].includes(';') ? ';' : ',';
+      const rows = lines.slice(1).map(line => {
+        const cols = line.split(sep).map(c => c.replace(/^"|"$/g, '').trim());
+        const companyId = resolveCompany(cols[3] || '');
+        const contractDate = parseDate(cols[5] || '');
+        return {
+          firstName: cols[0] || '',
+          lastName: cols[1] || '',
+          email: cols[2] || '',
+          company: cols[3] || '',
+          employeeNumber: cols[4] || '',
+          contractDate: contractDate || '',
+          companyId,
+          error: !cols[0] ? 'Missing first name' : !cols[1] ? 'Missing last name' : !cols[2] ? 'Missing email' : !companyId ? 'No valid company' : undefined,
+        };
+      });
+      setPreview(rows);
+    };
+    reader.readAsText(file);
+  };
+
+  const handleImport = () => {
+    const valid = preview.filter(r => !r.error);
+    if (valid.length === 0) { toast.error('No valid rows to import'); return; }
+    valid.forEach(r => {
+      onCreate({
+        name: `${r.firstName} ${r.lastName}`,
+        email: r.email,
+        employee_number: r.employeeNumber || null,
+        company_id: r.companyId,
+        role: 'employee' as const,
+        contract_start_date: r.contractDate || null,
+      });
+    });
+    toast.success(`Imported ${valid.length} employee(s)`);
+    setPreview([]);
+    setOpen(false);
+    if (fileRef.current) fileRef.current.value = '';
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setPreview([]); if (fileRef.current) fileRef.current.value = ''; } }}>
+      <DialogTrigger asChild><Button variant="outline" className="gap-1.5"><Upload className="h-4 w-4" /> Import CSV</Button></DialogTrigger>
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader><DialogTitle className="font-display">Import Employees from CSV</DialogTitle></DialogHeader>
+        <div className="space-y-4 mt-2">
+          <div className="space-y-2">
+            <Label>CSV File</Label>
+            <Input ref={fileRef} type="file" accept=".csv,.txt" onChange={handleFile} />
+            <p className="text-xs text-muted-foreground">Columns: first name, last name, email, company, employee number, contract start date (dd.mm.yyyy)</p>
+          </div>
+          {preview.length > 0 && (
+            <>
+              <div className="text-sm text-muted-foreground">
+                {preview.filter(r => !r.error).length} valid / {preview.filter(r => r.error).length} errors / {preview.length} total
+              </div>
+              <div className="overflow-x-auto border rounded-lg">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-muted/50">
+                      <TableHead>First Name</TableHead>
+                      <TableHead>Last Name</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Company</TableHead>
+                      <TableHead>Emp #</TableHead>
+                      <TableHead>Contract Start</TableHead>
+                      <TableHead>Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {preview.map((r, i) => (
+                      <TableRow key={i} className={r.error ? 'bg-destructive/10' : ''}>
+                        <TableCell>{r.firstName}</TableCell>
+                        <TableCell>{r.lastName}</TableCell>
+                        <TableCell>{r.email}</TableCell>
+                        <TableCell>{r.company || '(default)'}</TableCell>
+                        <TableCell>{r.employeeNumber}</TableCell>
+                        <TableCell>{r.contractDate}</TableCell>
+                        <TableCell>{r.error ? <span className="text-destructive text-xs">{r.error}</span> : <CheckCircle2 className="h-4 w-4 text-success" />}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+              <Button className="w-full" disabled={preview.filter(r => !r.error).length === 0} onClick={handleImport}>
+                Import {preview.filter(r => !r.error).length} Employee(s)
+              </Button>
+            </>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 function AddEmployeeDialog({ onCreate, companies }: { onCreate: (data: any) => void; companies: any[] }) {
   const [open, setOpen] = useState(false);
   const [firstName, setFirstName] = useState('');
