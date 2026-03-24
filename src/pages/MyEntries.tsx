@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { format, startOfMonth, endOfMonth, parseISO } from 'date-fns';
-import { ArrowLeft, Clock, Briefcase, Car, CalendarIcon, Filter, Download, Pencil } from 'lucide-react';
+import { ArrowLeft, Clock, Briefcase, Car, CalendarIcon, Filter, Download, Pencil, CalendarOff } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { exportTimeEntriesCSV, exportProjectHoursCSV, exportTravelExpensesCSV } from '@/lib/csv-export';
 import { supabase } from '@/integrations/supabase/client';
