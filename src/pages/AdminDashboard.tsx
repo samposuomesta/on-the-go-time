@@ -1114,19 +1114,30 @@ function ApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
                       <TableCell className="text-muted-foreground">{te.projects?.name ?? '—'}</TableCell>
                       <TableCell><StatusBadge status={te.status} /></TableCell>
                       <TableCell className="text-right">
-                        {isPending && (
-                          <div className="flex items-center justify-end gap-1">
-                            <EditTimeEntryDialog
+                        <div className="flex items-center justify-end gap-1">
+                          {isPending ? (
+                            <>
+                              <EditTimeEntryDialog
+                                entry={te}
+                                onSave={(data) => admin.updateTimeEntry.mutate({ id: te.id, ...data })}
+                              />
+                              <ApproveRejectButtons
+                                id={te.id}
+                                onApprove={(id, status) => admin.approveTimeEntry.mutate({ id, status })}
+                                isPending={admin.approveTimeEntry.isPending}
+                              />
+                            </>
+                          ) : (
+                            <EditTimeEntryHistoryDialog
                               entry={te}
+                              isHistory
                               onSave={(data) => admin.updateTimeEntry.mutate({ id: te.id, ...data })}
+                              onAuditReason={(tableName, recordId, oldData, newData, reason) =>
+                                admin.insertAuditReason.mutate({ tableName, recordId, action: 'ADMIN_EDIT', oldData, newData, reason })
+                              }
                             />
-                            <ApproveRejectButtons
-                              id={te.id}
-                              onApprove={(id, status) => admin.approveTimeEntry.mutate({ id, status })}
-                              isPending={admin.approveTimeEntry.isPending}
-                            />
-                          </div>
-                        )}
+                          )}
+                        </div>
                       </TableCell>
                     </TableRow>
                   );
