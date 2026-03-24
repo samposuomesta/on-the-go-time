@@ -1001,7 +1001,11 @@ function AbsencesPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: str
                     <TableCell>{format(parseISO(a.end_date), 'MMM d, yyyy')}</TableCell>
                     <TableCell><StatusBadge status={a.status} /></TableCell>
                     <TableCell className="text-right">
-                      <ApproveRejectButtons id={a.id} onApprove={(id, status) => admin.approveAbsence.mutate({ id, status })} isPending={admin.approveAbsence.isPending} />
+                      {a.type === 'sick' ? (
+                        <SickLeaveApproveButtons id={a.id} onApprove={(id, status) => admin.approveAbsence.mutate({ id, status })} isPending={admin.approveAbsence.isPending} />
+                      ) : (
+                        <ApproveRejectButtons id={a.id} onApprove={(id, status) => admin.approveAbsence.mutate({ id, status })} isPending={admin.approveAbsence.isPending} />
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}

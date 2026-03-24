@@ -129,7 +129,20 @@ export default function LongSickLeave() {
               <div>
                 <p className="text-sm font-medium">{format(parseISO(a.start_date), 'MMM d')} — {format(parseISO(a.end_date), 'MMM d, yyyy')}</p>
               </div>
-              <Badge variant="outline" className={cn("text-xs capitalize", statusColors[a.status])}>{t(`common.${a.status}` as any)}</Badge>
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className={cn("text-xs capitalize", statusColors[a.status])}>{t(`common.${a.status}` as any)}</Badge>
+                {a.status === 'pending' && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-7 w-7 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                    disabled={deleteMutation.isPending}
+                    onClick={() => deleteMutation.mutate(a.id)}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                )}
+              </div>
             </div>
           ))
         )}
