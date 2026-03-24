@@ -1,22 +1,22 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from './useAuth';
+import { useAuthContext } from '@/contexts/AuthContext';
 
 export function useCurrentUser() {
-  const { user } = useAuth();
+  const { userId } = useAuthContext();
 
   return useQuery({
-    queryKey: ['current-user', user?.id],
+    queryKey: ['current-user', userId],
     queryFn: async () => {
-      if (!user) throw new Error('Not authenticated');
+      if (!userId) throw new Error('Not authenticated');
       const { data, error } = await supabase
         .from('users')
         .select('*')
-        .eq('email', user.email!)
+        .eq('id', userId)
         .single();
       if (error) throw error;
       return data;
     },
-    enabled: !!user,
+    enabled: !!userId,
   });
 }

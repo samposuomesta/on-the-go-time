@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { startOfToday, endOfDay } from 'date-fns';
-import { DEMO_USER_ID } from '@/lib/demo-user';
+import { useUserId } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
 export interface ActiveEntry {
@@ -17,6 +17,7 @@ export interface OverlapEntry {
 }
 
 export function useTimeTracking() {
+  const userId = useUserId();
   const [activeEntry, setActiveEntry] = useState<ActiveEntry | null>(null);
   const [todayCompleted, setTodayCompleted] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -28,7 +29,7 @@ export function useTimeTracking() {
       supabase
         .from('time_entries')
         .select('id, start_time, project_id')
-        .eq('user_id', DEMO_USER_ID)
+        .eq('user_id', userId)
         .is('end_time', null)
         .order('start_time', { ascending: false })
         .limit(1)
@@ -36,7 +37,7 @@ export function useTimeTracking() {
       supabase
         .from('time_entries')
         .select('id')
-        .eq('user_id', DEMO_USER_ID)
+        .eq('user_id', userId)
         .not('end_time', 'is', null)
         .gte('start_time', todayStr)
         .limit(1)
@@ -49,7 +50,7 @@ export function useTimeTracking() {
     setActiveEntry(activeRes.data);
     setTodayCompleted(!!completedRes.data);
     setLoading(false);
-  }, []);
+  }, [userId]);
 
   useEffect(() => {
     fetchActive();
@@ -59,7 +60,7 @@ export function useTimeTracking() {
     const { data, error } = await supabase
       .from('time_entries')
       .select('id, start_time, end_time')
-      .eq('user_id', DEMO_USER_ID)
+      .eq('user_id', userId)
       .lt('start_time', endTime.toISOString())
       .or(`end_time.gt.${startTime.toISOString()},end_time.is.null`)
       .limit(10);
@@ -74,7 +75,6 @@ export function useTimeTracking() {
   const startWork = async (replaceIds?: string[]) => {
     const now = new Date();
 
-    // Check for overlapping entries today unless replacing
     if (!replaceIds) {
       const overlaps = await checkOverlap(startOfToday(), endOfDay(now));
       if (overlaps.length > 0) {
@@ -82,7 +82,6 @@ export function useTimeTracking() {
       }
     }
 
-    // Delete entries being replaced
     if (replaceIds && replaceIds.length > 0) {
       const { error: delError } = await supabase
         .from('time_entries')
@@ -111,7 +110,7 @@ export function useTimeTracking() {
     }
 
     const { error } = await supabase.from('time_entries').insert({
-      user_id: DEMO_USER_ID,
+      user_id: userId,
       start_lat: lat ?? null,
       start_lng: lng ?? null,
       gps_accuracy: accuracy ?? null,
@@ -170,7 +169,6 @@ export function useTimeTracking() {
     const endTime = new Date(today);
     endTime.setHours(16, 0, 0, 0);
 
-    // Check for overlapping entries unless we're already replacing
     if (!replaceIds) {
       const overlaps = await checkOverlap(startTime, endTime);
       if (overlaps.length > 0) {
@@ -178,7 +176,6 @@ export function useTimeTracking() {
       }
     }
 
-    // Delete entries being replaced
     if (replaceIds && replaceIds.length > 0) {
       const { error: delError } = await supabase
         .from('time_entries')
@@ -192,7 +189,7 @@ export function useTimeTracking() {
     }
 
     const { error } = await supabase.from('time_entries').insert({
-      user_id: DEMO_USER_ID,
+      user_id: userId,
       start_time: startTime.toISOString(),
       end_time: endTime.toISOString(),
       break_minutes: 30,

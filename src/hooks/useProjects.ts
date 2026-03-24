@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { DEMO_COMPANY_ID } from '@/lib/demo-user';
+import { useCompanyId } from '@/contexts/AuthContext';
 
 export interface Project {
   id: string;
@@ -9,18 +9,19 @@ export interface Project {
 }
 
 export function useProjects() {
+  const companyId = useCompanyId();
   const [projects, setProjects] = useState<Project[]>([]);
 
   useEffect(() => {
     supabase
       .from('projects')
       .select('id, name, customer')
-      .eq('company_id', DEMO_COMPANY_ID)
+      .eq('company_id', companyId)
       .eq('active', true)
       .then(({ data }) => {
         if (data) setProjects(data);
       });
-  }, []);
+  }, [companyId]);
 
   return projects;
 }

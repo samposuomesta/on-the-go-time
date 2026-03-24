@@ -5,7 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { I18nProvider } from "@/lib/i18n";
 import { PushSubscriptionProvider } from "@/components/PushSubscriptionProvider";
-import { useAuth } from "@/hooks/useAuth";
+import { AuthProvider, useAuthContext } from "@/contexts/AuthContext";
 import Index from "./pages/Index.tsx";
 import MyEntries from "./pages/MyEntries.tsx";
 import VacationRequests from "./pages/VacationRequests.tsx";
@@ -23,9 +23,9 @@ import ResetPassword from "./pages/ResetPassword.tsx";
 const queryClient = new QueryClient();
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
+  const { userId, loading } = useAuthContext();
   if (loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Loading…</div>;
-  if (!user) return <Navigate to="/login" replace />;
+  if (!userId) return <Navigate to="/login" replace />;
   return <>{children}</>;
 }
 
@@ -52,14 +52,16 @@ function AuthRoutes() {
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <I18nProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <PushSubscriptionProvider />
-          <AuthRoutes />
-        </BrowserRouter>
-      </TooltipProvider>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <PushSubscriptionProvider />
+            <AuthRoutes />
+          </BrowserRouter>
+        </TooltipProvider>
+      </AuthProvider>
     </I18nProvider>
   </QueryClientProvider>
 );
