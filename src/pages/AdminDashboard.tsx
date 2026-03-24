@@ -1557,7 +1557,8 @@ function RemindersPanel({ admin }: { admin: any }) {
 
 function AddEmployeeDialog({ onCreate }: { onCreate: (data: any) => void }) {
   const [open, setOpen] = useState(false);
-  const [name, setName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [employeeNumber, setEmployeeNumber] = useState('');
   const [role, setRole] = useState<'employee' | 'manager' | 'admin'>('employee');
@@ -1566,7 +1567,7 @@ function AddEmployeeDialog({ onCreate }: { onCreate: (data: any) => void }) {
   const [dailyWorkHours, setDailyWorkHours] = useState('7.5');
   const [autoSubtractLunch, setAutoSubtractLunch] = useState(false);
   const [lunchThreshold, setLunchThreshold] = useState('5');
-  const reset = () => { setName(''); setEmail(''); setEmployeeNumber(''); setRole('employee'); setContractDate(''); setVacationDays('25'); setDailyWorkHours('7.5'); setAutoSubtractLunch(false); setLunchThreshold('5'); };
+  const reset = () => { setFirstName(''); setLastName(''); setEmail(''); setEmployeeNumber(''); setRole('employee'); setContractDate(''); setVacationDays('25'); setDailyWorkHours('7.5'); setAutoSubtractLunch(false); setLunchThreshold('5'); };
 
   return (
     <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) reset(); }}>
@@ -1574,7 +1575,8 @@ function AddEmployeeDialog({ onCreate }: { onCreate: (data: any) => void }) {
       <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader><DialogTitle className="font-display">Add Employee</DialogTitle></DialogHeader>
         <div className="grid gap-4 mt-2 sm:grid-cols-2">
-          <div className="space-y-1.5 sm:col-span-2"><Label>Name</Label><Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Full name" /></div>
+          <div className="space-y-1.5"><Label>First Name</Label><Input value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="First name" /></div>
+          <div className="space-y-1.5"><Label>Last Name</Label><Input value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Last name" /></div>
           <div className="space-y-1.5 sm:col-span-2"><Label>Email</Label><Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="email@company.com" /></div>
           <div className="space-y-1.5"><Label>Employee Number</Label><Input value={employeeNumber} onChange={(e) => setEmployeeNumber(e.target.value)} placeholder="EMP-001" /></div>
           <div className="space-y-1.5"><Label>Role</Label>
@@ -1602,8 +1604,9 @@ function AddEmployeeDialog({ onCreate }: { onCreate: (data: any) => void }) {
             )}
           </div>
         </div>
-        <Button className="w-full mt-2" disabled={!name.trim() || !email.trim()} onClick={() => {
-          onCreate({ name: name.trim(), email: email.trim(), employee_number: employeeNumber.trim() || null, role, contract_start_date: contractDate || null, annual_vacation_days: parseInt(vacationDays) || 25, daily_work_hours: parseFloat(dailyWorkHours) || 7.5, auto_subtract_lunch: autoSubtractLunch, lunch_threshold_hours: parseFloat(lunchThreshold) || 5 });
+        <Button className="w-full mt-2" disabled={!firstName.trim() || !lastName.trim() || !email.trim()} onClick={() => {
+          const fullName = `${firstName.trim()} ${lastName.trim()}`;
+          onCreate({ name: fullName, email: email.trim(), employee_number: employeeNumber.trim() || null, role, contract_start_date: contractDate || null, annual_vacation_days: parseInt(vacationDays) || 25, daily_work_hours: parseFloat(dailyWorkHours) || 7.5, auto_subtract_lunch: autoSubtractLunch, lunch_threshold_hours: parseFloat(lunchThreshold) || 5 });
           setOpen(false); reset();
         }}>Add Employee</Button>
       </DialogContent>
