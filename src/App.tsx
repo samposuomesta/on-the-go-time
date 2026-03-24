@@ -59,6 +59,7 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <PushSubscriptionProvider />
+            <UpdatePrompt />
             <AuthRoutes />
           </BrowserRouter>
         </TooltipProvider>
