@@ -1252,9 +1252,19 @@ function ApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
                     <TableCell className="text-muted-foreground max-w-[200px] truncate">{t.description || '—'}</TableCell>
                     <TableCell><StatusBadge status={t.status} /></TableCell>
                     <TableCell className="text-right">
-                      {t.status === 'pending' && (
-                        <ApproveRejectButtons id={t.id} onApprove={(id, status) => admin.approveTravel.mutate({ id, status })} isPending={admin.approveTravel.isPending} />
-                      )}
+                      <div className="flex items-center justify-end gap-1">
+                        <EditTravelExpenseDialog
+                          entry={t}
+                          isHistory={t.status !== 'pending'}
+                          onSave={(data) => admin.updateTravelExpense.mutate({ id: t.id, ...data })}
+                          onAuditReason={(tableName, recordId, oldData, newData, reason) =>
+                            admin.insertAuditReason.mutate({ tableName, recordId, action: 'ADMIN_EDIT', oldData, newData, reason })
+                          }
+                        />
+                        {t.status === 'pending' && (
+                          <ApproveRejectButtons id={t.id} onApprove={(id, status) => admin.approveTravel.mutate({ id, status })} isPending={admin.approveTravel.isPending} />
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
