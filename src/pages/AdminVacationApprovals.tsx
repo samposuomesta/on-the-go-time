@@ -1,8 +1,10 @@
+import { useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format, parseISO } from 'date-fns';
 import { ArrowLeft, CalendarDays, CheckCircle2, XCircle, Clock } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,8 +14,38 @@ import { cn } from '@/lib/utils';
 
 export default function AdminVacationApprovals() {
   const queryClient = useQueryClient();
+  const { data: currentUser, isLoading: userLoading } = useCurrentUser();
 
-  const { data: requests = [] } = useQuery({
+  // Block employees
+  if (!userLoading && currentUser && currentUser.role === 'employee') {
+    return <Navigate to="/" replace />;
+  }
+
+  const isManager = currentUser?.role === 'manager';
+  const currentUserId = currentUser?.id;
+
+  const { data: userManagers = [] } = useQuery({
+    queryKey: ['vacation-user-managers'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('user_managers' as any).select('*');
+      if (error) throw error;
+      return data as any[];
+    },
+  });
+
+  const managedUserIds = useMemo(() => {
+    if (!isManager || !currentUserId) return null;
+    return userManagers
+      .filter((um: any) => um.manager_id === currentUserId)
+      .map((um: any) => um.user_id);
+  }, [isManager, currentUserId, userManagers]);
+
+  const canSeeUser = (userId: string) => {
+    if (!managedUserIds) return true; // admin sees all
+    return managedUserIds.includes(userId);
+  };
+
+  const { data: allRequests = [] } = useQuery({
     queryKey: ['admin-vacation'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -24,6 +56,8 @@ export default function AdminVacationApprovals() {
       return data;
     },
   });
+
+  const requests = allRequests.filter((r: any) => canSeeUser(r.user_id));
 
   const approveVacation = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: 'approved' | 'rejected' }) => {
@@ -52,6 +86,10 @@ export default function AdminVacationApprovals() {
     );
   };
 
+  if (userLoading) {
+    return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Loading…</div>;
+  }
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <header className="sticky top-0 z-50 bg-card border-b border-border px-4 lg:px-6 py-3 flex items-center gap-3">
@@ -65,7 +103,6 @@ export default function AdminVacationApprovals() {
       </header>
 
       <main className="flex-1 p-4 lg:p-8 max-w-5xl mx-auto w-full space-y-6">
-        {/* Pending */}
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base lg:text-lg font-display flex items-center gap-2">
@@ -131,7 +168,6 @@ export default function AdminVacationApprovals() {
           </CardContent>
         </Card>
 
-        {/* History */}
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base lg:text-lg font-display flex items-center gap-2">
