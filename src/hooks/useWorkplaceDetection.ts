@@ -23,6 +23,7 @@ function haversineDistance(lat1: number, lon1: number, lat2: number, lon2: numbe
 }
 
 export function useWorkplaceDetection(isClockedIn: boolean) {
+  const companyId = useCompanyId();
   const shownRef = useRef<Set<string>>(new Set());
   const lastStateRef = useRef<Map<string, boolean>>(new Map());
 
