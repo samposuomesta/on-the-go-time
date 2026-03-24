@@ -1557,7 +1557,8 @@ function RemindersPanel({ admin }: { admin: any }) {
 
 function AddEmployeeDialog({ onCreate }: { onCreate: (data: any) => void }) {
   const [open, setOpen] = useState(false);
-  const [name, setName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [employeeNumber, setEmployeeNumber] = useState('');
   const [role, setRole] = useState<'employee' | 'manager' | 'admin'>('employee');
@@ -1566,7 +1567,7 @@ function AddEmployeeDialog({ onCreate }: { onCreate: (data: any) => void }) {
   const [dailyWorkHours, setDailyWorkHours] = useState('7.5');
   const [autoSubtractLunch, setAutoSubtractLunch] = useState(false);
   const [lunchThreshold, setLunchThreshold] = useState('5');
-  const reset = () => { setName(''); setEmail(''); setEmployeeNumber(''); setRole('employee'); setContractDate(''); setVacationDays('25'); setDailyWorkHours('7.5'); setAutoSubtractLunch(false); setLunchThreshold('5'); };
+  const reset = () => { setFirstName(''); setLastName(''); setEmail(''); setEmployeeNumber(''); setRole('employee'); setContractDate(''); setVacationDays('25'); setDailyWorkHours('7.5'); setAutoSubtractLunch(false); setLunchThreshold('5'); };
 
   return (
     <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) reset(); }}>
