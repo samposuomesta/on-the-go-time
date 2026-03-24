@@ -454,7 +454,7 @@ function EmployeesPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
           <h2 className="text-xl font-display font-bold">Employees</h2>
           <p className="text-sm text-muted-foreground">{employees.length} team members</p>
         </div>
-        <AddEmployeeDialog onCreate={(data) => { admin.createEmployee.mutate(data); toast.success('Employee added'); }} />
+        <AddEmployeeDialog companies={admin.companies.data || []} onCreate={(data) => { admin.createEmployee.mutate(data); toast.success('Employee added'); }} />
       </div>
       <Card>
         <CardContent className="p-0">
