@@ -92,7 +92,7 @@ export function Dashboard() {
 
   const markAbsence = async (type: 'sick' | 'absence') => {
     const { error } = await supabase.from('absences').insert({
-      user_id: DEMO_USER_ID,
+      user_id: userId,
       type,
     });
     if (error) {
