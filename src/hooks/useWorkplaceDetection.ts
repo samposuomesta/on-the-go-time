@@ -43,7 +43,7 @@ export function useWorkplaceDetection(isClockedIn: boolean) {
     const { data: workplaces } = await supabase
       .from('workplaces')
       .select('*')
-      .eq('company_id', DEMO_COMPANY_ID);
+      .eq('company_id', companyId);
 
     if (!workplaces?.length) return;
 
