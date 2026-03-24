@@ -16,11 +16,6 @@ export default function AdminVacationApprovals() {
   const queryClient = useQueryClient();
   const { data: currentUser, isLoading: userLoading } = useCurrentUser();
 
-  // Block employees
-  if (!userLoading && currentUser && currentUser.role === 'employee') {
-    return <Navigate to="/" replace />;
-  }
-
   const isManager = currentUser?.role === 'manager';
   const currentUserId = currentUser?.id;
 
