@@ -1902,7 +1902,7 @@ function ProjectManagementPanel({ admin }: { admin: any }) {
         </div>
         <div className="space-y-1">
           <Label className="text-xs">{t("admin.to")}</Label>
-          <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="w-[150px] dark:[color-scheme:dark]" />
+          <DatePickerInput value={dateTo} onChange={setDateTo} />
         </div>
         {hasFilters && (
           <Button variant="ghost" size="sm" onClick={() => { setProjectFilter('all'); setEmployeeFilter('all'); setDateFrom(''); setDateTo(''); }}>
