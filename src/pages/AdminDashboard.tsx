@@ -1986,7 +1986,7 @@ function CompaniesPanel({ admin }: { admin: any }) {
               </TableHeader>
               <TableBody>
                 {companies.length === 0 ? (
-                  <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-12">No companies</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-12">{t('admin.noCompanies')}</TableCell></TableRow>
                 ) : companies.map((c: any) => (
                   <TableRow key={c.id} className="hover:bg-muted/30">
                     <TableCell className="font-medium">{c.name}</TableCell>
