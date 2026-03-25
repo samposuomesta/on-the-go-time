@@ -120,8 +120,8 @@ export default function AdminVacationApprovals() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>{t('admin.employee')}</TableHead>
-                    <TableHead>{t('admin.startDate')}</TableHead>
+                     <TableHead className="sticky left-0 bg-card z-10">{t('admin.employee')}</TableHead>
+                     <TableHead>{t('admin.startDate')}</TableHead>
                     <TableHead>{t('admin.endDate')}</TableHead>
                     <TableHead>{t('admin.comment')}</TableHead>
                     <TableHead>{t('admin.submitted')}</TableHead>
