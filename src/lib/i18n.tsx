@@ -125,12 +125,13 @@ const translations = {
     'vacation.failedToSubmit': 'Failed to submit request',
     'vacation.noRequests': 'No vacation requests yet',
 
-    // Long Sick Leave
-    'sickLeave.title': 'Long Sick Leave',
-    'sickLeave.report': 'Report Long Sick Leave',
-    'sickLeave.submitted': 'Sick leave request submitted',
+    // Absence Notification
+    'sickLeave.title': 'Absence Notification',
+    'sickLeave.report': 'Report Absence',
+    'sickLeave.submitted': 'Absence notification submitted',
     'sickLeave.failedToSubmit': 'Failed to submit',
-    'sickLeave.noRecords': 'No sick leave records',
+    'sickLeave.noRecords': 'No absence records',
+    'sickLeave.selectReason': 'Absence reason',
 
     // Travel Expenses
     'travel.title': 'Travel Expenses',
