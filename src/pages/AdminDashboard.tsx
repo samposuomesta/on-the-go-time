@@ -2888,9 +2888,9 @@ function AuditTrailPanel({ admin }: { admin: any }) {
           <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="w-[150px] dark:[color-scheme:dark]" />
         </div>
         {(tableFilter !== 'all' || actionFilter !== 'all' || dateFrom || dateTo) && (
-          <Button variant="ghost" size="sm" onClick={() => { setTableFilter('all'); setActionFilter('all'); setDateFrom(''); setDateTo(''); }}>
-            <X className="h-3.5 w-3.5 mr-1" /> Clear
-          </Button>
+           <Button variant="ghost" size="sm" onClick={() => { setTableFilter('all'); setActionFilter('all'); setDateFrom(''); setDateTo(''); }}>
+             <X className="h-3.5 w-3.5 mr-1" /> {t('admin.clear')}
+           </Button>
         )}
         <div className="flex items-center gap-2 ml-auto">
           <span className="text-xs text-muted-foreground">{filtered.length} entries</span>
