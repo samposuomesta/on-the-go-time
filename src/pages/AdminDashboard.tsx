@@ -893,7 +893,7 @@ function EditProjectHoursDialog({ entry, onSave, isHistory, onAuditReason }: { e
     } else {
       onSave(data);
       setOpen(false);
-      toast.success('Project hours updated');
+      toast.success(t('admin.projectHoursUpdated'));
     }
   };
 
