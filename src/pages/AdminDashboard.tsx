@@ -1529,8 +1529,8 @@ function AbsencesPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: str
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-display font-bold">Absences & Sick Leave</h2>
-        <p className="text-sm text-muted-foreground">{absences.length} total records</p>
+         <h2 className="text-xl font-display font-bold">{t('admin.absencesAndSickLeave')}</h2>
+         <p className="text-sm text-muted-foreground">{absences.length} {t('admin.totalRecords')}</p>
       </div>
 
       <Card>
