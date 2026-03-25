@@ -658,12 +658,13 @@ const translations = {
     'vacation.failedToSubmit': 'Pyynnön lähetys epäonnistui',
     'vacation.noRequests': 'Ei lomapyyntöjä vielä',
 
-    // Long Sick Leave
-    'sickLeave.title': 'Pitkä sairausloma',
-    'sickLeave.report': 'Ilmoita pitkä sairausloma',
-    'sickLeave.submitted': 'Sairauslomapyyntö lähetetty',
+    // Absence Notification
+    'sickLeave.title': 'Poissaolo ilmoitus',
+    'sickLeave.report': 'Ilmoita poissaolosta',
+    'sickLeave.submitted': 'Poissaoloilmoitus lähetetty',
     'sickLeave.failedToSubmit': 'Lähetys epäonnistui',
-    'sickLeave.noRecords': 'Ei sairauslomatietoja',
+    'sickLeave.noRecords': 'Ei poissaolotietoja',
+    'sickLeave.selectReason': 'Poissaolon syy',
 
     // Travel Expenses
     'travel.title': 'Matkakulut',
