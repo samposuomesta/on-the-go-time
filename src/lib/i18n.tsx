@@ -55,6 +55,7 @@ const translations = {
     'dashboard.workDayMarked': 'Work day marked',
     'dashboard.workDayCompleted': 'Work day marked for today',
     'dashboard.timeBank': 'Time Bank',
+    'dashboard.todaySessions': 'Today',
     'dashboard.sickDayRecorded': 'Sick day recorded',
     'dashboard.absenceRecorded': 'Absence recorded',
     'dashboard.failedToRecord': 'Failed to record',
