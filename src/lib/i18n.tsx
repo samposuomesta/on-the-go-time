@@ -485,6 +485,7 @@ const translations = {
     'common.email': 'Email',
     'common.role': 'Role',
     'common.actions': 'Actions',
+    'common.saved': 'Saved',
     'common.updated': 'Updated',
     'common.deleted': 'Deleted',
     'common.added': 'Added',
