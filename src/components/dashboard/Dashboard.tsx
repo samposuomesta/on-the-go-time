@@ -39,7 +39,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 
-const APP_VERSION = '0.1.0';
+
 
 export function Dashboard() {
   const userId = useUserId();
