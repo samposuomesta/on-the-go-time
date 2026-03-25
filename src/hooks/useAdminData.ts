@@ -209,6 +209,18 @@ export function useAdminData() {
     },
   });
 
+  const loginSessions = useQuery({
+    queryKey: ['admin-login-sessions'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('login_sessions' as any)
+        .select('*')
+        .order('login_at', { ascending: false });
+      if (error) throw error;
+      return data as any[];
+    },
+  });
+
   const vacationRequests = useQuery({
     queryKey: ['admin-vacation'],
     queryFn: async () => {
@@ -499,9 +511,10 @@ export function useAdminData() {
   });
 
   return {
-    employees, projects, companies, reminderRules, userManagers, absenceReasons, auditLog,
+    employees, projects, companies, reminderRules, userManagers, absenceReasons, auditLog, loginSessions,
     pendingTravel, pendingHours, pendingTimeEntries, absences, vacationRequests,
     allTimeEntries, allWorkBank, allTravel, allHours, allTimeEntriesWithNames,
+    allTravelExpenses: allTravel, projectHours: allHours,
     approveTravel, approveHours, approveAbsence, approveVacation, approveTimeEntry, updateTimeEntry,
     updateProjectHours, updateTravelExpense, insertAuditReason,
     updateEmployee, toggleProject, createProject, updateProject, createEmployee,

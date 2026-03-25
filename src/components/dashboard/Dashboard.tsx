@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { 
   Play, Square, Clock, Car, ParkingCircle, Camera, 
   Thermometer, UserX, Menu, CalendarDays, FileText, 
-  BarChart3, Receipt, Settings, LogOut, AlertTriangle, Shield, CalendarCheck
+  BarChart3, Receipt, Settings, LogOut, AlertTriangle, Shield
 } from 'lucide-react';
 import { useTimeTracking, OverlapEntry } from '@/hooks/useTimeTracking';
 import { useWorkBank } from '@/hooks/useWorkBank';
@@ -44,7 +44,7 @@ import {
 export function Dashboard() {
   const userId = useUserId();
   const { signOut } = useAuthContext();
-  const { activeEntry, todayCompleted, loading, startWork, stopWork, addFullWorkday } = useTimeTracking();
+  const { activeEntry, todayCompleted, loading, startWork, stopWork } = useTimeTracking();
   const { balance: bankBalance } = useWorkBank();
   const { data: currentUser } = useCurrentUser();
   const { t } = useTranslation();
@@ -60,16 +60,7 @@ export function Dashboard() {
 
   const isAdminOrManager = currentUser?.role === 'admin' || currentUser?.role === 'manager';
 
-  const [overlapSource, setOverlapSource] = useState<'workday' | 'start'>('workday');
-
-  const handleAddFullWorkday = async () => {
-    const result = await addFullWorkday();
-    if (result?.overlaps) {
-      setOverlapEntries(result.overlaps);
-      setOverlapSource('workday');
-      setShowOverlapDialog(true);
-    }
-  };
+  const [overlapSource, setOverlapSource] = useState<'start'>('start');
 
   const handleStartWork = async () => {
     const result = await startWork();
@@ -83,11 +74,7 @@ export function Dashboard() {
   const handleReplaceOverlap = async () => {
     setShowOverlapDialog(false);
     const ids = overlapEntries.map(e => e.id);
-    if (overlapSource === 'workday') {
-      await addFullWorkday(ids);
-    } else {
-      await startWork(ids);
-    }
+    await startWork(ids);
     setOverlapEntries([]);
   };
 
@@ -182,25 +169,15 @@ export function Dashboard() {
           </div>
         </section>
 
-        {/* Project Hours & Work Day */}
+        {/* Project Hours */}
         <section>
-          <div className="grid grid-cols-2 gap-3 mb-2">
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t('dashboard.projectHours')}</h2>
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t('dashboard.workDay')}</h2>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">{t('dashboard.projectHours')}</h2>
+          <div className="grid grid-cols-1 gap-3">
             <ActionButton
               icon={Clock}
               label={t('dashboard.addProjectHours')}
               onClick={() => setShowProjectHours(true)}
               variant="default"
-            />
-            <ActionButton
-              icon={CalendarCheck}
-              label={t('dashboard.fullWorkday')}
-              onClick={handleAddFullWorkday}
-              variant="success"
-              disabled={!!activeEntry || loading}
             />
           </div>
         </section>
