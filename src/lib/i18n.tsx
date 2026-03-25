@@ -993,6 +993,9 @@ const translations = {
     'absenceReasons.noCustomReasons': 'Ei mukautettuja syitä konfiguroitu.',
     'absenceReasons.markAbsent': 'Merkitse poissa tänään',
     'absenceReasons.otherReason': 'Muu / Ei erityistä syytä',
+    'absenceReasons.explainAbsence': 'Kuvaile poissaolon syy:',
+    'absenceReasons.explanationPlaceholder': 'Kirjoita selitys...',
+    'absenceReasons.goBack': 'Palaa',
 
     // Projects
     'projects.title': 'Projektit',
