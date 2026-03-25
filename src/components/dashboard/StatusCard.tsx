@@ -1,8 +1,29 @@
+import { useState, useEffect } from 'react';
 import { Clock, Timer, CheckCircle2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { ActiveEntry } from '@/hooks/useTimeTracking';
-import { formatDistanceToNow } from 'date-fns';
+import { format } from 'date-fns';
 import { useTranslation } from '@/lib/i18n';
+
+function useElapsedTime(startTime: string | null) {
+  const [elapsed, setElapsed] = useState('00:00:00');
+
+  useEffect(() => {
+    if (!startTime) return;
+    const update = () => {
+      const diff = Math.max(0, Math.floor((Date.now() - new Date(startTime).getTime()) / 1000));
+      const h = String(Math.floor(diff / 3600)).padStart(2, '0');
+      const m = String(Math.floor((diff % 3600) / 60)).padStart(2, '0');
+      const s = String(diff % 60).padStart(2, '0');
+      setElapsed(`${h}:${m}:${s}`);
+    };
+    update();
+    const id = setInterval(update, 1000);
+    return () => clearInterval(id);
+  }, [startTime]);
+
+  return elapsed;
+}
 
 interface StatusCardProps {
   activeEntry: ActiveEntry | null;
