@@ -106,10 +106,12 @@ export function Dashboard() {
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-card border-b border-border px-4 py-3 flex items-center justify-between">
-        <div>
+        <div className="min-w-0">
           <h1 className="text-lg font-display font-bold">TimeTrack</h1>
-          <p className="text-xs text-muted-foreground">{currentUser?.name ?? ''}</p>
+          <p className="text-xs text-muted-foreground truncate">{currentUser?.name ?? ''}</p>
         </div>
+        <HeaderClock />
+
         <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
           <SheetTrigger asChild>
             <button className="touch-target flex items-center justify-center rounded-lg hover:bg-muted p-2">
