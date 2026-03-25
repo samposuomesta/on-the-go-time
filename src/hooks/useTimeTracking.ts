@@ -188,5 +188,5 @@ export function useTimeTracking() {
     return undefined;
   };
 
-  return { activeEntry, todayCompleted, loading, startWork, stopWork, addFullWorkday, checkOverlap, refetch: fetchActive };
+  return { activeEntry, todayCompleted, loading, startWork, stopWork, refetch: fetchActive };
 }
