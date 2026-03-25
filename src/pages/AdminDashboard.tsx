@@ -2052,7 +2052,7 @@ function WorkplacesPanel({ admin }: { admin: any }) {
                     <TableCell>{w.radius_meters}m</TableCell>
                     <TableCell>
                       <Button size="icon" variant="ghost" className="text-destructive hover:text-destructive h-8 w-8"
-                        onClick={() => { admin.deleteWorkplace.mutate(w.id); toast.success('Deleted'); }}>
+                        onClick={() => { admin.deleteWorkplace.mutate(w.id); toast.success(t('common.deleted')); }}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </TableCell>
