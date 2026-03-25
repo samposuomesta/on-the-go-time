@@ -51,21 +51,6 @@ export function useTimeTracking() {
     fetchActive();
   }, [fetchActive]);
 
-  const checkOverlap = async (startTime: Date, endTime: Date): Promise<OverlapEntry[]> => {
-    const { data, error } = await supabase
-      .from('time_entries')
-      .select('id, start_time, end_time')
-      .eq('user_id', userId)
-      .lt('start_time', endTime.toISOString())
-      .or(`end_time.gt.${startTime.toISOString()},end_time.is.null`)
-      .limit(10);
-
-    if (error) {
-      console.error('Error checking overlaps:', error);
-      return [];
-    }
-    return (data as OverlapEntry[]) ?? [];
-  };
 
   const startWork = async () => {
     if (activeEntry) return; // already clocked in
