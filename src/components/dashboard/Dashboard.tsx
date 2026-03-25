@@ -5,7 +5,7 @@ import {
   Thermometer, UserX, Menu, CalendarDays, FileText, 
   BarChart3, Receipt, Settings, LogOut, AlertTriangle, Shield
 } from 'lucide-react';
-import { useTimeTracking, OverlapEntry } from '@/hooks/useTimeTracking';
+import { useTimeTracking } from '@/hooks/useTimeTracking';
 import { useWorkBank } from '@/hooks/useWorkBank';
 import { useOfflineSync } from '@/hooks/useOfflineSync';
 
