@@ -51,7 +51,9 @@ function StatusBadge({ status }: { status: string }) {
     approved: 'bg-success/15 text-success border-success/30',
     rejected: 'bg-destructive/15 text-destructive border-destructive/30',
   };
-  return <Badge variant="outline" className={cn("capitalize text-xs", config[status])}>{status}</Badge>;
+  const { t } = useTranslation();
+  const statusLabels: Record<string, string> = { pending: t('common.pending'), approved: t('common.approved'), rejected: t('common.rejected') };
+  return <Badge variant="outline" className={cn("capitalize text-xs", config[status])}>{statusLabels[status] ?? status}</Badge>;
 }
 
 function ApproveRejectButtons({ id, onApprove, isPending }: {
@@ -441,8 +443,8 @@ function StatisticsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: s
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <h2 className="text-xl font-display font-bold">Statistics Overview</h2>
-          <p className="text-sm text-muted-foreground">Company-wide metrics and per-employee breakdown</p>
+          <h2 className="text-xl font-display font-bold">{t('admin.statisticsOverview')}</h2>
+          <p className="text-sm text-muted-foreground">{t('admin.companyMetrics')}</p>
         </div>
         <StatisticsDatePicker fromDate={overviewFrom} toDate={overviewTo} setFromDate={setOverviewFrom} setToDate={setOverviewTo} />
       </div>
@@ -455,7 +457,7 @@ function StatisticsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: s
               <div className="rounded-lg bg-primary/10 p-2.5"><Clock className="h-5 w-5 text-primary" /></div>
               <div>
                 <p className="text-2xl font-bold">{totalWorkedHours.toFixed(1)}</p>
-                <p className="text-xs text-muted-foreground">Total Work Hours</p>
+                <p className="text-xs text-muted-foreground">{t('admin.totalWorkHours')}</p>
               </div>
             </div>
           </CardContent>
@@ -466,7 +468,7 @@ function StatisticsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: s
               <div className="rounded-lg bg-success/10 p-2.5"><CalendarDays className="h-5 w-5 text-success" /></div>
               <div>
                 <p className="text-2xl font-bold">{totalVacationDays}</p>
-                <p className="text-xs text-muted-foreground">Vacation Days Used</p>
+                <p className="text-xs text-muted-foreground">{t('admin.vacationDaysUsed')}</p>
               </div>
             </div>
           </CardContent>
@@ -477,7 +479,7 @@ function StatisticsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: s
               <div className="rounded-lg bg-warning/10 p-2.5"><CalendarOff className="h-5 w-5 text-warning" /></div>
               <div>
                 <p className="text-2xl font-bold">{totalSickDays}</p>
-                <p className="text-xs text-muted-foreground">Sick Leave Days</p>
+                <p className="text-xs text-muted-foreground">{t('admin.sickLeaveDays')}</p>
               </div>
             </div>
           </CardContent>
@@ -488,7 +490,7 @@ function StatisticsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: s
               <div className="rounded-lg bg-destructive/10 p-2.5"><CalendarOff className="h-5 w-5 text-destructive" /></div>
               <div>
                 <p className="text-2xl font-bold">{totalAbsenceDays}</p>
-                <p className="text-xs text-muted-foreground">Other Absence Days</p>
+                <p className="text-xs text-muted-foreground">{t('admin.otherAbsenceDays')}</p>
               </div>
             </div>
           </CardContent>
@@ -552,7 +554,7 @@ function StatisticsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: s
                   );
                 })}
                 {breakdownList.length === 0 && (
-                  <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">No employees found</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">{t('admin.noEmployees')}</TableCell></TableRow>
                 )}
               </TableBody>
             </Table>
@@ -685,7 +687,7 @@ function FennoaImportDialog({ onCreate, companies }: { onCreate: (data: any) => 
                 </Table>
               </div>
               <Button className="w-full" disabled={preview.filter(r => !r.error).length === 0} onClick={handleImport}>
-                Import {preview.filter(r => !r.error).length} Employee(s)
+                {t('admin.importCount')} {preview.filter(r => !r.error).length} {t('admin.employees_count')}
               </Button>
             </>
           )}
@@ -717,8 +719,8 @@ function EmployeesPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-display font-bold">Employees</h2>
-          <p className="text-sm text-muted-foreground">{employees.length} team members</p>
+          <h2 className="text-xl font-display font-bold">{t('admin.employees')}</h2>
+          <p className="text-sm text-muted-foreground">{employees.length} {t('admin.teamMembers')}</p>
         </div>
         <div className="flex gap-2">
           <FennoaImportDialog companies={admin.companies.data || []} onCreate={(data) => { admin.createEmployee.mutate(data); }} />
@@ -890,16 +892,16 @@ function EditProjectHoursDialog({ entry, onSave, isHistory, onAuditReason }: { e
     } else {
       onSave(data);
       setOpen(false);
-      toast.success('Project hours updated');
+      toast.success(t('admin.projectHoursUpdated'));
     }
   };
 
   const handleReasonConfirm = () => {
-    if (!reason.trim()) { toast.error('Please provide a reason'); return; }
+    if (!reason.trim()) { toast.error(t('admin.pleaseProvideReason')); return; }
     onSave(pendingData);
     onAuditReason?.('project_hours', entry.id, entry, { ...entry, ...pendingData }, reason.trim());
     setReasonOpen(false);
-    toast.success('Project hours updated');
+    toast.success(t('admin.projectHoursUpdated'));
   };
 
   return (
@@ -975,16 +977,16 @@ function EditTravelExpenseDialog({ entry, onSave, isHistory, onAuditReason }: { 
     } else {
       onSave(data);
       setOpen(false);
-      toast.success('Travel expense updated');
+      toast.success(t('admin.travelExpenseUpdated'));
     }
   };
 
   const handleReasonConfirm = () => {
-    if (!reason.trim()) { toast.error('Please provide a reason'); return; }
+    if (!reason.trim()) { toast.error(t('admin.pleaseProvideReason')); return; }
     onSave(pendingData);
     onAuditReason?.('travel_expenses', entry.id, entry, { ...entry, ...pendingData }, reason.trim());
     setReasonOpen(false);
-    toast.success('Travel expense updated');
+    toast.success(t('admin.travelExpenseUpdated'));
   };
 
   return (
@@ -994,7 +996,7 @@ function EditTravelExpenseDialog({ entry, onSave, isHistory, onAuditReason }: { 
           <Button size="sm" variant="ghost" className="h-8 w-8 p-0"><Pencil className="h-3.5 w-3.5" /></Button>
         </DialogTrigger>
         <DialogContent className="max-w-sm">
-          <DialogHeader><DialogTitle className="font-display">Edit Travel Expense</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle className="font-display">{t("admin.editTravelExpenseTitle")}</DialogTitle></DialogHeader>
           <div className="space-y-3">
             <div>
               <Label className="text-xs">{t("admin.dateLabel")}</Label>
@@ -1071,7 +1073,7 @@ function EditTimeEntryHistoryDialog({ entry, onSave, isHistory, onAuditReason }:
   };
 
   const handleReasonConfirm = () => {
-    if (!reason.trim()) { toast.error('Please provide a reason'); return; }
+    if (!reason.trim()) { toast.error(t('admin.pleaseProvideReason')); return; }
     onSave(pendingData);
     onAuditReason?.('time_entries', entry.id, entry, { ...entry, ...pendingData }, reason.trim());
     setReasonOpen(false);
@@ -1234,8 +1236,8 @@ function ApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
           <Label htmlFor="show-pending" className="text-xs cursor-pointer">{t("admin.showOnlyPending")}</Label>
         </div>
         {(employeeFilter !== 'all' || dateFrom || dateTo || !showOnlyPending) && (
-          <Button variant="ghost" size="sm" onClick={() => { setEmployeeFilter('all'); setDateFrom(''); setDateTo(''); setShowOnlyPending(true); }}>
-            <X className="h-3.5 w-3.5 mr-1" /> Clear
+           <Button variant="ghost" size="sm" onClick={() => { setEmployeeFilter('all'); setDateFrom(''); setDateTo(''); setShowOnlyPending(true); }}>
+             <X className="h-3.5 w-3.5 mr-1" /> {t('admin.clear')}
           </Button>
         )}
       </div>
@@ -1247,7 +1249,7 @@ function ApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
             <div className="flex items-center gap-2">
               <Clock className="h-5 w-5 text-muted-foreground" />
               <CardTitle className="text-base font-display">{t("admin.workingHours")}</CardTitle>
-              <Badge variant="secondary">{pendingTimeEntries.length} pending</Badge>
+              <Badge variant="secondary">{pendingTimeEntries.length} {t('admin.pending')}</Badge>
             </div>
             <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => exportAdminWorkingHoursCSV(filteredTimeEntries)}>
               <Download className="h-3.5 w-3.5" /> CSV
@@ -1258,21 +1260,21 @@ function ApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
           {/* Bulk action bar */}
           {selectedTimeEntries.size > 0 && (
             <div className="flex items-center gap-3 px-4 py-2 bg-muted/50 border-b">
-              <span className="text-sm font-medium">{selectedTimeEntries.size} selected</span>
+              <span className="text-sm font-medium">{selectedTimeEntries.size} {t('admin.selected')}</span>
               <Button size="sm" variant="outline"
                 className="gap-1 text-xs h-7 text-success hover:text-success border-success/30 hover:bg-success/10"
                 disabled={bulkProcessing}
                 onClick={() => handleBulkAction('approved')}>
-                <CheckCircle2 className="h-3.5 w-3.5" /> Approve All
+                <CheckCircle2 className="h-3.5 w-3.5" /> {t('admin.approveAll')}
               </Button>
               <Button size="sm" variant="outline"
                 className="gap-1 text-xs h-7 text-destructive hover:text-destructive border-destructive/30 hover:bg-destructive/10"
                 disabled={bulkProcessing}
                 onClick={() => handleBulkAction('rejected')}>
-                <XCircle className="h-3.5 w-3.5" /> Reject All
+                <XCircle className="h-3.5 w-3.5" /> {t('admin.rejectAll')}
               </Button>
               <Button size="sm" variant="ghost" className="text-xs h-7" onClick={() => setSelectedTimeEntries(new Set())}>
-                Clear
+                {t('admin.clear')}
               </Button>
             </div>
           )}
@@ -1290,18 +1292,18 @@ function ApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
                   </TableHead>
                   <TableHead className="font-semibold">{t("admin.employee")}</TableHead>
                   <TableHead className="font-semibold">{t("admin.dateLabel")}</TableHead>
-                  <TableHead className="font-semibold">Start</TableHead>
-                  <TableHead className="font-semibold">End</TableHead>
-                  <TableHead className="font-semibold">Break</TableHead>
-                  <TableHead className="font-semibold">Net Hours</TableHead>
-                  <TableHead className="font-semibold">Project</TableHead>
-                  <TableHead className="font-semibold">{t("admin.status")}</TableHead>
-                  <TableHead className="text-right font-semibold">Actions</TableHead>
+                   <TableHead className="font-semibold">{t("admin.start")}</TableHead>
+                   <TableHead className="font-semibold">{t("admin.end")}</TableHead>
+                   <TableHead className="font-semibold">{t("admin.break")}</TableHead>
+                   <TableHead className="font-semibold">{t("admin.netHours")}</TableHead>
+                   <TableHead className="font-semibold">{t("admin.project")}</TableHead>
+                   <TableHead className="font-semibold">{t("admin.status")}</TableHead>
+                   <TableHead className="text-right font-semibold">{t("admin.actions")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredTimeEntries.length === 0 ? (
-                  <TableRow><TableCell colSpan={10} className="text-center text-muted-foreground py-8">No working hours found</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={10} className="text-center text-muted-foreground py-8">{t('admin.noWorkingHours')}</TableCell></TableRow>
                 ) : filteredTimeEntries.slice(0, 200).map((te: any) => {
                   const netMins = te.end_time ? differenceInMinutes(new Date(te.end_time), new Date(te.start_time)) - (te.break_minutes ?? 0) : 0;
                   const isPending = te.status === 'pending';
@@ -1364,8 +1366,8 @@ function ApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Clock className="h-5 w-5 text-muted-foreground" />
-              <CardTitle className="text-base font-display">Project Hours</CardTitle>
-              <Badge variant="secondary">{pendingHours.length} pending</Badge>
+               <CardTitle className="text-base font-display">{t('admin.projectHoursTitle')}</CardTitle>
+               <Badge variant="secondary">{pendingHours.length} {t('admin.pending')}</Badge>
             </div>
             <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => exportAdminProjectHoursCSV(filteredHours)}>
               <Download className="h-3.5 w-3.5" /> CSV
@@ -1378,17 +1380,17 @@ function ApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
               <TableHeader>
                 <TableRow className="bg-muted/50">
                   <TableHead className="font-semibold">{t("admin.employee")}</TableHead>
-                  <TableHead className="font-semibold">Project</TableHead>
+                   <TableHead className="font-semibold">{t("admin.projectLabel")}</TableHead>
                   <TableHead className="font-semibold">{t("admin.dateLabel")}</TableHead>
                   <TableHead className="font-semibold">{t("admin.hoursLabel")}</TableHead>
                   <TableHead className="font-semibold">{t("admin.descriptionLabel")}</TableHead>
                   <TableHead className="font-semibold">{t("admin.status")}</TableHead>
-                  <TableHead className="text-right font-semibold">Actions</TableHead>
+                   <TableHead className="text-right font-semibold">{t("admin.actions")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredHours.length === 0 ? (
-                  <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">No project hours found</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">{t('admin.noProjectHoursFound')}</TableCell></TableRow>
                 ) : filteredHours.slice(0, 200).map((h: any) => (
                   <TableRow key={h.id} className="hover:bg-muted/30">
                     <TableCell className="font-medium">{h.users?.name ?? 'Unknown'}</TableCell>
@@ -1426,8 +1428,8 @@ function ApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Car className="h-5 w-5 text-muted-foreground" />
-              <CardTitle className="text-base font-display">Travel Expenses</CardTitle>
-              <Badge variant="secondary">{pendingTravel.length} pending</Badge>
+               <CardTitle className="text-base font-display">{t('admin.travelExpensesTitle')}</CardTitle>
+               <Badge variant="secondary">{pendingTravel.length} {t('admin.pending')}</Badge>
             </div>
             <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => exportAdminTravelExpensesCSV(filteredTravel)}>
               <Download className="h-3.5 w-3.5" /> CSV
@@ -1440,18 +1442,18 @@ function ApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
               <TableHeader>
                 <TableRow className="bg-muted/50">
                   <TableHead className="font-semibold">{t("admin.employee")}</TableHead>
-                  <TableHead className="font-semibold">Project</TableHead>
-                  <TableHead className="font-semibold">{t("admin.dateLabel")}</TableHead>
-                  <TableHead className="font-semibold">{t("admin.kilometersLabel")}</TableHead>
-                  <TableHead className="font-semibold">Parking</TableHead>
-                  <TableHead className="font-semibold">{t("admin.descriptionLabel")}</TableHead>
-                  <TableHead className="font-semibold">{t("admin.status")}</TableHead>
-                  <TableHead className="text-right font-semibold">Actions</TableHead>
+                   <TableHead className="font-semibold">{t("admin.projectLabel")}</TableHead>
+                   <TableHead className="font-semibold">{t("admin.dateLabel")}</TableHead>
+                   <TableHead className="font-semibold">{t("admin.kilometersLabel")}</TableHead>
+                   <TableHead className="font-semibold">{t("admin.parkingLabel")}</TableHead>
+                   <TableHead className="font-semibold">{t("admin.descriptionLabel")}</TableHead>
+                   <TableHead className="font-semibold">{t("admin.status")}</TableHead>
+                   <TableHead className="text-right font-semibold">{t("admin.actions")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredTravel.length === 0 ? (
-                  <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">No travel expenses found</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">{t('admin.noTravelExpenses')}</TableCell></TableRow>
                 ) : filteredTravel.slice(0, 200).map((t: any) => (
                   <TableRow key={t.id} className="hover:bg-muted/30">
                     <TableCell className="font-medium">{t.users?.name ?? 'Unknown'}</TableCell>
@@ -1527,15 +1529,15 @@ function AbsencesPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: str
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-display font-bold">Absences & Sick Leave</h2>
-        <p className="text-sm text-muted-foreground">{absences.length} total records</p>
+         <h2 className="text-xl font-display font-bold">{t('admin.absencesAndSickLeave')}</h2>
+         <p className="text-sm text-muted-foreground">{absences.length} {t('admin.totalRecords')}</p>
       </div>
 
       <Card>
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-base font-display">Pending Review</CardTitle>
-            <Badge variant="secondary">{pending.length} pending</Badge>
+             <CardTitle className="text-base font-display">{t('admin.pendingReview')}</CardTitle>
+             <Badge variant="secondary">{pending.length} {t('admin.pending')}</Badge>
           </div>
         </CardHeader>
         <CardContent className="p-0">
@@ -1544,21 +1546,21 @@ function AbsencesPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: str
               <TableHeader>
                 <TableRow className="bg-muted/50">
                   <TableHead className="font-semibold">{t("admin.employee")}</TableHead>
-                  <TableHead className="font-semibold">Type</TableHead>
-                  <TableHead className="font-semibold">Reason</TableHead>
-                  <TableHead className="font-semibold">Start Date</TableHead>
-                  <TableHead className="font-semibold">End Date</TableHead>
-                  <TableHead className="font-semibold">{t("admin.status")}</TableHead>
-                  <TableHead className="text-right font-semibold">Actions</TableHead>
+                   <TableHead className="font-semibold">{t("admin.type")}</TableHead>
+                   <TableHead className="font-semibold">{t("admin.reason")}</TableHead>
+                   <TableHead className="font-semibold">{t("admin.startDate")}</TableHead>
+                   <TableHead className="font-semibold">{t("admin.endDate")}</TableHead>
+                   <TableHead className="font-semibold">{t("admin.status")}</TableHead>
+                   <TableHead className="text-right font-semibold">{t("admin.actions")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {pending.length === 0 ? (
-                  <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">No pending absences</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">{t('admin.noPendingAbsences')}</TableCell></TableRow>
                 ) : pending.map((a: any) => (
                   <TableRow key={a.id} className="hover:bg-muted/30">
                     <TableCell className="font-medium">{a.users?.name ?? 'Unknown'}</TableCell>
-                    <TableCell><Badge variant="outline" className="capitalize">{a.type === 'sick' ? '🤒 Sick' : '📋 Absence'}</Badge></TableCell>
+                     <TableCell><Badge variant="outline" className="capitalize">{a.type === 'sick' ? t('admin.sickType') : t('admin.absenceType')}</Badge></TableCell>
                     <TableCell className="text-muted-foreground">{reasonLabel(a.reason_id) || '—'}</TableCell>
                     <TableCell>{format(parseISO(a.start_date), 'MMM d, yyyy')}</TableCell>
                     <TableCell>{format(parseISO(a.end_date), 'MMM d, yyyy')}</TableCell>
@@ -1582,8 +1584,8 @@ function AbsencesPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: str
         <Card>
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-base font-display">History</CardTitle>
-              <Badge variant="secondary">{handled.length} processed</Badge>
+             <CardTitle className="text-base font-display">{t('admin.history')}</CardTitle>
+             <Badge variant="secondary">{handled.length} {t('admin.processed')}</Badge>
             </div>
           </CardHeader>
           <CardContent className="p-0">
@@ -1592,18 +1594,18 @@ function AbsencesPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: str
                 <TableHeader>
                   <TableRow className="bg-muted/50">
                     <TableHead className="font-semibold">{t("admin.employee")}</TableHead>
-                    <TableHead className="font-semibold">Type</TableHead>
-                    <TableHead className="font-semibold">Reason</TableHead>
-                    <TableHead className="font-semibold">Start Date</TableHead>
-                    <TableHead className="font-semibold">End Date</TableHead>
-                    <TableHead className="font-semibold">{t("admin.status")}</TableHead>
+                     <TableHead className="font-semibold">{t("admin.type")}</TableHead>
+                     <TableHead className="font-semibold">{t("admin.reason")}</TableHead>
+                     <TableHead className="font-semibold">{t("admin.startDate")}</TableHead>
+                     <TableHead className="font-semibold">{t("admin.endDate")}</TableHead>
+                     <TableHead className="font-semibold">{t("admin.status")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {handled.map((a: any) => (
                     <TableRow key={a.id} className="hover:bg-muted/30">
                       <TableCell className="font-medium">{a.users?.name ?? 'Unknown'}</TableCell>
-                      <TableCell><Badge variant="outline" className="capitalize">{a.type === 'sick' ? '🤒 Sick' : '📋 Absence'}</Badge></TableCell>
+                      <TableCell><Badge variant="outline" className="capitalize">{a.type === 'sick' ? t('admin.sickType') : t('admin.absenceType')}</Badge></TableCell>
                       <TableCell className="text-muted-foreground">{reasonLabel(a.reason_id) || '—'}</TableCell>
                       <TableCell>{format(parseISO(a.start_date), 'MMM d, yyyy')}</TableCell>
                       <TableCell>{format(parseISO(a.end_date), 'MMM d, yyyy')}</TableCell>
@@ -1860,7 +1862,7 @@ function ProjectManagementPanel({ admin }: { admin: any }) {
                     <span className="text-xs text-muted-foreground">{ps.approved.toFixed(1)} / {ps.target}h</span>
                   </div>
                   <Progress value={pct} className="h-2" />
-                  <p className="text-xs text-muted-foreground">{pct.toFixed(0)}% complete • {ps.total.toFixed(1)}h total logged</p>
+                  <p className="text-xs text-muted-foreground">{pct.toFixed(0)}% {t('admin.complete')} • {ps.total.toFixed(1)}h {t('admin.totalLogged')}</p>
                 </CardContent>
               </Card>
             );
@@ -1871,9 +1873,9 @@ function ProjectManagementPanel({ admin }: { admin: any }) {
       {/* Filters */}
       <div className="flex flex-wrap gap-3 items-end">
         <div className="space-y-1">
-          <Label className="text-xs">Project</Label>
-          <Select value={projectFilter} onValueChange={setProjectFilter}>
-            <SelectTrigger className="w-[180px]"><SelectValue placeholder="All projects" /></SelectTrigger>
+           <Label className="text-xs">{t("admin.projectLabel")}</Label>
+           <Select value={projectFilter} onValueChange={setProjectFilter}>
+             <SelectTrigger className="w-[180px]"><SelectValue placeholder={t("admin.allProjects")} /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">{t("admin.allProjects")}</SelectItem>
               {projects.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
@@ -1900,11 +1902,11 @@ function ProjectManagementPanel({ admin }: { admin: any }) {
         </div>
         {hasFilters && (
           <Button variant="ghost" size="sm" onClick={() => { setProjectFilter('all'); setEmployeeFilter('all'); setDateFrom(''); setDateTo(''); }}>
-            <X className="h-3.5 w-3.5 mr-1" /> Clear
+             <X className="h-3.5 w-3.5 mr-1" /> {t('admin.clear')}
           </Button>
         )}
         <div className="flex items-center gap-2 ml-auto">
-          <span className="text-xs text-muted-foreground">{rows.length} entries</span>
+          <span className="text-xs text-muted-foreground">{rows.length} {t('admin.entries')}</span>
           <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => exportProjectManagementCSV(rows)}>
             <Download className="h-3.5 w-3.5" /> CSV
           </Button>
@@ -1918,20 +1920,20 @@ function ProjectManagementPanel({ admin }: { admin: any }) {
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/50">
-                  <TableHead className="font-semibold">Project</TableHead>
-                  <TableHead className="font-semibold">{t("admin.employee")}</TableHead>
-                  <TableHead className="font-semibold">{t("admin.descriptionLabel")}</TableHead>
-                  <TableHead className="font-semibold">{t("admin.dateLabel")}</TableHead>
-                  <TableHead className="font-semibold text-right">{t("admin.hoursLabel")}</TableHead>
-                  <TableHead className="font-semibold text-right">Target</TableHead>
-                  <TableHead className="font-semibold text-right">Approved</TableHead>
-                  <TableHead className="font-semibold text-right">Unapproved</TableHead>
-                  <TableHead className="font-semibold">{t("admin.status")}</TableHead>
+                   <TableHead className="font-semibold">{t("admin.projectLabel")}</TableHead>
+                   <TableHead className="font-semibold">{t("admin.employee")}</TableHead>
+                   <TableHead className="font-semibold">{t("admin.descriptionLabel")}</TableHead>
+                   <TableHead className="font-semibold">{t("admin.dateLabel")}</TableHead>
+                   <TableHead className="font-semibold text-right">{t("admin.hoursLabel")}</TableHead>
+                   <TableHead className="font-semibold text-right">{t("admin.targetLabel")}</TableHead>
+                   <TableHead className="font-semibold text-right">{t("admin.approvedLabel")}</TableHead>
+                   <TableHead className="font-semibold text-right">{t("admin.unapprovedLabel")}</TableHead>
+                   <TableHead className="font-semibold">{t("admin.status")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {rows.length === 0 ? (
-                  <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-12">No project hours found</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-12">{t('admin.noProjectHoursFound')}</TableCell></TableRow>
                 ) : rows.slice(0, 200).map((r: any) => (
                   <TableRow key={r.id} className="hover:bg-muted/30">
                     <TableCell className="font-medium">{r.projectName}</TableCell>
@@ -1963,10 +1965,10 @@ function CompaniesPanel({ admin }: { admin: any }) {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-display font-bold">Companies</h2>
-          <p className="text-sm text-muted-foreground">{companies.length} companies</p>
+          <h2 className="text-xl font-display font-bold">{t('admin.companiesTitle')}</h2>
+          <p className="text-sm text-muted-foreground">{companies.length} {t('admin.companiesTitle').toLowerCase()}</p>
         </div>
-        <AddCompanyDialog onCreate={(data) => { admin.createCompany.mutate(data); toast.success('Company added'); }} />
+        <AddCompanyDialog onCreate={(data) => { admin.createCompany.mutate(data); toast.success(t('admin.companyAdded')); }} />
       </div>
       <Card>
         <CardContent className="p-0">
@@ -1976,15 +1978,15 @@ function CompaniesPanel({ admin }: { admin: any }) {
                 <TableRow className="bg-muted/50">
                   <TableHead className="font-semibold">{t("common.name")}</TableHead>
                   <TableHead className="font-semibold">{t("admin.companyId")}</TableHead>
-                  <TableHead className="font-semibold">Address</TableHead>
-                  <TableHead className="font-semibold">{t("admin.country")}</TableHead>
-                  <TableHead className="font-semibold">KM Rate</TableHead>
+                   <TableHead className="font-semibold">{t("admin.addressLabel")}</TableHead>
+                   <TableHead className="font-semibold">{t("admin.country")}</TableHead>
+                   <TableHead className="font-semibold">{t("admin.kmRateLabel")}</TableHead>
                   <TableHead className="w-[60px]"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {companies.length === 0 ? (
-                  <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-12">No companies</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-12">{t('admin.noCompanies')}</TableCell></TableRow>
                 ) : companies.map((c: any) => (
                   <TableRow key={c.id} className="hover:bg-muted/30">
                     <TableCell className="font-medium">{c.name}</TableCell>
@@ -1997,7 +1999,7 @@ function CompaniesPanel({ admin }: { admin: any }) {
                     </TableCell>
                     <TableCell>€{Number(c.km_rate).toFixed(2)}/km</TableCell>
                     <TableCell>
-                      <EditCompanyDialog company={c} onSave={(data) => { admin.updateCompany.mutate({ id: c.id, ...data }); toast.success('Updated'); }} />
+                      <EditCompanyDialog company={c} onSave={(data) => { admin.updateCompany.mutate({ id: c.id, ...data }); toast.success(t('common.updated')); }} />
                     </TableCell>
                   </TableRow>
                 ))}
@@ -2019,10 +2021,10 @@ function WorkplacesPanel({ admin }: { admin: any }) {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-display font-bold">GPS Workplace Locations</h2>
-          <p className="text-sm text-muted-foreground">{workplaces.length} locations configured</p>
+          <h2 className="text-xl font-display font-bold">{t('admin.gpsWorkplaceLocations')}</h2>
+          <p className="text-sm text-muted-foreground">{workplaces.length} {t('admin.locationsConfigured')}</p>
         </div>
-        <AddWorkplaceDialog onCreate={(data) => { admin.createWorkplace.mutate(data); toast.success('Workplace added'); }} />
+        <AddWorkplaceDialog onCreate={(data) => { admin.createWorkplace.mutate(data); toast.success(t('admin.workplaceAdded')); }} />
       </div>
       <Card>
         <CardContent className="p-0">
@@ -2033,13 +2035,13 @@ function WorkplacesPanel({ admin }: { admin: any }) {
                   <TableHead className="font-semibold">{t("common.name")}</TableHead>
                   <TableHead className="font-semibold">{t("admin.latitude")}</TableHead>
                   <TableHead className="font-semibold">{t("admin.longitude")}</TableHead>
-                  <TableHead className="font-semibold">Radius</TableHead>
+                  <TableHead className="font-semibold">{t("admin.radiusLabel")}</TableHead>
                   <TableHead className="w-[60px]"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {workplaces.length === 0 ? (
-                  <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-12">No workplace locations configured</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-12">{t('admin.noWorkplaces')}</TableCell></TableRow>
                 ) : workplaces.map((w: any) => (
                   <TableRow key={w.id} className="hover:bg-muted/30">
                     <TableCell className="font-medium">
@@ -2050,7 +2052,7 @@ function WorkplacesPanel({ admin }: { admin: any }) {
                     <TableCell>{w.radius_meters}m</TableCell>
                     <TableCell>
                       <Button size="icon" variant="ghost" className="text-destructive hover:text-destructive h-8 w-8"
-                        onClick={() => { admin.deleteWorkplace.mutate(w.id); toast.success('Deleted'); }}>
+                        onClick={() => { admin.deleteWorkplace.mutate(w.id); toast.success(t('common.deleted')); }}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </TableCell>
@@ -2242,9 +2244,9 @@ function ImportEmployeesDialog({ onCreate, companies }: { onCreate: (data: any) 
                   </TableBody>
                 </Table>
               </div>
-              <Button className="w-full" disabled={preview.filter(r => !r.error).length === 0} onClick={handleImport}>
-                Import {preview.filter(r => !r.error).length} Employee(s)
-              </Button>
+               <Button className="w-full" disabled={preview.filter(r => !r.error).length === 0} onClick={handleImport}>
+                 {t('admin.importCount')} {preview.filter(r => !r.error).length} {t('admin.employees_count')}
+               </Button>
             </>
           )}
         </div>
@@ -2301,7 +2303,7 @@ function AddEmployeeDialog({ onCreate, companies }: { onCreate: (data: any) => v
           <div className="space-y-1.5"><Label>{t("admin.roleLabel")}</Label>
             <Select value={role} onValueChange={(v: any) => setRole(v)}>
               <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent><SelectItem value="employee">{t("admin.employee")}</SelectItem><SelectItem value="manager">Manager</SelectItem><SelectItem value="admin">Admin</SelectItem></SelectContent>
+               <SelectContent><SelectItem value="employee">{t("admin.employee")}</SelectItem><SelectItem value="manager">{t("admin.managerRole")}</SelectItem><SelectItem value="admin">{t("admin.adminRole")}</SelectItem></SelectContent>
             </Select>
           </div>
           <div className="space-y-1.5"><Label>{t("admin.contractStartLabel")}</Label><Input type="date" value={contractDate} onChange={(e) => setContractDate(e.target.value)} /></div>
@@ -2636,8 +2638,8 @@ function AddWorkplaceDialog({ onCreate }: { onCreate: (data: { name: string; lat
         <DialogHeader><DialogTitle className="font-display">{t("admin.addWorkplaceLocation")}</DialogTitle></DialogHeader>
         <div className="space-y-4 mt-2">
           <div className="space-y-1.5"><Label>{t("common.name")}</Label><Input value={name} onChange={(e) => setName(e.target.value)} placeholder={t("admin.addWorkplace")} /></div>
-          <Button type="button" variant="outline" className="w-full gap-1.5" onClick={useCurrentLocation}>
-            <MapPin className="h-4 w-4" /> Use Current Location
+           <Button type="button" variant="outline" className="w-full gap-1.5" onClick={useCurrentLocation}>
+             <MapPin className="h-4 w-4" /> {t('admin.useCurrentLocationBtn')}
           </Button>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5"><Label>{t("admin.latitude")}</Label><Input type="number" step="0.000001" value={lat} onChange={(e) => setLat(e.target.value)} placeholder="60.1699" /></div>
@@ -2856,26 +2858,26 @@ function AuditTrailPanel({ admin }: { admin: any }) {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-display font-bold">Audit Trail</h2>
-        <p className="text-sm text-muted-foreground">Track all changes across the system</p>
+         <h2 className="text-xl font-display font-bold">{t('admin.auditTrail')}</h2>
+         <p className="text-sm text-muted-foreground">{t('admin.trackChanges')}</p>
       </div>
 
       <div className="flex flex-wrap gap-3 items-end">
         <Select value={tableFilter} onValueChange={setTableFilter}>
-          <SelectTrigger className="w-[180px]"><SelectValue placeholder="All tables" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All tables</SelectItem>
-            {tables.map(t => <SelectItem key={t} value={t}>{t.replace(/_/g, ' ')}</SelectItem>)}
-          </SelectContent>
-        </Select>
-        <Select value={actionFilter} onValueChange={setActionFilter}>
-          <SelectTrigger className="w-[140px]"><SelectValue placeholder="All actions" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All actions</SelectItem>
-            <SelectItem value="INSERT">Insert</SelectItem>
-            <SelectItem value="UPDATE">Update</SelectItem>
-            <SelectItem value="DELETE">Delete</SelectItem>
-          </SelectContent>
+           <SelectTrigger className="w-[180px]"><SelectValue placeholder={t("admin.allTables")} /></SelectTrigger>
+           <SelectContent>
+             <SelectItem value="all">{t("admin.allTables")}</SelectItem>
+             {tables.map(t => <SelectItem key={t} value={t}>{t.replace(/_/g, ' ')}</SelectItem>)}
+           </SelectContent>
+         </Select>
+         <Select value={actionFilter} onValueChange={setActionFilter}>
+           <SelectTrigger className="w-[140px]"><SelectValue placeholder={t("admin.allActions")} /></SelectTrigger>
+           <SelectContent>
+             <SelectItem value="all">{t("admin.allActions")}</SelectItem>
+             <SelectItem value="INSERT">{t("admin.insert")}</SelectItem>
+             <SelectItem value="UPDATE">{t("admin.update")}</SelectItem>
+             <SelectItem value="DELETE">{t("admin.deleteAction")}</SelectItem>
+           </SelectContent>
         </Select>
         <div className="space-y-1">
           <Label className="text-xs">{t("admin.from")}</Label>
@@ -2886,12 +2888,12 @@ function AuditTrailPanel({ admin }: { admin: any }) {
           <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="w-[150px] dark:[color-scheme:dark]" />
         </div>
         {(tableFilter !== 'all' || actionFilter !== 'all' || dateFrom || dateTo) && (
-          <Button variant="ghost" size="sm" onClick={() => { setTableFilter('all'); setActionFilter('all'); setDateFrom(''); setDateTo(''); }}>
-            <X className="h-3.5 w-3.5 mr-1" /> Clear
-          </Button>
+           <Button variant="ghost" size="sm" onClick={() => { setTableFilter('all'); setActionFilter('all'); setDateFrom(''); setDateTo(''); }}>
+             <X className="h-3.5 w-3.5 mr-1" /> {t('admin.clear')}
+           </Button>
         )}
         <div className="flex items-center gap-2 ml-auto">
-          <span className="text-xs text-muted-foreground">{filtered.length} entries</span>
+          <span className="text-xs text-muted-foreground">{filtered.length} {t('admin.entries')}</span>
           <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => exportAuditTrailCSV(filtered)}>
             <Download className="h-3.5 w-3.5" /> CSV
           </Button>
@@ -2925,7 +2927,7 @@ function AuditTrailPanel({ admin }: { admin: any }) {
                     </Badge>
                   </TableCell>
                   <TableCell className="text-xs max-w-[300px] truncate">{formatChanges(log)}</TableCell>
-                  <TableCell className="text-xs text-muted-foreground">{log.changed_by === 'system' ? 'System' : log.changed_by}</TableCell>
+                  <TableCell className="text-xs text-muted-foreground">{log.changed_by === 'system' ? t('admin.system') : log.changed_by}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
