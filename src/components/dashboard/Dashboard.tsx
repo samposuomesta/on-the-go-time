@@ -33,7 +33,7 @@ import {
 export function Dashboard() {
   const userId = useUserId();
   const { signOut } = useAuthContext();
-  const { activeEntry, todayCompleted, loading, startWork, stopWork } = useTimeTracking();
+  const { activeEntry, todayCompleted, todayEntries, loading, startWork, stopWork } = useTimeTracking();
   const { balance: bankBalance } = useWorkBank();
   const { data: currentUser } = useCurrentUser();
   const { t } = useTranslation();
@@ -120,7 +120,7 @@ export function Dashboard() {
       {/* Main Content */}
       <main className="flex-1 px-4 py-4 space-y-5 max-w-lg mx-auto w-full">
         {/* Status */}
-        <StatusCard activeEntry={activeEntry} loading={loading} bankBalance={bankBalance} todayCompleted={todayCompleted} />
+        <StatusCard activeEntry={activeEntry} loading={loading} bankBalance={bankBalance} todayCompleted={todayCompleted} todayEntries={todayEntries} />
 
         {/* Clock Actions */}
         <section>
