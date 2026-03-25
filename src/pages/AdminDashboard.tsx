@@ -978,7 +978,7 @@ function EditTravelExpenseDialog({ entry, onSave, isHistory, onAuditReason }: { 
     } else {
       onSave(data);
       setOpen(false);
-      toast.success('Travel expense updated');
+      toast.success(t('admin.travelExpenseUpdated'));
     }
   };
 
