@@ -687,7 +687,8 @@ function FennoaImportDialog({ onCreate, companies }: { onCreate: (data: any) => 
                 </Table>
               </div>
               <Button className="w-full" disabled={preview.filter(r => !r.error).length === 0} onClick={handleImport}>
-                Import {preview.filter(r => !r.error).length} Employee(s)
+                {t('admin.importCount')} {preview.filter(r => !r.error).length} {t('admin.employees_count')}
+              </Button>
               </Button>
             </>
           )}
