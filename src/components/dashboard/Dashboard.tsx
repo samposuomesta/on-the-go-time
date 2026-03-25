@@ -5,6 +5,16 @@ import {
   Thermometer, UserX, Menu, CalendarDays, FileText, 
   BarChart3, Receipt, Settings, LogOut, AlertTriangle, Shield
 } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { useTimeTracking } from '@/hooks/useTimeTracking';
 import { useWorkBank } from '@/hooks/useWorkBank';
 import { useOfflineSync } from '@/hooks/useOfflineSync';
