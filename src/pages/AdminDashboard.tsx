@@ -902,7 +902,7 @@ function EditProjectHoursDialog({ entry, onSave, isHistory, onAuditReason }: { e
     onSave(pendingData);
     onAuditReason?.('project_hours', entry.id, entry, { ...entry, ...pendingData }, reason.trim());
     setReasonOpen(false);
-    toast.success('Project hours updated');
+    toast.success(t('admin.projectHoursUpdated'));
   };
 
   return (
