@@ -183,6 +183,7 @@ export function ReportsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (i
           company: employeeCompanyMap[ph.user_id] ?? '',
           date: ph.date ? format(new Date(ph.date + 'T00:00'), 'dd.MM.yyyy') : '',
           time: '',
+          timezone: employeeTzMap[ph.user_id] ?? '',
           loginTime: '', logoutTime: '',
           loginLat: '', loginLng: '', logoutLat: '', logoutLng: '',
           startTime: '', endTime: '', breakMin: '', netHours: '',
