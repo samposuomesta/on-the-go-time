@@ -56,18 +56,8 @@ export function useAdminData() {
     },
   });
 
-  const workplaces = useQuery({
-    queryKey: ['admin-workplaces'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('workplaces')
-        .select('*')
-        .eq('company_id', companyId)
-        .order('name');
-      if (error) throw error;
-      return data;
-    },
-  });
+
+
 
   const absenceReasons = useQuery({
     queryKey: ['admin-absence-reasons'],
