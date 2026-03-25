@@ -250,12 +250,8 @@ export function Dashboard() {
         </section>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-border px-4 py-3 text-center">
-        <p className="text-xs text-muted-foreground">
-          TimeTrack v{APP_VERSION}
-        </p>
-      </footer>
+
+
 
       {/* Dialogs */}
       <AddProjectHoursDialog open={showProjectHours} onOpenChange={setShowProjectHours} />
