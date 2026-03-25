@@ -367,8 +367,6 @@ const translations = {
     'admin.submitted': 'Submitted',
     'admin.comment': 'Comment',
     'admin.reviewManageVacation': 'Review and manage vacation requests',
-    'admin.approved': 'Approved',
-    'admin.rejected': 'Rejected',
     'admin.absencesAndSickLeave': 'Absences & Sick Leave',
     'admin.sickType': '🤒 Sick',
     'admin.absenceType': '📋 Absence',
