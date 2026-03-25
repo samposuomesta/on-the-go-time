@@ -8,7 +8,7 @@ import {
 import { useTimeTracking, OverlapEntry } from '@/hooks/useTimeTracking';
 import { useWorkBank } from '@/hooks/useWorkBank';
 import { useOfflineSync } from '@/hooks/useOfflineSync';
-import { useWorkplaceDetection } from '@/hooks/useWorkplaceDetection';
+
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useTranslation } from '@/lib/i18n';
 import { StatusCard } from './StatusCard';
