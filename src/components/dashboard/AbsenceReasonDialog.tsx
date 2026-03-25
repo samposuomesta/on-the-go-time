@@ -85,13 +85,40 @@ export function AbsenceReasonDialog({ open, onOpenChange }: AbsenceReasonDialogP
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-2 mt-2">
-          {activeReasons.length === 0 ? (
+          {showExplanation ? (
+            <div className="space-y-3">
+              <p className="text-sm text-muted-foreground">{t('absenceReasons.explainAbsence')}</p>
+              <Textarea
+                value={explanation}
+                onChange={(e) => setExplanation(e.target.value)}
+                placeholder={t('absenceReasons.explanationPlaceholder')}
+                rows={3}
+              />
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={handleExplanationBack}
+                  disabled={submitting}
+                >
+                  {t('absenceReasons.goBack')}
+                </Button>
+                <Button
+                  className="flex-1 bg-success text-success-foreground hover:bg-success/90"
+                  onClick={handleExplanationConfirm}
+                  disabled={submitting || !explanation.trim()}
+                >
+                  OK
+                </Button>
+              </div>
+            </div>
+          ) : activeReasons.length === 0 ? (
             <div className="text-center py-4">
               <p className="text-sm text-muted-foreground mb-3">{t('absenceReasons.noCustomReasons')}</p>
               <Button
                 className="w-full"
                 disabled={submitting}
-                onClick={() => submit(null)}
+                onClick={handleOtherReason}
               >
                 {t('absenceReasons.markAbsent')}
               </Button>
@@ -113,7 +140,7 @@ export function AbsenceReasonDialog({ open, onOpenChange }: AbsenceReasonDialogP
                 variant="ghost"
                 className="w-full text-muted-foreground"
                 disabled={submitting}
-                onClick={() => submit(null)}
+                onClick={handleOtherReason}
               >
                 {t('absenceReasons.otherReason')}
               </Button>
