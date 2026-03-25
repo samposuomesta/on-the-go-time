@@ -448,6 +448,8 @@ const translations = {
     'admin.pleaseProvideReason': 'Please provide a reason',
     'admin.importCount': 'Import',
     'admin.employees_count': 'Employee(s)',
+    'admin.inviteSent': 'Invite email sent – employee can now set their password',
+    'admin.sendInvite': 'Send invite',
     'admin.approveAll': 'Approve All',
     'admin.rejectAll': 'Reject All',
     'admin.targetLabel': 'Target',
