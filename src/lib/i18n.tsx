@@ -589,6 +589,7 @@ const translations = {
     'dashboard.startYourDay': 'Aloita päiväsi',
     'dashboard.workDayMarked': 'Työpäivä kirjattu',
     'dashboard.workDayCompleted': 'Työpäivä kirjattu tälle päivälle',
+    'dashboard.workTimeRecordedToday': 'Työaikaa kirjattu tälle päivälle',
     'dashboard.timeBank': 'Tuntipankki',
     'dashboard.todaySessions': 'Tänään',
     'dashboard.sickDayRecorded': 'Sairauspäivä kirjattu',
