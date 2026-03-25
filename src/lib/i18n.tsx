@@ -188,6 +188,10 @@ const translations = {
     'expense.added': 'Expense added',
     'expense.failedToSave': 'Failed to save',
     'expense.selectImage': 'Please select an image file',
+    'expense.customer': 'Customer',
+    'expense.customerPlaceholder': 'Customer name',
+    'expense.route': 'Route',
+    'expense.routePlaceholder': 'e.g. Helsinki — Tampere',
 
     // Admin
     'admin.title': 'Admin Panel',
