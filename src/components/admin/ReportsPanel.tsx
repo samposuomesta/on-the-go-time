@@ -98,6 +98,12 @@ export function ReportsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (i
     return map;
   }, [employees, companyMap]);
 
+  const employeeTzMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    employees.forEach((e: any) => { map[e.id] = e.timezone ?? ''; });
+    return map;
+  }, [employees]);
+
   const projectMap = useMemo(() => {
     const map: Record<string, string> = {};
     (admin.projects?.data ?? []).forEach((p: any) => { map[p.id] = p.name; });
