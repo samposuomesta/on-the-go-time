@@ -719,8 +719,8 @@ function EmployeesPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-display font-bold">Employees</h2>
-          <p className="text-sm text-muted-foreground">{employees.length} team members</p>
+          <h2 className="text-xl font-display font-bold">{t('admin.employees')}</h2>
+          <p className="text-sm text-muted-foreground">{employees.length} {t('admin.teamMembers')}</p>
         </div>
         <div className="flex gap-2">
           <FennoaImportDialog companies={admin.companies.data || []} onCreate={(data) => { admin.createEmployee.mutate(data); }} />
