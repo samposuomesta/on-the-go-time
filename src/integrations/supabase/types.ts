@@ -418,6 +418,7 @@ export type Database = {
           start_lng: number | null
           start_time: string
           status: Database["public"]["Enums"]["request_status"]
+          timezone: string | null
           user_id: string
         }
         Insert: {
@@ -433,6 +434,7 @@ export type Database = {
           start_lng?: number | null
           start_time?: string
           status?: Database["public"]["Enums"]["request_status"]
+          timezone?: string | null
           user_id: string
         }
         Update: {
@@ -448,6 +450,7 @@ export type Database = {
           start_lng?: number | null
           start_time?: string
           status?: Database["public"]["Enums"]["request_status"]
+          timezone?: string | null
           user_id?: string
         }
         Relationships: [
@@ -607,6 +610,7 @@ export type Database = {
           manager_id: string | null
           name: string
           role: Database["public"]["Enums"]["user_role"]
+          timezone: string | null
         }
         Insert: {
           annual_vacation_days?: number
@@ -622,6 +626,7 @@ export type Database = {
           manager_id?: string | null
           name: string
           role?: Database["public"]["Enums"]["user_role"]
+          timezone?: string | null
         }
         Update: {
           annual_vacation_days?: number
@@ -637,6 +642,7 @@ export type Database = {
           manager_id?: string | null
           name?: string
           role?: Database["public"]["Enums"]["user_role"]
+          timezone?: string | null
         }
         Relationships: [
           {
