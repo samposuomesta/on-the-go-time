@@ -2893,7 +2893,7 @@ function AuditTrailPanel({ admin }: { admin: any }) {
            </Button>
         )}
         <div className="flex items-center gap-2 ml-auto">
-          <span className="text-xs text-muted-foreground">{filtered.length} entries</span>
+          <span className="text-xs text-muted-foreground">{filtered.length} {t('admin.entries')}</span>
           <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => exportAuditTrailCSV(filtered)}>
             <Download className="h-3.5 w-3.5" /> CSV
           </Button>
