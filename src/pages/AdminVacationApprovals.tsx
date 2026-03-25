@@ -134,10 +134,10 @@ export default function AdminVacationApprovals() {
                   ) : pending.map((r: any) => (
                     <TableRow key={r.id}>
                       <TableCell className="font-medium">{r.users?.name ?? 'Unknown'}</TableCell>
-                      <TableCell>{format(parseISO(r.start_date), 'MMM d, yyyy')}</TableCell>
-                      <TableCell>{format(parseISO(r.end_date), 'MMM d, yyyy')}</TableCell>
+                      <TableCell>{format(parseISO(r.start_date), 'd.M.yyyy')}</TableCell>
+                      <TableCell>{format(parseISO(r.end_date), 'd.M.yyyy')}</TableCell>
                       <TableCell className="text-muted-foreground max-w-[200px] truncate">{r.comment || '—'}</TableCell>
-                      <TableCell className="text-muted-foreground">{format(new Date(r.created_at), 'MMM d')}</TableCell>
+                      <TableCell className="text-muted-foreground">{format(new Date(r.created_at), 'd.M.')}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
                           <Button
@@ -198,8 +198,8 @@ export default function AdminVacationApprovals() {
                   ) : handled.map((r: any) => (
                     <TableRow key={r.id}>
                       <TableCell className="font-medium">{r.users?.name ?? 'Unknown'}</TableCell>
-                      <TableCell>{format(parseISO(r.start_date), 'MMM d, yyyy')}</TableCell>
-                      <TableCell>{format(parseISO(r.end_date), 'MMM d, yyyy')}</TableCell>
+                      <TableCell>{format(parseISO(r.start_date), 'd.M.yyyy')}</TableCell>
+                      <TableCell>{format(parseISO(r.end_date), 'd.M.yyyy')}</TableCell>
                       <TableCell className="text-muted-foreground max-w-[200px] truncate">{r.comment || '—'}</TableCell>
                       <TableCell>{statusBadge(r.status)}</TableCell>
                     </TableRow>
