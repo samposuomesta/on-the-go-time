@@ -1,7 +1,7 @@
 import { format, parseISO } from 'date-fns';
 
 export function exportTimeEntriesCSV(entries: any[]) {
-  const headers = ['Date', 'Start Time', 'End Time', 'Duration (h)', 'Break (min)', 'Start Lat', 'Start Lng', 'End Lat', 'End Lng'];
+  const headers = ['Date', 'Start Time', 'End Time', 'Duration (h)', 'Break (min)'];
   const rows = entries.map(e => {
     const start = new Date(e.start_time);
     const end = e.end_time ? new Date(e.end_time) : null;
@@ -12,10 +12,6 @@ export function exportTimeEntriesCSV(entries: any[]) {
       end ? format(end, 'HH:mm') : '',
       durationH,
       e.break_minutes ?? 0,
-      e.start_lat ?? '',
-      e.start_lng ?? '',
-      e.end_lat ?? '',
-      e.end_lng ?? '',
     ].join(',');
   });
   downloadCSV([headers.join(','), ...rows].join('\n'), 'time-entries.csv');
