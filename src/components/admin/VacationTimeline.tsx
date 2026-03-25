@@ -182,7 +182,7 @@ export function VacationTimeline({ employees, vacationRequests, userManagers, co
                                 {isHoliday && (
                                   <TooltipContent side="bottom" className="text-xs">
                                     <p className="font-medium">{holidayName}</p>
-                                    <p className="text-muted-foreground">{format(day, 'MMM d, yyyy')}</p>
+                                    <p className="text-muted-foreground">{format(day, 'd.M.yyyy', { locale: dateLocale })}</p>
                                   </TooltipContent>
                                 )}
                               </Tooltip>
