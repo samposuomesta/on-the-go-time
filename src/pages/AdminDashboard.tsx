@@ -4,7 +4,7 @@ import { format, parseISO, differenceInBusinessDays, differenceInHours, differen
 import { useDateLocale } from '@/lib/date-locale';
 import {
   ArrowLeft, Users, Briefcase, Car, Clock, CalendarOff,
-  CalendarDays, Plus, Pencil, Bell, Building2, Trash2, CheckCircle2, XCircle, X, BarChart3, CalendarIcon, FileText, Download, Upload
+  CalendarDays, Plus, Pencil, Bell, Building2, Trash2, CheckCircle2, XCircle, X, BarChart3, CalendarIcon, FileText, Download, Upload, Mail
 } from 'lucide-react';
 import { Link, Navigate } from 'react-router-dom';
 import { useAdminData } from '@/hooks/useAdminData';
@@ -703,6 +703,7 @@ function FennoaImportDialog({ onCreate, companies }: { onCreate: (data: any) => 
 
 function EmployeesPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: string) => boolean }) {
   const { t } = useTranslation();
+  const [sendingInvite, setSendingInvite] = useState<string | null>(null);
   const employees = (admin.employees.data ?? []).filter((e: any) => canSeeUser(e.id));
   const userManagers = admin.userManagers.data ?? [];
   const workBankTxns = admin.allWorkBank.data ?? [];
@@ -710,6 +711,23 @@ function EmployeesPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
     const mgrIds = userManagers.filter((um: any) => um.user_id === userId).map((um: any) => um.manager_id);
     return employees.filter((e: any) => mgrIds.includes(e.id)).map((e: any) => e.name);
   };
+
+  const handleSendInvite = async (email: string) => {
+    setSendingInvite(email);
+    try {
+      const { supabase } = await import('@/integrations/supabase/client');
+      const { error } = await supabase.functions.invoke('create-auth-user', {
+        body: { email, redirectTo: `${window.location.origin}/reset-password` },
+      });
+      if (error) throw error;
+      toast.success(t('admin.inviteSent'));
+    } catch (e: any) {
+      toast.error(e?.message || 'Failed to send invite');
+    } finally {
+      setSendingInvite(null);
+    }
+  };
+
   // Compute current adjustment sum per user
   const adjustmentSumByUser = useMemo(() => {
     const sums: Record<string, number> = {};
@@ -776,7 +794,17 @@ function EmployeesPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
                           <Badge variant="outline" className="text-[10px] border-success/30 text-success">30min &gt;{emp.lunch_threshold_hours ?? 5}h</Badge>
                         ) : <span className="text-muted-foreground text-xs">—</span>}
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="flex gap-1">
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-8 w-8"
+                          title={t('admin.sendInvite')}
+                          disabled={sendingInvite === emp.email}
+                          onClick={() => handleSendInvite(emp.email)}
+                        >
+                          <Mail className="h-3.5 w-3.5" />
+                        </Button>
                         <EditEmployeeDialog
                           employee={emp}
                           allEmployees={employees}
