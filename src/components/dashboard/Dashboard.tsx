@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Play, Square, Clock, Car, ParkingCircle, Camera, 
@@ -12,6 +12,7 @@ import { useOfflineSync } from '@/hooks/useOfflineSync';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useTranslation } from '@/lib/i18n';
 import { StatusCard } from './StatusCard';
+import { HeaderClock } from './HeaderClock';
 import { ActionButton } from './ActionButton';
 import { AddProjectHoursDialog } from './AddProjectHoursDialog';
 import { AbsenceReasonDialog } from './AbsenceReasonDialog';
@@ -106,10 +107,12 @@ export function Dashboard() {
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-card border-b border-border px-4 py-3 flex items-center justify-between">
-        <div>
+        <div className="min-w-0">
           <h1 className="text-lg font-display font-bold">TimeTrack</h1>
-          <p className="text-xs text-muted-foreground">{currentUser?.name ?? ''}</p>
+          <p className="text-xs text-muted-foreground truncate">{currentUser?.name ?? ''}</p>
         </div>
+        <HeaderClock />
+
         <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
           <SheetTrigger asChild>
             <button className="touch-target flex items-center justify-center rounded-lg hover:bg-muted p-2">
