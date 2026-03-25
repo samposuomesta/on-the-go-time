@@ -2303,7 +2303,7 @@ function AddEmployeeDialog({ onCreate, companies }: { onCreate: (data: any) => v
           <div className="space-y-1.5"><Label>{t("admin.roleLabel")}</Label>
             <Select value={role} onValueChange={(v: any) => setRole(v)}>
               <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent><SelectItem value="employee">{t("admin.employee")}</SelectItem><SelectItem value="manager">Manager</SelectItem><SelectItem value="admin">Admin</SelectItem></SelectContent>
+               <SelectContent><SelectItem value="employee">{t("admin.employee")}</SelectItem><SelectItem value="manager">{t("admin.managerRole")}</SelectItem><SelectItem value="admin">{t("admin.adminRole")}</SelectItem></SelectContent>
             </Select>
           </div>
           <div className="space-y-1.5"><Label>{t("admin.contractStartLabel")}</Label><Input type="date" value={contractDate} onChange={(e) => setContractDate(e.target.value)} /></div>
