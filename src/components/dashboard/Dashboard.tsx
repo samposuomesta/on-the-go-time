@@ -169,25 +169,15 @@ export function Dashboard() {
           </div>
         </section>
 
-        {/* Project Hours & Work Day */}
+        {/* Project Hours */}
         <section>
-          <div className="grid grid-cols-2 gap-3 mb-2">
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t('dashboard.projectHours')}</h2>
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t('dashboard.workDay')}</h2>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">{t('dashboard.projectHours')}</h2>
+          <div className="grid grid-cols-1 gap-3">
             <ActionButton
               icon={Clock}
               label={t('dashboard.addProjectHours')}
               onClick={() => setShowProjectHours(true)}
               variant="default"
-            />
-            <ActionButton
-              icon={CalendarCheck}
-              label={t('dashboard.fullWorkday')}
-              onClick={handleAddFullWorkday}
-              variant="success"
-              disabled={!!activeEntry || loading}
             />
           </div>
         </section>
