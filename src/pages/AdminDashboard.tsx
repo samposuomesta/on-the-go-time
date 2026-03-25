@@ -490,7 +490,7 @@ function StatisticsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: s
               <div className="rounded-lg bg-destructive/10 p-2.5"><CalendarOff className="h-5 w-5 text-destructive" /></div>
               <div>
                 <p className="text-2xl font-bold">{totalAbsenceDays}</p>
-                <p className="text-xs text-muted-foreground">Other Absence Days</p>
+                <p className="text-xs text-muted-foreground">{t('admin.otherAbsenceDays')}</p>
               </div>
             </div>
           </CardContent>
