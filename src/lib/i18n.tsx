@@ -66,7 +66,7 @@ const translations = {
     // Menu
     'menu.title': 'Menu',
     'menu.vacationRequests': 'Vacation Requests',
-    'menu.longSickLeave': 'Long Sick Leave',
+    'menu.longSickLeave': 'Absence Notification',
     'menu.myEntries': 'My Entries',
     'menu.myStatistics': 'My Statistics',
     'menu.travelExpenses': 'Travel Expenses',
@@ -125,12 +125,13 @@ const translations = {
     'vacation.failedToSubmit': 'Failed to submit request',
     'vacation.noRequests': 'No vacation requests yet',
 
-    // Long Sick Leave
-    'sickLeave.title': 'Long Sick Leave',
-    'sickLeave.report': 'Report Long Sick Leave',
-    'sickLeave.submitted': 'Sick leave request submitted',
+    // Absence Notification
+    'sickLeave.title': 'Absence Notification',
+    'sickLeave.report': 'Report Absence',
+    'sickLeave.submitted': 'Absence notification submitted',
     'sickLeave.failedToSubmit': 'Failed to submit',
-    'sickLeave.noRecords': 'No sick leave records',
+    'sickLeave.noRecords': 'No absence records',
+    'sickLeave.selectReason': 'Absence reason',
 
     // Travel Expenses
     'travel.title': 'Travel Expenses',
@@ -598,7 +599,7 @@ const translations = {
     // Menu
     'menu.title': 'Valikko',
     'menu.vacationRequests': 'Lomapyynnöt',
-    'menu.longSickLeave': 'Pitkä sairausloma',
+    'menu.longSickLeave': 'Poissaolo ilmoitus',
     'menu.myEntries': 'Omat kirjaukset',
     'menu.myStatistics': 'Omat tilastot',
     'menu.travelExpenses': 'Matkakulut',
@@ -657,12 +658,13 @@ const translations = {
     'vacation.failedToSubmit': 'Pyynnön lähetys epäonnistui',
     'vacation.noRequests': 'Ei lomapyyntöjä vielä',
 
-    // Long Sick Leave
-    'sickLeave.title': 'Pitkä sairausloma',
-    'sickLeave.report': 'Ilmoita pitkä sairausloma',
-    'sickLeave.submitted': 'Sairauslomapyyntö lähetetty',
+    // Absence Notification
+    'sickLeave.title': 'Poissaolo ilmoitus',
+    'sickLeave.report': 'Ilmoita poissaolosta',
+    'sickLeave.submitted': 'Poissaoloilmoitus lähetetty',
     'sickLeave.failedToSubmit': 'Lähetys epäonnistui',
-    'sickLeave.noRecords': 'Ei sairauslomatietoja',
+    'sickLeave.noRecords': 'Ei poissaolotietoja',
+    'sickLeave.selectReason': 'Poissaolon syy',
 
     // Travel Expenses
     'travel.title': 'Matkakulut',
