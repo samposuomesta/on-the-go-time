@@ -11,6 +11,7 @@ import { exportAdminWorkingHoursCSV, exportAdminTravelExpensesCSV, exportAdminPr
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useTranslation, getLocalizedField } from '@/lib/i18n';
 import { VacationTimeline } from '@/components/admin/VacationTimeline';
+import { ReportsPanel } from '@/components/admin/ReportsPanel';
 import { getFinnishHolidaySet } from '@/lib/finnish-holidays';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
