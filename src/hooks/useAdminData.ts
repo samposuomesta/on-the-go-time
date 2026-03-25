@@ -511,9 +511,10 @@ export function useAdminData() {
   });
 
   return {
-    employees, projects, companies, reminderRules, userManagers, absenceReasons, auditLog,
+    employees, projects, companies, reminderRules, userManagers, absenceReasons, auditLog, loginSessions,
     pendingTravel, pendingHours, pendingTimeEntries, absences, vacationRequests,
     allTimeEntries, allWorkBank, allTravel, allHours, allTimeEntriesWithNames,
+    allTravelExpenses: allTravel, projectHours: allHours,
     approveTravel, approveHours, approveAbsence, approveVacation, approveTimeEntry, updateTimeEntry,
     updateProjectHours, updateTravelExpense, insertAuditReason,
     updateEmployee, toggleProject, createProject, updateProject, createEmployee,
