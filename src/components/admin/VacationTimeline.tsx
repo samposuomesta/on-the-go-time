@@ -294,7 +294,7 @@ export function VacationTimeline({ employees, vacationRequests, userManagers, co
 
               {sortedPeople.length === 0 && (
                 <div className="py-12 text-center text-sm text-muted-foreground">
-                  No employees found
+                  {t('admin.noEmployeesFound')}
                 </div>
               )}
             </div>
