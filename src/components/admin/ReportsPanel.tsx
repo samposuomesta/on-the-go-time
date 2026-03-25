@@ -20,6 +20,7 @@ const ALL_COLUMNS = [
   { key: 'company', labelKey: 'reports.colCompany' },
   { key: 'date', labelKey: 'reports.colDate' },
   { key: 'time', labelKey: 'reports.colTime' },
+  { key: 'timezone', labelKey: 'reports.colTimezone' },
   { key: 'loginTime', labelKey: 'reports.colLoginTime' },
   { key: 'logoutTime', labelKey: 'reports.colLogoutTime' },
   { key: 'loginLat', labelKey: 'reports.colLoginLat' },
