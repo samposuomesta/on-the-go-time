@@ -90,7 +90,7 @@ export function AddExpenseDialog({ open, onOpenChange, mode }: Props) {
     const { error } = await supabase.from('travel_expenses').insert({
       user_id: userId,
       project_id: projectId || null,
-      customer_name: mode === 'kilometers' ? (customerName || null) : null,
+      customer_name: (mode === 'kilometers' || mode === 'parking') ? (customerName || null) : null,
       route: mode === 'kilometers' ? (route || null) : null,
       date,
       kilometers: mode === 'kilometers' ? parseFloat(kilometers.replace(',', '.')) || 0 : 0,
@@ -117,7 +117,7 @@ export function AddExpenseDialog({ open, onOpenChange, mode }: Props) {
           <DialogTitle className="font-display">{t(titleKeys[mode])}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
-          {mode === 'kilometers' ? (
+          {mode === 'kilometers' || mode === 'parking' ? (
             <div>
               <Label>{t('expense.customer')}</Label>
               <Input value={customerName} onChange={e => setCustomerName(e.target.value)} placeholder={t('expense.customerPlaceholder')} />
