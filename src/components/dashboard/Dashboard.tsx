@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Play, Square, Clock, Car, ParkingCircle, Camera, 
@@ -8,7 +8,6 @@ import {
 import { useTimeTracking } from '@/hooks/useTimeTracking';
 import { useWorkBank } from '@/hooks/useWorkBank';
 import { useOfflineSync } from '@/hooks/useOfflineSync';
-
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useTranslation } from '@/lib/i18n';
 import { StatusCard } from './StatusCard';
@@ -28,16 +27,6 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 
 
 
