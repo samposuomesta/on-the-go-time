@@ -2927,7 +2927,7 @@ function AuditTrailPanel({ admin }: { admin: any }) {
                     </Badge>
                   </TableCell>
                   <TableCell className="text-xs max-w-[300px] truncate">{formatChanges(log)}</TableCell>
-                  <TableCell className="text-xs text-muted-foreground">{log.changed_by === 'system' ? 'System' : log.changed_by}</TableCell>
+                  <TableCell className="text-xs text-muted-foreground">{log.changed_by === 'system' ? t('admin.system') : log.changed_by}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
