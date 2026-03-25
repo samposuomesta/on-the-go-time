@@ -806,6 +806,7 @@ const translations = {
     'admin.kmRate': 'KM-korvaus (€)',
     'admin.addWorkplace': 'Lisää työpaikka',
     'admin.addWorkplaceLocation': 'Lisää työpaikan sijainti',
+    'admin.editWorkplace': 'Muokkaa työpaikkaa',
     'admin.useCurrentLocation': 'Käytä nykyistä sijaintia',
     'admin.locationCaptured': 'Sijainti tallennettu',
     'admin.couldNotGetLocation': 'Sijaintia ei voitu hakea',
