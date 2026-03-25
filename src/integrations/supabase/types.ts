@@ -101,6 +101,7 @@ export type Database = {
         Row: {
           action: string
           changed_by: string | null
+          company_id: string | null
           created_at: string
           id: string
           new_data: Json | null
@@ -111,6 +112,7 @@ export type Database = {
         Insert: {
           action: string
           changed_by?: string | null
+          company_id?: string | null
           created_at?: string
           id?: string
           new_data?: Json | null
@@ -121,6 +123,7 @@ export type Database = {
         Update: {
           action?: string
           changed_by?: string | null
+          company_id?: string | null
           created_at?: string
           id?: string
           new_data?: Json | null
