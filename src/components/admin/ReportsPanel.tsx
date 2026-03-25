@@ -233,9 +233,18 @@ export function ReportsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (i
     URL.revokeObjectURL(url);
   };
 
+  const escapeHtml = (str: string): string => {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  };
+
   const downloadPDF = () => {
-    const headers = activeColumns.map(c => t(c.labelKey as any));
-    const title = `${t('admin.reports' as any)} ${format(fromDate, 'dd.MM.yyyy')} – ${format(toDate, 'dd.MM.yyyy')}`;
+    const headers = activeColumns.map(c => escapeHtml(t(c.labelKey as any)));
+    const title = escapeHtml(`${t('admin.reports' as any)} ${format(fromDate, 'dd.MM.yyyy')} – ${format(toDate, 'dd.MM.yyyy')}`);
 
     // Build HTML table for print
     const colWidth = Math.max(60, Math.floor(700 / activeColumns.length));
