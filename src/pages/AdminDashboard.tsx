@@ -1920,15 +1920,15 @@ function ProjectManagementPanel({ admin }: { admin: any }) {
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/50">
-                  <TableHead className="font-semibold">Project</TableHead>
-                  <TableHead className="font-semibold">{t("admin.employee")}</TableHead>
-                  <TableHead className="font-semibold">{t("admin.descriptionLabel")}</TableHead>
-                  <TableHead className="font-semibold">{t("admin.dateLabel")}</TableHead>
-                  <TableHead className="font-semibold text-right">{t("admin.hoursLabel")}</TableHead>
-                  <TableHead className="font-semibold text-right">Target</TableHead>
-                  <TableHead className="font-semibold text-right">Approved</TableHead>
-                  <TableHead className="font-semibold text-right">Unapproved</TableHead>
-                  <TableHead className="font-semibold">{t("admin.status")}</TableHead>
+                   <TableHead className="font-semibold">{t("admin.projectLabel")}</TableHead>
+                   <TableHead className="font-semibold">{t("admin.employee")}</TableHead>
+                   <TableHead className="font-semibold">{t("admin.descriptionLabel")}</TableHead>
+                   <TableHead className="font-semibold">{t("admin.dateLabel")}</TableHead>
+                   <TableHead className="font-semibold text-right">{t("admin.hoursLabel")}</TableHead>
+                   <TableHead className="font-semibold text-right">{t("admin.targetLabel")}</TableHead>
+                   <TableHead className="font-semibold text-right">{t("admin.approvedLabel")}</TableHead>
+                   <TableHead className="font-semibold text-right">{t("admin.unapprovedLabel")}</TableHead>
+                   <TableHead className="font-semibold">{t("admin.status")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
