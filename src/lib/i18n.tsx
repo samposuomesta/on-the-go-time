@@ -470,6 +470,12 @@ const translations = {
     'absenceReasons.explainAbsence': 'Please describe the reason for your absence:',
     'absenceReasons.explanationPlaceholder': 'Enter explanation...',
     'absenceReasons.goBack': 'Back',
+    'absenceReasons.confirmTitle': 'Confirm Absence',
+    'absenceReasons.date': 'Date',
+    'absenceReasons.reasonLabel': 'Reason',
+    'absenceReasons.cancel': 'Cancel',
+    'absenceReasons.failedToRecord': 'Failed to record absence',
+    'absenceReasons.absenceRecorded': 'Absence recorded',
 
     // Projects
     'projects.title': 'Projects',
@@ -996,6 +1002,12 @@ const translations = {
     'absenceReasons.explainAbsence': 'Kuvaile poissaolon syy:',
     'absenceReasons.explanationPlaceholder': 'Kirjoita selitys...',
     'absenceReasons.goBack': 'Palaa',
+    'absenceReasons.confirmTitle': 'Vahvista poissaolo',
+    'absenceReasons.date': 'Päivämäärä',
+    'absenceReasons.reasonLabel': 'Syy',
+    'absenceReasons.cancel': 'Peru',
+    'absenceReasons.failedToRecord': 'Poissaolon tallentaminen epäonnistui',
+    'absenceReasons.absenceRecorded': 'Poissaolo tallennettu',
 
     // Projects
     'projects.title': 'Projektit',
