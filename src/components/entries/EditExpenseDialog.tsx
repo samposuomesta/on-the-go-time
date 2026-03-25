@@ -33,8 +33,8 @@ export function EditExpenseDialog({ entry, open, onOpenChange }: Props) {
         .update({
           project_id: projectId || null,
           date,
-          kilometers: parseFloat(kilometers) || 0,
-          parking_cost: parseFloat(parkingCost) || 0,
+          kilometers: parseFloat(kilometers.replace(',', '.')) || 0,
+          parking_cost: parseFloat(parkingCost.replace(',', '.')) || 0,
           description: description || null,
         })
         .eq('id', entry.id)

@@ -734,6 +734,10 @@ const translations = {
     'expense.added': 'Kulu lisätty',
     'expense.failedToSave': 'Tallennus epäonnistui',
     'expense.selectImage': 'Valitse kuvatiedosto',
+    'expense.customer': 'Asiakas',
+    'expense.customerPlaceholder': 'Asiakkaan nimi',
+    'expense.route': 'Reitti',
+    'expense.routePlaceholder': 'esim. Helsinki — Tampere',
 
     // Admin
     'admin.title': 'Hallintapaneeli',
