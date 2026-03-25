@@ -262,7 +262,7 @@ export default function MyEntries() {
                         <p className="text-sm font-medium">{ph.projects?.name ?? t('entries.unknownProject')}</p>
                         <StatusBadge status={ph.status} t={t} />
                       </div>
-                      <p className="text-xs text-muted-foreground mt-0.5">{format(parseISO(ph.date), 'EEE, MMM d')}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{format(parseISO(ph.date), 'EEE, MMM d', { locale: dateLocale })}</p>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-semibold font-display">{ph.hours}h</span>
