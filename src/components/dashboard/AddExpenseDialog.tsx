@@ -90,12 +90,14 @@ export function AddExpenseDialog({ open, onOpenChange, mode }: Props) {
     const { error } = await supabase.from('travel_expenses').insert({
       user_id: userId,
       project_id: projectId || null,
+      customer_name: mode === 'kilometers' ? (customerName || null) : null,
+      route: mode === 'kilometers' ? (route || null) : null,
       date,
-      kilometers: mode === 'kilometers' ? parseFloat(kilometers) || 0 : 0,
-      parking_cost: mode === 'parking' ? parseFloat(parkingCost) || 0 : 0,
+      kilometers: mode === 'kilometers' ? parseFloat(kilometers.replace(',', '.')) || 0 : 0,
+      parking_cost: mode === 'parking' ? parseFloat(parkingCost.replace(',', '.')) || 0 : 0,
       description: description || null,
       receipt_image: receiptUrl,
-    });
+    } as any);
     setSaving(false);
     if (error) {
       toast.error(t('expense.failedToSave'));
