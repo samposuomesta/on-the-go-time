@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { 
   Play, Square, Clock, Car, ParkingCircle, Camera, 
   Thermometer, UserX, Menu, CalendarDays, FileText, 
-  BarChart3, Receipt, Settings, LogOut, AlertTriangle, Shield, CalendarCheck
+  BarChart3, Receipt, Settings, LogOut, AlertTriangle, Shield
 } from 'lucide-react';
 import { useTimeTracking, OverlapEntry } from '@/hooks/useTimeTracking';
 import { useWorkBank } from '@/hooks/useWorkBank';
