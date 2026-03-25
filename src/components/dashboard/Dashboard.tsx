@@ -5,6 +5,16 @@ import {
   Thermometer, UserX, Menu, CalendarDays, FileText, 
   BarChart3, Receipt, Settings, LogOut, AlertTriangle, Shield
 } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { useTimeTracking } from '@/hooks/useTimeTracking';
 import { useWorkBank } from '@/hooks/useWorkBank';
 import { useOfflineSync } from '@/hooks/useOfflineSync';
@@ -43,6 +53,7 @@ export function Dashboard() {
   const [showProjectHours, setShowProjectHours] = useState(false);
   const [expenseMode, setExpenseMode] = useState<'kilometers' | 'parking' | 'receipt' | null>(null);
   const [showAbsenceDialog, setShowAbsenceDialog] = useState(false);
+  const [showSickConfirm, setShowSickConfirm] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
   const isAdminOrManager = currentUser?.role === 'admin' || currentUser?.role === 'manager';
@@ -185,10 +196,10 @@ export function Dashboard() {
         <section>
           <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">{t('dashboard.absence')}</h2>
           <div className="grid grid-cols-2 gap-3">
-            <ActionButton
+             <ActionButton
               icon={Thermometer}
               label={t('dashboard.sickToday')}
-              onClick={() => markAbsence('sick')}
+              onClick={() => setShowSickConfirm(true)}
               variant="secondary"
             />
             <ActionButton
@@ -214,6 +225,27 @@ export function Dashboard() {
         />
       )}
       <AbsenceReasonDialog open={showAbsenceDialog} onOpenChange={setShowAbsenceDialog} />
+
+      {/* Sick confirmation dialog */}
+      <AlertDialog open={showSickConfirm} onOpenChange={setShowSickConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('dashboard.sickConfirmTitle')}</AlertDialogTitle>
+            <AlertDialogDescription>{t('dashboard.sickConfirmDesc')}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-warning/20 text-warning hover:bg-warning/30 border-warning/30">
+              {t('dashboard.sickConfirmNo')}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-success text-success-foreground hover:bg-success/90"
+              onClick={() => markAbsence('sick')}
+            >
+              {t('dashboard.sickConfirmYes')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
