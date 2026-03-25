@@ -122,13 +122,13 @@ export function Dashboard() {
             </SheetHeader>
             <nav className="mt-6 space-y-1">
               {[
-                { icon: CalendarDays, label: t('menu.vacationRequests'), path: '/vacation-requests' },
-                { icon: AlertTriangle, label: t('menu.longSickLeave'), path: '/long-sick-leave' },
                 { icon: FileText, label: t('menu.myEntries'), path: '/my-entries' },
                 { icon: BarChart3, label: t('menu.myStatistics'), path: '/my-statistics' },
                 { icon: Receipt, label: t('menu.travelExpenses'), path: '/travel-expenses' },
-                ...(isAdminOrManager ? [{ icon: Shield, label: t('menu.adminPanel'), path: '/admin' }] : []),
+                { icon: CalendarDays, label: t('menu.vacationRequests'), path: '/vacation-requests' },
+                { icon: AlertTriangle, label: t('menu.longSickLeave'), path: '/long-sick-leave' },
                 { icon: Settings, label: t('menu.settings'), path: '/settings' },
+                ...(isAdminOrManager ? [{ icon: Shield, label: t('menu.adminPanel'), path: '/admin' }] : []),
                 { icon: LogOut, label: t('menu.logout'), path: null },
               ].map(({ icon: Icon, label, path }) => (
                 <button
