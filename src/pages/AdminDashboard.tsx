@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { DatePickerInput } from '@/components/ui/date-picker-input';
 import { format, parseISO, differenceInBusinessDays, differenceInHours, differenceInMinutes, eachDayOfInterval, isWeekend, startOfYear, subMonths, startOfMonth, endOfMonth, isWithinInterval, isAfter, isBefore } from 'date-fns';
 import { useDateLocale } from '@/lib/date-locale';
 import {
@@ -918,7 +919,7 @@ function EditProjectHoursDialog({ entry, onSave, isHistory, onAuditReason }: { e
           <div className="space-y-3">
             <div>
               <Label className="text-xs">{t("admin.dateLabel")}</Label>
-              <Input type="date" value={date} onChange={e => setDate(e.target.value)} className="dark:[color-scheme:dark]" />
+              <DatePickerInput value={date} onChange={setDate} className="w-full" />
             </div>
             <div>
               <Label className="text-xs">{t("admin.hoursLabel")}</Label>
@@ -1003,7 +1004,7 @@ function EditTravelExpenseDialog({ entry, onSave, isHistory, onAuditReason }: { 
           <div className="space-y-3">
             <div>
               <Label className="text-xs">{t("admin.dateLabel")}</Label>
-              <Input type="date" value={date} onChange={e => setDate(e.target.value)} className="dark:[color-scheme:dark]" />
+              <DatePickerInput value={date} onChange={setDate} className="w-full" />
             </div>
             <div>
               <Label className="text-xs">{t("admin.kilometersLabel")}</Label>
@@ -1228,11 +1229,11 @@ function ApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
         </div>
         <div className="space-y-1">
           <Label className="text-xs">{t("admin.from")}</Label>
-          <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="w-[150px] dark:[color-scheme:dark]" />
+          <DatePickerInput value={dateFrom} onChange={setDateFrom} />
         </div>
         <div className="space-y-1">
           <Label className="text-xs">{t("admin.to")}</Label>
-          <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="w-[150px] dark:[color-scheme:dark]" />
+          <DatePickerInput value={dateTo} onChange={setDateTo} />
         </div>
         <div className="flex items-center gap-2">
           <Checkbox id="show-pending" checked={showOnlyPending} onCheckedChange={(v) => setShowOnlyPending(!!v)} />
@@ -1897,11 +1898,11 @@ function ProjectManagementPanel({ admin }: { admin: any }) {
         </div>
         <div className="space-y-1">
           <Label className="text-xs">{t("admin.from")}</Label>
-          <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="w-[150px] dark:[color-scheme:dark]" />
+          <DatePickerInput value={dateFrom} onChange={setDateFrom} />
         </div>
         <div className="space-y-1">
           <Label className="text-xs">{t("admin.to")}</Label>
-          <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="w-[150px] dark:[color-scheme:dark]" />
+          <DatePickerInput value={dateTo} onChange={setDateTo} />
         </div>
         {hasFilters && (
           <Button variant="ghost" size="sm" onClick={() => { setProjectFilter('all'); setEmployeeFilter('all'); setDateFrom(''); setDateTo(''); }}>
@@ -2254,7 +2255,7 @@ function AddEmployeeDialog({ onCreate, companies }: { onCreate: (data: any) => v
                <SelectContent><SelectItem value="employee">{t("admin.employee")}</SelectItem><SelectItem value="manager">{t("admin.managerRole")}</SelectItem><SelectItem value="admin">{t("admin.adminRole")}</SelectItem></SelectContent>
             </Select>
           </div>
-          <div className="space-y-1.5"><Label>{t("admin.contractStartLabel")}</Label><Input type="date" value={contractDate} onChange={(e) => setContractDate(e.target.value)} /></div>
+          <div className="space-y-1.5"><Label>{t("admin.contractStartLabel")}</Label><DatePickerInput value={contractDate} onChange={setContractDate} className="w-full" /></div>
           <div className="space-y-1.5"><Label>{t("admin.vacationDaysYear")}</Label><Input type="number" value={vacationDays} onChange={(e) => setVacationDays(e.target.value)} min="0" max="50" /></div>
           <div className="space-y-1.5"><Label>{t("admin.dailyWorkingHours")}</Label><Input type="number" step="0.5" value={dailyWorkHours} onChange={(e) => setDailyWorkHours(e.target.value)} min="1" max="24" /></div>
           <div className="sm:col-span-2 space-y-3 rounded-lg border border-border p-3">
@@ -2340,7 +2341,7 @@ function EditEmployeeDialog({ employee, allEmployees, currentManagerIds, onSave,
               <SelectContent><SelectItem value="employee">{t("admin.employee")}</SelectItem><SelectItem value="manager">Manager</SelectItem><SelectItem value="admin">Admin</SelectItem></SelectContent>
             </Select>
           </div>
-          <div className="space-y-1.5"><Label>{t("admin.contractStartLabel")}</Label><Input type="date" value={contractDate} onChange={(e) => setContractDate(e.target.value)} /></div>
+          <div className="space-y-1.5"><Label>{t("admin.contractStartLabel")}</Label><DatePickerInput value={contractDate} onChange={setContractDate} className="w-full" /></div>
           <div className="space-y-1.5"><Label>{t("admin.vacationDaysYear")}</Label><Input type="number" value={vacationDays} onChange={(e) => setVacationDays(e.target.value)} min="0" max="50" /></div>
           <div className="space-y-1.5"><Label>{t("admin.dailyWorkingHours")}</Label><Input type="number" step="0.5" value={dailyWorkHours} onChange={(e) => setDailyWorkHours(e.target.value)} min="1" max="24" /></div>
           <div className="sm:col-span-2 space-y-3 rounded-lg border border-border p-3">
@@ -2790,11 +2791,11 @@ function AuditTrailPanel({ admin }: { admin: any }) {
         </Select>
         <div className="space-y-1">
           <Label className="text-xs">{t("admin.from")}</Label>
-          <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="w-[150px] dark:[color-scheme:dark]" />
+          <DatePickerInput value={dateFrom} onChange={setDateFrom} />
         </div>
         <div className="space-y-1">
           <Label className="text-xs">{t("admin.to")}</Label>
-          <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="w-[150px] dark:[color-scheme:dark]" />
+          <DatePickerInput value={dateTo} onChange={setDateTo} />
         </div>
         {(tableFilter !== 'all' || actionFilter !== 'all' || dateFrom || dateTo) && (
            <Button variant="ghost" size="sm" onClick={() => { setTableFilter('all'); setActionFilter('all'); setDateFrom(''); setDateTo(''); }}>
