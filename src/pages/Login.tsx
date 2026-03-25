@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { toast } from 'sonner';
+import { captureGPS } from '@/lib/gps';
 import logo from '@/assets/logo.svg';
 
 export default function Login() {
@@ -17,11 +18,28 @@ export default function Login() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error, data } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) {
       toast.error(error.message);
     } else {
+      // Store login session with GPS
+      const gps = await captureGPS();
+      const userEmail = data.user?.email;
+      if (userEmail) {
+        const { data: userData } = await supabase
+          .from('users')
+          .select('id')
+          .eq('email', userEmail)
+          .single();
+        if (userData) {
+          await supabase.from('login_sessions').insert({
+            user_id: userData.id,
+            login_lat: gps?.lat ?? null,
+            login_lng: gps?.lng ?? null,
+          } as any);
+        }
+      }
       navigate('/');
     }
   };

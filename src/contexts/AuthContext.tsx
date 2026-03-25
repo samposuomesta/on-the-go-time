@@ -60,6 +60,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [authUser?.email]);
 
   const signOut = async () => {
+    // Store logout GPS in latest login session
+    if (userId) {
+      try {
+        const { captureGPS } = await import('@/lib/gps');
+        const gps = await captureGPS();
+        const { data: session } = await supabase
+          .from('login_sessions')
+          .select('id')
+          .eq('user_id', userId)
+          .order('login_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (session) {
+          await supabase
+            .from('login_sessions')
+            .update({
+              logout_at: new Date().toISOString(),
+              logout_lat: gps?.lat ?? null,
+              logout_lng: gps?.lng ?? null,
+            } as any)
+            .eq('id', session.id);
+        }
+      } catch {
+        // GPS/session update failed, continue with sign out
+      }
+    }
     await supabase.auth.signOut();
   };
 
