@@ -203,7 +203,7 @@ export function VacationTimeline({ employees, vacationRequests, userManagers, co
                 return (
                   <div key={person.id} className={cn("flex border-b border-border last:border-b-0 hover:bg-muted/20", isManager && "bg-primary/5")}>
                     <div
-                      className="shrink-0 border-r border-border flex items-center px-3 py-1.5 gap-2"
+                      className={cn("shrink-0 border-r border-border flex items-center px-3 py-1.5 gap-2 sticky left-0 z-10", isManager ? "bg-primary/5" : "bg-card")}
                       style={{ width: NAME_W, minWidth: NAME_W }}
                     >
                       <div className="min-w-0 flex-1">
