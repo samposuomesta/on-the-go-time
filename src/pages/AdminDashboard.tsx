@@ -1906,7 +1906,7 @@ function ProjectManagementPanel({ admin }: { admin: any }) {
           </Button>
         )}
         <div className="flex items-center gap-2 ml-auto">
-          <span className="text-xs text-muted-foreground">{rows.length} entries</span>
+          <span className="text-xs text-muted-foreground">{rows.length} {t('admin.entries')}</span>
           <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => exportProjectManagementCSV(rows)}>
             <Download className="h-3.5 w-3.5" /> CSV
           </Button>
