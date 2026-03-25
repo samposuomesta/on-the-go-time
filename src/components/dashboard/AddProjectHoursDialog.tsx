@@ -42,7 +42,7 @@ export function AddProjectHoursDialog({ open, onOpenChange }: Props) {
     const { error } = await supabase.from('project_hours').insert({
       user_id: userId,
       project_id: projectId,
-      hours: parseFloat(hours),
+      hours: parseFloat(hours.replace(',', '.')),
       date,
       description: description || null,
     });
