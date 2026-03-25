@@ -79,12 +79,15 @@ export function useTimeTracking() {
       // GPS not available, continue without
     }
 
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
     const { error } = await supabase.from('time_entries').insert({
       user_id: userId,
       start_lat: lat ?? null,
       start_lng: lng ?? null,
       gps_accuracy: accuracy ?? null,
-    });
+      timezone: tz,
+    } as any);
 
     if (error) {
       toast.error('Failed to start work');
