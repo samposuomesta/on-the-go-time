@@ -703,6 +703,7 @@ function FennoaImportDialog({ onCreate, companies }: { onCreate: (data: any) => 
 
 function EmployeesPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: string) => boolean }) {
   const { t } = useTranslation();
+  const [sendingInvite, setSendingInvite] = useState<string | null>(null);
   const employees = (admin.employees.data ?? []).filter((e: any) => canSeeUser(e.id));
   const userManagers = admin.userManagers.data ?? [];
   const workBankTxns = admin.allWorkBank.data ?? [];
@@ -710,6 +711,23 @@ function EmployeesPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
     const mgrIds = userManagers.filter((um: any) => um.user_id === userId).map((um: any) => um.manager_id);
     return employees.filter((e: any) => mgrIds.includes(e.id)).map((e: any) => e.name);
   };
+
+  const handleSendInvite = async (email: string) => {
+    setSendingInvite(email);
+    try {
+      const { supabase } = await import('@/integrations/supabase/client');
+      const { error } = await supabase.functions.invoke('create-auth-user', {
+        body: { email, redirectTo: `${window.location.origin}/reset-password` },
+      });
+      if (error) throw error;
+      toast.success(t('admin.inviteSent'));
+    } catch (e: any) {
+      toast.error(e?.message || 'Failed to send invite');
+    } finally {
+      setSendingInvite(null);
+    }
+  };
+
   // Compute current adjustment sum per user
   const adjustmentSumByUser = useMemo(() => {
     const sums: Record<string, number> = {};
