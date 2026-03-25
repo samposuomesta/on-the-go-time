@@ -20,6 +20,7 @@ const ALL_COLUMNS = [
   { key: 'company', labelKey: 'reports.colCompany' },
   { key: 'date', labelKey: 'reports.colDate' },
   { key: 'time', labelKey: 'reports.colTime' },
+  { key: 'timezone', labelKey: 'reports.colTimezone' },
   { key: 'loginTime', labelKey: 'reports.colLoginTime' },
   { key: 'logoutTime', labelKey: 'reports.colLogoutTime' },
   { key: 'loginLat', labelKey: 'reports.colLoginLat' },
@@ -49,6 +50,7 @@ interface ReportRow {
   company: string;
   date: string;
   time: string;
+  timezone: string;
   loginTime: string;
   logoutTime: string;
   loginLat: string;
@@ -96,6 +98,12 @@ export function ReportsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (i
     return map;
   }, [employees, companyMap]);
 
+  const employeeTzMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    employees.forEach((e: any) => { map[e.id] = e.timezone ?? ''; });
+    return map;
+  }, [employees]);
+
   const projectMap = useMemo(() => {
     const map: Record<string, string> = {};
     (admin.projects?.data ?? []).forEach((p: any) => { map[p.id] = p.name; });
@@ -127,6 +135,7 @@ export function ReportsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (i
           loginLng: ls.login_lng != null ? String(ls.login_lng) : '',
           logoutLat: ls.logout_lat != null ? String(ls.logout_lat) : '',
           logoutLng: ls.logout_lng != null ? String(ls.logout_lng) : '',
+          timezone: employeeTzMap[ls.user_id] ?? '',
           startTime: '', endTime: '', breakMin: '', netHours: '',
           project: '', projectHours: '', description: '', status: '',
           sortKey: ls.login_at ?? '',
@@ -149,6 +158,7 @@ export function ReportsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (i
           company: employeeCompanyMap[te.user_id] ?? '',
           date: format(start, 'dd.MM.yyyy'),
           time: format(start, 'HH:mm'),
+          timezone: te.timezone ?? employeeTzMap[te.user_id] ?? '',
           loginTime: '', logoutTime: '',
           loginLat: '', loginLng: '', logoutLat: '', logoutLng: '',
           startTime: format(start, 'HH:mm'),
@@ -173,6 +183,7 @@ export function ReportsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (i
           company: employeeCompanyMap[ph.user_id] ?? '',
           date: ph.date ? format(new Date(ph.date + 'T00:00'), 'dd.MM.yyyy') : '',
           time: '',
+          timezone: employeeTzMap[ph.user_id] ?? '',
           loginTime: '', logoutTime: '',
           loginLat: '', loginLng: '', logoutLat: '', logoutLng: '',
           startTime: '', endTime: '', breakMin: '', netHours: '',

@@ -56,6 +56,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUserId(data?.id ?? null);
         setCompanyId(data?.company_id ?? null);
         setLoading(false);
+
+        // Save user's timezone
+        if (data?.id) {
+          const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+          supabase
+            .from('users')
+            .update({ timezone: tz } as any)
+            .eq('id', data.id)
+            .then(() => {});
+        }
       });
   }, [authUser?.email]);
 
