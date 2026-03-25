@@ -316,6 +316,7 @@ const translations = {
     'admin.kmRate': 'KM Rate (€)',
     'admin.addWorkplace': 'Add Workplace',
     'admin.addWorkplaceLocation': 'Add Workplace Location',
+    'admin.editWorkplace': 'Edit Workplace',
     'admin.useCurrentLocation': 'Use Current Location',
     'admin.locationCaptured': 'Location captured',
     'admin.couldNotGetLocation': 'Could not get location',
