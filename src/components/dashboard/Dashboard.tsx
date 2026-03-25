@@ -74,11 +74,7 @@ export function Dashboard() {
   const handleReplaceOverlap = async () => {
     setShowOverlapDialog(false);
     const ids = overlapEntries.map(e => e.id);
-    if (overlapSource === 'workday') {
-      await addFullWorkday(ids);
-    } else {
-      await startWork(ids);
-    }
+    await startWork(ids);
     setOverlapEntries([]);
   };
 
