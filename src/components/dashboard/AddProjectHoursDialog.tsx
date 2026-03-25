@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { format, parseISO } from 'date-fns';
+import { useDateLocale } from '@/lib/date-locale';
 import { CalendarIcon } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
