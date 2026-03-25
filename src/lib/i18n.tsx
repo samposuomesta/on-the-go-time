@@ -990,6 +990,8 @@ const translations = {
     'admin.pleaseProvideReason': 'Anna syy muutokselle',
     'admin.importCount': 'Tuo',
     'admin.employees_count': 'työntekijää',
+    'admin.inviteSent': 'Kutsusähköposti lähetetty – työntekijä voi nyt asettaa salasanansa',
+    'admin.sendInvite': 'Lähetä kutsu',
     'admin.approveAll': 'Hyväksy kaikki',
     'admin.rejectAll': 'Hylkää kaikki',
     'admin.targetLabel': 'Tavoite',
