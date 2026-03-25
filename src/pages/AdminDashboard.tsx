@@ -1556,7 +1556,7 @@ function AbsencesPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: str
               </TableHeader>
               <TableBody>
                 {pending.length === 0 ? (
-                  <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">No pending absences</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">{t('admin.noPendingAbsences')}</TableCell></TableRow>
                 ) : pending.map((a: any) => (
                   <TableRow key={a.id} className="hover:bg-muted/30">
                     <TableCell className="font-medium">{a.users?.name ?? 'Unknown'}</TableCell>
