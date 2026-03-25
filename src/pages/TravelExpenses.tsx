@@ -65,7 +65,7 @@ export default function TravelExpenses() {
           <PopoverTrigger asChild>
             <Button variant="outline" className="w-full justify-start text-left font-normal gap-2">
               <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-              {format(range.from, 'MMM d, yyyy')} — {format(range.to, 'MMM d, yyyy')}
+              {format(range.from, 'MMM d, yyyy', { locale: dateLocale })} — {format(range.to, 'MMM d, yyyy', { locale: dateLocale })}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">
