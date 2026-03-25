@@ -245,7 +245,10 @@ export function useAdminData() {
       const { error } = await supabase.from('project_hours').update({ status }).eq('id', id);
       if (error) throw error;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-hours'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-hours'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-all-hours'] });
+    },
   });
 
   const approveAbsence = useMutation({
