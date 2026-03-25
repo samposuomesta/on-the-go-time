@@ -119,7 +119,7 @@ export default function VacationRequests() {
                   <PopoverTrigger asChild>
                     <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !endDate && "text-muted-foreground")}>
                       <CalendarIcon className="h-4 w-4 mr-2" />
-                      {endDate ? format(endDate, 'PPP') : t('vacation.pickEndDate')}
+                      {endDate ? format(endDate, 'PPP', { locale: dateLocale }) : t('vacation.pickEndDate')}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
