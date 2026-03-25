@@ -76,7 +76,7 @@ export function AddProjectHoursDialog({ open, onOpenChange }: Props) {
           </div>
           <div>
             <Label>{t('projectHours.hours')} *</Label>
-            <Input type="number" step="0.5" min="0" value={hours} onChange={e => setHours(e.target.value)} placeholder="8" />
+            <Input type="text" inputMode="decimal" value={hours} onChange={e => setHours(e.target.value)} placeholder="8" />
           </div>
           <div>
             <Label>{t('projectHours.date')}</Label>
