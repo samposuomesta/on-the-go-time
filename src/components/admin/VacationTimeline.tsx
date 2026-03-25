@@ -201,9 +201,12 @@ export function VacationTimeline({ employees, vacationRequests, userManagers, co
                 const managers = managerLookup[person.id] ?? [];
 
                 return (
-                  <div key={person.id} className={cn("flex border-b border-border last:border-b-0 hover:bg-muted/20", isManager && "bg-primary/5")}>
+                  <div key={person.id} className={cn("flex border-b border-border last:border-b-0 group", isManager && "bg-primary/5")}>
                     <div
-                      className={cn("shrink-0 border-r border-border flex items-center px-3 py-1.5 gap-2 sticky left-0 z-10", isManager ? "bg-primary/5" : "bg-card")}
+                      className={cn(
+                        "shrink-0 border-r border-border flex items-center px-3 py-1.5 gap-2 sticky left-0 z-10 shadow-[2px_0_4px_-2px_rgba(0,0,0,0.1)] group-hover:bg-muted/40",
+                        isManager ? "bg-[hsl(var(--primary)/0.05)]" : "bg-card"
+                      )}
                       style={{ width: NAME_W, minWidth: NAME_W }}
                     >
                       <div className="min-w-0 flex-1">
