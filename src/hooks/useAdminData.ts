@@ -209,6 +209,18 @@ export function useAdminData() {
     },
   });
 
+  const loginSessions = useQuery({
+    queryKey: ['admin-login-sessions'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('login_sessions' as any)
+        .select('*')
+        .order('login_at', { ascending: false });
+      if (error) throw error;
+      return data as any[];
+    },
+  });
+
   const vacationRequests = useQuery({
     queryKey: ['admin-vacation'],
     queryFn: async () => {
