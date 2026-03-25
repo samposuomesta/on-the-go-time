@@ -1902,7 +1902,7 @@ function ProjectManagementPanel({ admin }: { admin: any }) {
         </div>
         {hasFilters && (
           <Button variant="ghost" size="sm" onClick={() => { setProjectFilter('all'); setEmployeeFilter('all'); setDateFrom(''); setDateTo(''); }}>
-            <X className="h-3.5 w-3.5 mr-1" /> Clear
+             <X className="h-3.5 w-3.5 mr-1" /> {t('admin.clear')}
           </Button>
         )}
         <div className="flex items-center gap-2 ml-auto">
