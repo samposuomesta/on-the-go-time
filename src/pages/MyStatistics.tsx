@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, differenceInMinutes } from 'date-fns';
+import { useDateLocale } from '@/lib/date-locale';
 import { ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -13,6 +14,7 @@ const COLORS = ['hsl(220,25%,18%)', 'hsl(152,60%,40%)', 'hsl(38,92%,50%)', 'hsl(
 export default function MyStatistics() {
   const userId = useUserId();
   const { t } = useTranslation();
+  const dateLocale = useDateLocale();
   const now = new Date();
   const monthStart = startOfMonth(now);
   const monthEnd = endOfMonth(now);
@@ -79,7 +81,7 @@ export default function MyStatistics() {
           <ArrowLeft className="h-5 w-5" />
         </Link>
         <h1 className="text-lg font-display font-bold">{t('stats.title')}</h1>
-        <span className="text-xs text-muted-foreground ml-auto">{format(monthStart, 'MMMM yyyy')}</span>
+        <span className="text-xs text-muted-foreground ml-auto">{format(monthStart, 'MMMM yyyy', { locale: dateLocale })}</span>
       </header>
 
       <main className="flex-1 px-4 py-4 max-w-lg mx-auto w-full space-y-4">

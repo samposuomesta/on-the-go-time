@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { format, startOfMonth, endOfMonth, parseISO } from 'date-fns';
+import { useDateLocale } from '@/lib/date-locale';
 import { ArrowLeft, Car, CalendarIcon, Download } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { exportTravelExpensesCSV } from '@/lib/csv-export';
@@ -16,6 +17,7 @@ import { cn } from '@/lib/utils';
 export default function TravelExpenses() {
   const userId = useUserId();
   const { t } = useTranslation();
+  const dateLocale = useDateLocale();
   const now = new Date();
   const [range, setRange] = useState({ from: startOfMonth(now), to: endOfMonth(now) });
   const [calendarOpen, setCalendarOpen] = useState(false);
@@ -63,11 +65,11 @@ export default function TravelExpenses() {
           <PopoverTrigger asChild>
             <Button variant="outline" className="w-full justify-start text-left font-normal gap-2">
               <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-              {format(range.from, 'MMM d, yyyy')} — {format(range.to, 'MMM d, yyyy')}
+              {format(range.from, 'MMM d, yyyy', { locale: dateLocale })} — {format(range.to, 'MMM d, yyyy', { locale: dateLocale })}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">
-            <Calendar
+             <Calendar
               mode="range"
               selected={calendarSelection as any}
               onSelect={(val: any) => {
@@ -75,6 +77,7 @@ export default function TravelExpenses() {
                 if (val?.from && val?.to) { setRange({ from: val.from, to: val.to }); setCalendarOpen(false); }
               }}
               numberOfMonths={1}
+              locale={dateLocale}
               className={cn("p-3 pointer-events-auto")}
             />
           </PopoverContent>
@@ -108,7 +111,7 @@ export default function TravelExpenses() {
               <div className="flex justify-between items-start">
                 <div>
                   <p className="text-sm font-medium">{ex.projects?.name ?? t('entries.noProject')}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">{format(parseISO(ex.date), 'EEE, MMM d')}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{format(parseISO(ex.date), 'EEE, MMM d', { locale: dateLocale })}</p>
                 </div>
                 <div className="text-right flex flex-col items-end gap-1">
                   <div>

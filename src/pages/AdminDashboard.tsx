@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { format, parseISO, differenceInBusinessDays, differenceInHours, differenceInMinutes, eachDayOfInterval, isWeekend, startOfYear, subMonths, startOfMonth, endOfMonth, isWithinInterval, isAfter, isBefore } from 'date-fns';
+import { useDateLocale } from '@/lib/date-locale';
 import {
   ArrowLeft, Users, Briefcase, Car, Clock, CalendarOff,
   CalendarDays, Plus, Pencil, MapPin, Bell, Building2, Trash2, CheckCircle2, XCircle, X, BarChart3, CalendarIcon, FileText, Download, Upload
@@ -354,6 +355,7 @@ function useFilteredStats(
 function StatisticsDatePicker({ fromDate, toDate, setFromDate, setToDate }: {
   fromDate: Date; toDate: Date; setFromDate: (d: Date) => void; setToDate: (d: Date) => void;
 }) {
+  const dateLocale = useDateLocale();
   return (
     <div className="flex items-center gap-2">
       <div className="flex flex-col gap-1">
@@ -366,7 +368,7 @@ function StatisticsDatePicker({ fromDate, toDate, setFromDate, setToDate }: {
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">
-            <Calendar mode="single" selected={fromDate} onSelect={(d) => d && setFromDate(d)} initialFocus className="p-3 pointer-events-auto" disabled={(d) => isAfter(d, toDate)} />
+            <Calendar mode="single" selected={fromDate} onSelect={(d) => d && setFromDate(d)} initialFocus locale={dateLocale} className="p-3 pointer-events-auto" disabled={(d) => isAfter(d, toDate)} />
           </PopoverContent>
         </Popover>
       </div>
@@ -380,7 +382,7 @@ function StatisticsDatePicker({ fromDate, toDate, setFromDate, setToDate }: {
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="end">
-            <Calendar mode="single" selected={toDate} onSelect={(d) => d && setToDate(d)} initialFocus className="p-3 pointer-events-auto" disabled={(d) => isBefore(d, fromDate)} />
+            <Calendar mode="single" selected={toDate} onSelect={(d) => d && setToDate(d)} initialFocus locale={dateLocale} className="p-3 pointer-events-auto" disabled={(d) => isBefore(d, fromDate)} />
           </PopoverContent>
         </Popover>
       </div>

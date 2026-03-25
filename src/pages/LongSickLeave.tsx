@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format, parseISO } from 'date-fns';
+import { useDateLocale } from '@/lib/date-locale';
 import { ArrowLeft, CalendarIcon, Plus, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -19,6 +20,7 @@ export default function LongSickLeave() {
   const userId = useUserId();
   const queryClient = useQueryClient();
   const { t } = useTranslation();
+  const dateLocale = useDateLocale();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [startDate, setStartDate] = useState<Date>();
   const [endDate, setEndDate] = useState<Date>();
@@ -101,11 +103,11 @@ export default function LongSickLeave() {
                   <PopoverTrigger asChild>
                     <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !startDate && "text-muted-foreground")}>
                       <CalendarIcon className="h-4 w-4 mr-2" />
-                      {startDate ? format(startDate, 'PPP') : t('vacation.pickStartDate')}
+                      {startDate ? format(startDate, 'PPP', { locale: dateLocale }) : t('vacation.pickStartDate')}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar mode="single" selected={startDate} onSelect={(d) => { setStartDate(d); setStartOpen(false); }} className={cn("p-3 pointer-events-auto")} />
+                    <Calendar mode="single" selected={startDate} onSelect={(d) => { setStartDate(d); setStartOpen(false); }} locale={dateLocale} className={cn("p-3 pointer-events-auto")} />
                   </PopoverContent>
                 </Popover>
               </div>
@@ -115,11 +117,11 @@ export default function LongSickLeave() {
                   <PopoverTrigger asChild>
                     <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !endDate && "text-muted-foreground")}>
                       <CalendarIcon className="h-4 w-4 mr-2" />
-                      {endDate ? format(endDate, 'PPP') : t('vacation.pickEndDate')}
+                      {endDate ? format(endDate, 'PPP', { locale: dateLocale }) : t('vacation.pickEndDate')}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar mode="single" selected={endDate} onSelect={(d) => { setEndDate(d); setEndOpen(false); }} disabled={(d) => startDate ? d < startDate : false} className={cn("p-3 pointer-events-auto")} />
+                    <Calendar mode="single" selected={endDate} onSelect={(d) => { setEndDate(d); setEndOpen(false); }} disabled={(d) => startDate ? d < startDate : false} locale={dateLocale} className={cn("p-3 pointer-events-auto")} />
                   </PopoverContent>
                 </Popover>
               </div>
@@ -140,7 +142,7 @@ export default function LongSickLeave() {
           absences.map((a) => (
             <div key={a.id} className="bg-card rounded-lg border border-border p-3 flex justify-between items-center">
               <div>
-                <p className="text-sm font-medium">{format(parseISO(a.start_date), 'MMM d')} — {format(parseISO(a.end_date), 'MMM d, yyyy')}</p>
+                <p className="text-sm font-medium">{format(parseISO(a.start_date), 'MMM d', { locale: dateLocale })} — {format(parseISO(a.end_date), 'MMM d, yyyy', { locale: dateLocale })}</p>
               </div>
               <div className="flex items-center gap-2">
                 <Badge variant="outline" className={cn("text-xs capitalize", statusColors[a.status])}>{t(`common.${a.status}` as any)}</Badge>

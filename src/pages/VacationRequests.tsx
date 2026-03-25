@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format, parseISO } from 'date-fns';
+import { useDateLocale } from '@/lib/date-locale';
 import { ArrowLeft, CalendarIcon, Plus, Clock, CheckCircle2, XCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -20,6 +21,7 @@ export default function VacationRequests() {
   const userId = useUserId();
   const queryClient = useQueryClient();
   const { t } = useTranslation();
+  const dateLocale = useDateLocale();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [startDate, setStartDate] = useState<Date>();
   const [endDate, setEndDate] = useState<Date>();
@@ -95,7 +97,7 @@ export default function VacationRequests() {
                   <PopoverTrigger asChild>
                     <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !startDate && "text-muted-foreground")}>
                       <CalendarIcon className="h-4 w-4 mr-2" />
-                      {startDate ? format(startDate, 'PPP') : t('vacation.pickStartDate')}
+                      {startDate ? format(startDate, 'PPP', { locale: dateLocale }) : t('vacation.pickStartDate')}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
@@ -104,6 +106,7 @@ export default function VacationRequests() {
                       selected={startDate}
                       onSelect={(d) => { setStartDate(d); setStartOpen(false); }}
                       disabled={(d) => d < new Date(new Date().setHours(0, 0, 0, 0))}
+                      locale={dateLocale}
                       className={cn("p-3 pointer-events-auto")}
                     />
                   </PopoverContent>
@@ -116,7 +119,7 @@ export default function VacationRequests() {
                   <PopoverTrigger asChild>
                     <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !endDate && "text-muted-foreground")}>
                       <CalendarIcon className="h-4 w-4 mr-2" />
-                      {endDate ? format(endDate, 'PPP') : t('vacation.pickEndDate')}
+                      {endDate ? format(endDate, 'PPP', { locale: dateLocale }) : t('vacation.pickEndDate')}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
@@ -125,6 +128,7 @@ export default function VacationRequests() {
                       selected={endDate}
                       onSelect={(d) => { setEndDate(d); setEndOpen(false); }}
                       disabled={(d) => d < (startDate || new Date(new Date().setHours(0, 0, 0, 0)))}
+                      locale={dateLocale}
                       className={cn("p-3 pointer-events-auto")}
                     />
                   </PopoverContent>
@@ -168,7 +172,7 @@ export default function VacationRequests() {
                 <div className="flex justify-between items-start">
                   <div>
                     <p className="text-sm font-medium">
-                      {format(parseISO(r.start_date), 'MMM d')} — {format(parseISO(r.end_date), 'MMM d, yyyy')}
+                      {format(parseISO(r.start_date), 'MMM d', { locale: dateLocale })} — {format(parseISO(r.end_date), 'MMM d, yyyy', { locale: dateLocale })}
                     </p>
                     {r.comment && (
                       <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{r.comment}</p>

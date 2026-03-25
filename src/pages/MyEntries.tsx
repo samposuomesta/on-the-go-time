@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { format, startOfMonth, endOfMonth, parseISO } from 'date-fns';
+import { useDateLocale } from '@/lib/date-locale';
 import { ArrowLeft, Clock, Briefcase, Car, CalendarIcon, Filter, Download, Pencil, CalendarOff } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { exportTimeEntriesCSV, exportProjectHoursCSV, exportTravelExpensesCSV } from '@/lib/csv-export';
@@ -28,6 +29,7 @@ function StatusBadge({ status, t }: { status: string; t: (k: any) => string }) {
 export default function MyEntries() {
   const userId = useUserId();
   const { t } = useTranslation();
+  const dateLocale = useDateLocale();
   const now = new Date();
   const [range, setRange] = useState<DateRange>({
     from: startOfMonth(now),
@@ -145,7 +147,7 @@ export default function MyEntries() {
             <PopoverTrigger asChild>
               <Button variant="outline" className="flex-1 justify-start text-left font-normal gap-2">
                 <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-                <span>{format(range.from, 'MMM d, yyyy')}</span>
+                <span>{format(range.from, 'MMM d, yyyy', { locale: dateLocale })}</span>
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
@@ -158,6 +160,7 @@ export default function MyEntries() {
                     setFromOpen(false);
                   }
                 }}
+                locale={dateLocale}
                 initialFocus
                 className={cn("p-3 pointer-events-auto")}
               />
@@ -168,7 +171,7 @@ export default function MyEntries() {
             <PopoverTrigger asChild>
               <Button variant="outline" className="flex-1 justify-start text-left font-normal gap-2">
                 <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-                <span>{format(range.to, 'MMM d, yyyy')}</span>
+                <span>{format(range.to, 'MMM d, yyyy', { locale: dateLocale })}</span>
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
@@ -181,6 +184,7 @@ export default function MyEntries() {
                     setToOpen(false);
                   }
                 }}
+                locale={dateLocale}
                 initialFocus
                 className={cn("p-3 pointer-events-auto")}
               />
@@ -219,7 +223,7 @@ export default function MyEntries() {
                   <div className="flex justify-between items-start">
                     <div>
                       <div className="flex items-center gap-2">
-                        <p className="text-sm font-medium">{format(new Date(e.start_time), 'EEE, MMM d')}</p>
+                        <p className="text-sm font-medium">{format(new Date(e.start_time), 'EEE, MMM d', { locale: dateLocale })}</p>
                         <StatusBadge status={e.status} t={t} />
                       </div>
                       <p className="text-xs text-muted-foreground mt-0.5">
@@ -258,7 +262,7 @@ export default function MyEntries() {
                         <p className="text-sm font-medium">{ph.projects?.name ?? t('entries.unknownProject')}</p>
                         <StatusBadge status={ph.status} t={t} />
                       </div>
-                      <p className="text-xs text-muted-foreground mt-0.5">{format(parseISO(ph.date), 'EEE, MMM d')}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{format(parseISO(ph.date), 'EEE, MMM d', { locale: dateLocale })}</p>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-semibold font-display">{ph.hours}h</span>
@@ -289,7 +293,7 @@ export default function MyEntries() {
                         <p className="text-sm font-medium">{ex.projects?.name ?? t('entries.noProject')}</p>
                         <StatusBadge status={ex.status} t={t} />
                       </div>
-                      <p className="text-xs text-muted-foreground mt-0.5">{format(parseISO(ex.date), 'EEE, MMM d')}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{format(parseISO(ex.date), 'EEE, MMM d', { locale: dateLocale })}</p>
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="text-right">
@@ -328,7 +332,7 @@ export default function MyEntries() {
                           <StatusBadge status={v.status} t={t} />
                         </div>
                         <p className="text-xs text-muted-foreground mt-0.5">
-                          {format(parseISO(v.start_date), 'MMM d')} — {format(parseISO(v.end_date), 'MMM d, yyyy')}
+                          {format(parseISO(v.start_date), 'MMM d', { locale: dateLocale })} — {format(parseISO(v.end_date), 'MMM d, yyyy', { locale: dateLocale })}
                         </p>
                       </div>
                       <Badge variant="outline" className="text-[10px] bg-primary/10 text-primary border-primary/30">Vacation</Badge>
@@ -345,7 +349,7 @@ export default function MyEntries() {
                           <StatusBadge status={a.status} t={t} />
                         </div>
                         <p className="text-xs text-muted-foreground mt-0.5">
-                          {format(parseISO(a.start_date), 'MMM d')}{a.start_date !== a.end_date ? ` — ${format(parseISO(a.end_date), 'MMM d, yyyy')}` : `, ${format(parseISO(a.start_date), 'yyyy')}`}
+                          {format(parseISO(a.start_date), 'MMM d', { locale: dateLocale })}{a.start_date !== a.end_date ? ` — ${format(parseISO(a.end_date), 'MMM d, yyyy', { locale: dateLocale })}` : `, ${format(parseISO(a.start_date), 'yyyy')}`}
                         </p>
                       </div>
                       <Badge variant="outline" className={cn("text-[10px]", a.type === 'sick' ? 'bg-destructive/10 text-destructive border-destructive/30' : 'bg-warning/10 text-warning border-warning/30')}>

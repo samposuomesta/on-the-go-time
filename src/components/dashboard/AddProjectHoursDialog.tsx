@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { format, parseISO } from 'date-fns';
+import { useDateLocale } from '@/lib/date-locale';
 import { CalendarIcon } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -25,6 +26,7 @@ export function AddProjectHoursDialog({ open, onOpenChange }: Props) {
   const userId = useUserId();
   const projects = useProjects();
   const { t } = useTranslation();
+  const dateLocale = useDateLocale();
   const [projectId, setProjectId] = useState('');
   const [hours, setHours] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
@@ -82,17 +84,18 @@ export function AddProjectHoursDialog({ open, onOpenChange }: Props) {
               <PopoverTrigger asChild>
                 <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !date && "text-muted-foreground")}>
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {date ? format(parseISO(date), 'PPP') : <span>Pick a date</span>}
+                  {date ? format(parseISO(date), 'PPP', { locale: dateLocale }) : <span>Pick a date</span>}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={date ? parseISO(date) : undefined}
-                  onSelect={(d) => d && setDate(format(d, 'yyyy-MM-dd'))}
-                  initialFocus
-                  className={cn("p-3 pointer-events-auto")}
-                />
+                 <Calendar
+                   mode="single"
+                   selected={date ? parseISO(date) : undefined}
+                   onSelect={(d) => d && setDate(format(d, 'yyyy-MM-dd'))}
+                   initialFocus
+                   locale={dateLocale}
+                   className={cn("p-3 pointer-events-auto")}
+                 />
               </PopoverContent>
             </Popover>
           </div>
