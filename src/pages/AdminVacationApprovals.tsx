@@ -80,7 +80,7 @@ export default function AdminVacationApprovals() {
     };
     return (
       <Badge variant="outline" className={cn("capitalize", config[status]?.className)}>
-        {status}
+        {t(`admin.${status}` as any)}
       </Badge>
     );
   };
