@@ -1933,7 +1933,7 @@ function ProjectManagementPanel({ admin }: { admin: any }) {
               </TableHeader>
               <TableBody>
                 {rows.length === 0 ? (
-                  <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-12">No project hours found</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-12">{t('admin.noProjectHoursFound')}</TableCell></TableRow>
                 ) : rows.slice(0, 200).map((r: any) => (
                   <TableRow key={r.id} className="hover:bg-muted/30">
                     <TableCell className="font-medium">{r.projectName}</TableCell>
