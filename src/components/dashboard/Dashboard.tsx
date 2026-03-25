@@ -1,14 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Play, Square, Clock, Car, ParkingCircle, Camera, 
   Thermometer, UserX, Menu, CalendarDays, FileText, 
   BarChart3, Receipt, Settings, LogOut, AlertTriangle, Shield
 } from 'lucide-react';
-import { useTimeTracking, OverlapEntry } from '@/hooks/useTimeTracking';
+import { useTimeTracking } from '@/hooks/useTimeTracking';
 import { useWorkBank } from '@/hooks/useWorkBank';
 import { useOfflineSync } from '@/hooks/useOfflineSync';
-
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useTranslation } from '@/lib/i18n';
 import { StatusCard } from './StatusCard';
@@ -28,16 +27,6 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 
 
 
@@ -55,28 +44,8 @@ export function Dashboard() {
   const [expenseMode, setExpenseMode] = useState<'kilometers' | 'parking' | 'receipt' | null>(null);
   const [showAbsenceDialog, setShowAbsenceDialog] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [overlapEntries, setOverlapEntries] = useState<OverlapEntry[]>([]);
-  const [showOverlapDialog, setShowOverlapDialog] = useState(false);
 
   const isAdminOrManager = currentUser?.role === 'admin' || currentUser?.role === 'manager';
-
-  const [overlapSource, setOverlapSource] = useState<'start'>('start');
-
-  const handleStartWork = async () => {
-    const result = await startWork();
-    if (result?.overlaps) {
-      setOverlapEntries(result.overlaps);
-      setOverlapSource('start');
-      setShowOverlapDialog(true);
-    }
-  };
-
-  const handleReplaceOverlap = async () => {
-    setShowOverlapDialog(false);
-    const ids = overlapEntries.map(e => e.id);
-    await startWork(ids);
-    setOverlapEntries([]);
-  };
 
   const markAbsence = async (type: 'sick' | 'absence') => {
     // If clocked in, stop work first and record sick/absence for rest of day
@@ -160,7 +129,7 @@ export function Dashboard() {
             <ActionButton
               icon={Play}
               label={t('dashboard.startWork')}
-              onClick={handleStartWork}
+              onClick={startWork}
               variant="success"
               disabled={!!activeEntry || loading}
             />
@@ -245,25 +214,6 @@ export function Dashboard() {
         />
       )}
       <AbsenceReasonDialog open={showAbsenceDialog} onOpenChange={setShowAbsenceDialog} />
-
-      <AlertDialog open={showOverlapDialog} onOpenChange={setShowOverlapDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{t('dashboard.duplicateTitle')}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {t('dashboard.duplicateDescription')}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={() => { setShowOverlapDialog(false); setOverlapEntries([]); }}>
-              {t('dashboard.discard')}
-            </AlertDialogCancel>
-            <AlertDialogAction className="bg-success text-success-foreground hover:bg-success/90" onClick={handleReplaceOverlap}>
-              {t('dashboard.replace')}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }
