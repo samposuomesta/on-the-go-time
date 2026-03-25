@@ -210,7 +210,7 @@ export default function MyEntries() {
             </TabsTrigger>
             <TabsTrigger value="absences" className="gap-1.5 text-xs">
               <CalendarOff className="h-3.5 w-3.5" />
-              Absences ({absences.length + vacations.length})
+              {t('entries.absences')} ({absences.length + vacations.length})
             </TabsTrigger>
           </TabsList>
 
@@ -320,7 +320,7 @@ export default function MyEntries() {
           </TabsContent>
           <TabsContent value="absences" className="mt-3 space-y-2">
             {absences.length === 0 && vacations.length === 0 ? (
-              <EmptyState label="No absences in this period" />
+              <EmptyState label={t('entries.noAbsences')} />
             ) : (
               <>
                 {vacations.map((v: any) => (

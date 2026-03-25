@@ -101,6 +101,8 @@ const translations = {
     'entries.pending': 'Pending',
     'entries.approved': 'Approved',
     'entries.rejected': 'Rejected',
+    'entries.absences': 'Absences',
+    'entries.noAbsences': 'No absences in this period',
 
     // Update
     'update.available': 'Update available',
@@ -421,6 +423,8 @@ const translations = {
     'entries.pending': 'Odottaa',
     'entries.approved': 'Hyväksytty',
     'entries.rejected': 'Hylätty',
+    'entries.absences': 'Poissaolot',
+    'entries.noAbsences': 'Ei poissaoloja tällä jaksolla',
 
     // Update
     'update.available': 'Päivitys saatavilla',
