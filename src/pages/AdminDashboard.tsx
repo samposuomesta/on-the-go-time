@@ -510,13 +510,13 @@ function StatisticsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: s
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/50">
-                  <TableHead className="font-semibold">Name</TableHead>
-                  <TableHead className="font-semibold">Role</TableHead>
-                  <TableHead className="font-semibold text-right">Work Hours</TableHead>
-                  <TableHead className="font-semibold text-right">Time Bank</TableHead>
-                  <TableHead className="font-semibold">Vacation (Used / Total)</TableHead>
-                  <TableHead className="font-semibold text-right">Sick Days</TableHead>
-                  <TableHead className="font-semibold text-right">Absence Days</TableHead>
+                   <TableHead className="font-semibold">{t('common.name')}</TableHead>
+                   <TableHead className="font-semibold">{t('common.role')}</TableHead>
+                   <TableHead className="font-semibold text-right">{t('admin.workHours')}</TableHead>
+                   <TableHead className="font-semibold text-right">{t('admin.timeBank')}</TableHead>
+                   <TableHead className="font-semibold">{t('admin.vacationUsedTotal')}</TableHead>
+                   <TableHead className="font-semibold text-right">{t('admin.sickDays')}</TableHead>
+                   <TableHead className="font-semibold text-right">{t('admin.absenceDays')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
