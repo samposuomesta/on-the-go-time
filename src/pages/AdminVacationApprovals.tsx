@@ -101,8 +101,8 @@ export default function AdminVacationApprovals() {
           <ArrowLeft className="h-5 w-5" />
         </Link>
         <div>
-          <h1 className="text-lg lg:text-xl font-display font-bold">Vacation Approvals</h1>
-          <p className="text-xs lg:text-sm text-muted-foreground">Review and manage vacation requests</p>
+          <h1 className="text-lg lg:text-xl font-display font-bold">{t('admin.vacationApprovals')}</h1>
+          <p className="text-xs lg:text-sm text-muted-foreground">{t('admin.reviewManageVacation')}</p>
         </div>
       </header>
 
