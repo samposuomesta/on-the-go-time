@@ -1862,7 +1862,7 @@ function ProjectManagementPanel({ admin }: { admin: any }) {
                     <span className="text-xs text-muted-foreground">{ps.approved.toFixed(1)} / {ps.target}h</span>
                   </div>
                   <Progress value={pct} className="h-2" />
-                  <p className="text-xs text-muted-foreground">{pct.toFixed(0)}% complete • {ps.total.toFixed(1)}h total logged</p>
+                  <p className="text-xs text-muted-foreground">{pct.toFixed(0)}% {t('admin.complete')} • {ps.total.toFixed(1)}h {t('admin.totalLogged')}</p>
                 </CardContent>
               </Card>
             );
