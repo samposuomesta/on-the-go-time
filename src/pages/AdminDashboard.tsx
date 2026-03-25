@@ -1442,13 +1442,13 @@ function ApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
               <TableHeader>
                 <TableRow className="bg-muted/50">
                   <TableHead className="font-semibold">{t("admin.employee")}</TableHead>
-                  <TableHead className="font-semibold">Project</TableHead>
-                  <TableHead className="font-semibold">{t("admin.dateLabel")}</TableHead>
-                  <TableHead className="font-semibold">{t("admin.kilometersLabel")}</TableHead>
-                  <TableHead className="font-semibold">Parking</TableHead>
-                  <TableHead className="font-semibold">{t("admin.descriptionLabel")}</TableHead>
-                  <TableHead className="font-semibold">{t("admin.status")}</TableHead>
-                  <TableHead className="text-right font-semibold">Actions</TableHead>
+                   <TableHead className="font-semibold">{t("admin.projectLabel")}</TableHead>
+                   <TableHead className="font-semibold">{t("admin.dateLabel")}</TableHead>
+                   <TableHead className="font-semibold">{t("admin.kilometersLabel")}</TableHead>
+                   <TableHead className="font-semibold">{t("admin.parkingLabel")}</TableHead>
+                   <TableHead className="font-semibold">{t("admin.descriptionLabel")}</TableHead>
+                   <TableHead className="font-semibold">{t("admin.status")}</TableHead>
+                   <TableHead className="text-right font-semibold">{t("admin.actions")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
