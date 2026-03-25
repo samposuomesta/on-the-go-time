@@ -10,11 +10,6 @@ export interface ActiveEntry {
   project_id: string | null;
 }
 
-export interface OverlapEntry {
-  id: string;
-  start_time: string;
-  end_time: string | null;
-}
 
 export function useTimeTracking() {
   const userId = useUserId();
