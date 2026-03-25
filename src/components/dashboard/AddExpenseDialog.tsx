@@ -154,7 +154,7 @@ export function AddExpenseDialog({ open, onOpenChange, mode }: Props) {
           {mode === 'parking' && (
             <div>
               <Label>{t('expense.parkingCost')} *</Label>
-              <Input type="number" step="0.01" min="0" value={parkingCost} onChange={e => setParkingCost(e.target.value)} placeholder="0.00" />
+              <Input type="text" inputMode="decimal" value={parkingCost} onChange={e => setParkingCost(e.target.value)} placeholder="0,00" />
             </div>
           )}
           {mode === 'receipt' && (

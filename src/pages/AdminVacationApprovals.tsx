@@ -201,11 +201,11 @@ export default function AdminVacationApprovals() {
                     </TableRow>
                   ) : handled.map((r: any) => (
                     <TableRow key={r.id}>
-                      <TableCell className="font-medium">{r.users?.name ?? 'Unknown'}</TableCell>
-                      <TableCell>{format(parseISO(r.start_date), 'd.M.yyyy')}</TableCell>
-                      <TableCell>{format(parseISO(r.end_date), 'd.M.yyyy')}</TableCell>
-                      <TableCell className="text-muted-foreground max-w-[200px] truncate">{r.comment || '—'}</TableCell>
-                      <TableCell>{statusBadge(r.status)}</TableCell>
+                     <TableCell className="font-medium sticky left-0 bg-card z-10">{r.users?.name ?? 'Unknown'}</TableCell>
+                       <TableCell>{format(parseISO(r.start_date), 'd.M.yyyy')}</TableCell>
+                       <TableCell>{format(parseISO(r.end_date), 'd.M.yyyy')}</TableCell>
+                       <TableCell className="text-muted-foreground max-w-[200px] truncate">{r.comment || '—'}</TableCell>
+                       <TableCell>{statusBadge(r.status)}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
