@@ -987,7 +987,7 @@ function EditTravelExpenseDialog({ entry, onSave, isHistory, onAuditReason }: { 
     onSave(pendingData);
     onAuditReason?.('travel_expenses', entry.id, entry, { ...entry, ...pendingData }, reason.trim());
     setReasonOpen(false);
-    toast.success('Travel expense updated');
+    toast.success(t('admin.travelExpenseUpdated'));
   };
 
   return (
