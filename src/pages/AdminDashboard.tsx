@@ -376,7 +376,7 @@ function StatisticsDatePicker({ fromDate, toDate, setFromDate, setToDate }: {
         </Popover>
       </div>
       <div className="flex flex-col gap-1">
-        <Label className="text-xs text-muted-foreground">To</Label>
+        <Label className="text-xs text-muted-foreground">{t('admin.to')}</Label>
         <Popover>
           <PopoverTrigger asChild>
             <Button variant="outline" className={cn("w-[140px] justify-start text-left font-normal h-9 text-sm")}>
