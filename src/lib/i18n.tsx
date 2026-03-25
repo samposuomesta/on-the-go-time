@@ -101,6 +101,8 @@ const translations = {
     'entries.pending': 'Pending',
     'entries.approved': 'Approved',
     'entries.rejected': 'Rejected',
+    'entries.absences': 'Absences',
+    'entries.noAbsences': 'No absences in this period',
 
     // Update
     'update.available': 'Update available',
