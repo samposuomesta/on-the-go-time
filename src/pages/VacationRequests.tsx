@@ -126,6 +126,7 @@ export default function VacationRequests() {
                     <Calendar
                       mode="single"
                       selected={endDate}
+                      defaultMonth={startDate || undefined}
                       onSelect={(d) => { setEndDate(d); setEndOpen(false); }}
                       disabled={(d) => d < (startDate || new Date(new Date().setHours(0, 0, 0, 0)))}
                       locale={dateLocale}
