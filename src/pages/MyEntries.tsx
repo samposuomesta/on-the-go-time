@@ -29,6 +29,7 @@ function StatusBadge({ status, t }: { status: string; t: (k: any) => string }) {
 export default function MyEntries() {
   const userId = useUserId();
   const { t } = useTranslation();
+  const dateLocale = useDateLocale();
   const now = new Date();
   const [range, setRange] = useState<DateRange>({
     from: startOfMonth(now),
