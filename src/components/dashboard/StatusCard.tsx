@@ -93,7 +93,7 @@ export function StatusCard({ activeEntry, loading, bankBalance, todayCompleted, 
         {/* Today's completed sessions */}
         {todayEntries.length > 0 && (
           <div className="space-y-1 pt-1 border-t border-border">
-            <span className="text-xs text-muted-foreground">{t('dashboard.todaySessions') ?? 'Tänään'}</span>
+            <span className="text-xs text-muted-foreground">{t('dashboard.todaySessions')}</span>
             {todayEntries.map((entry) => (
               <div key={entry.id} className="flex items-center justify-between text-xs">
                 <span className="text-muted-foreground tabular-nums">
