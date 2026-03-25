@@ -111,7 +111,7 @@ export default function AdminVacationApprovals() {
           <CardHeader className="pb-3">
             <CardTitle className="text-base lg:text-lg font-display flex items-center gap-2">
               <Clock className="h-5 w-5 text-warning" />
-              Pending Requests
+              {t('admin.pendingRequests')}
               <Badge variant="secondary" className="ml-auto">{pending.length}</Badge>
             </CardTitle>
           </CardHeader>
@@ -120,12 +120,12 @@ export default function AdminVacationApprovals() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Employee</TableHead>
-                    <TableHead>Start Date</TableHead>
-                    <TableHead>End Date</TableHead>
-                    <TableHead>Comment</TableHead>
-                    <TableHead>Submitted</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead>{t('admin.employee')}</TableHead>
+                    <TableHead>{t('admin.startDate')}</TableHead>
+                    <TableHead>{t('admin.endDate')}</TableHead>
+                    <TableHead>{t('admin.comment')}</TableHead>
+                    <TableHead>{t('admin.submitted')}</TableHead>
+                    <TableHead className="text-right">{t('admin.actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
