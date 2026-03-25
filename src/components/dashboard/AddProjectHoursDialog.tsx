@@ -26,6 +26,7 @@ export function AddProjectHoursDialog({ open, onOpenChange }: Props) {
   const userId = useUserId();
   const projects = useProjects();
   const { t } = useTranslation();
+  const dateLocale = useDateLocale();
   const [projectId, setProjectId] = useState('');
   const [hours, setHours] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
