@@ -117,17 +117,24 @@ export function AddExpenseDialog({ open, onOpenChange, mode }: Props) {
           <DialogTitle className="font-display">{t(titleKeys[mode])}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
-          <div>
-            <Label>{t('expense.project')}</Label>
-            <Select value={projectId} onValueChange={setProjectId}>
-              <SelectTrigger><SelectValue placeholder={t('expense.selectProject')} /></SelectTrigger>
-              <SelectContent>
-                {projects.map(p => (
-                  <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          {mode === 'kilometers' ? (
+            <div>
+              <Label>{t('expense.customer')}</Label>
+              <Input value={customerName} onChange={e => setCustomerName(e.target.value)} placeholder={t('expense.customerPlaceholder')} />
+            </div>
+          ) : (
+            <div>
+              <Label>{t('expense.project')}</Label>
+              <Select value={projectId} onValueChange={setProjectId}>
+                <SelectTrigger><SelectValue placeholder={t('expense.selectProject')} /></SelectTrigger>
+                <SelectContent>
+                  {projects.map(p => (
+                    <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
           <div>
             <Label>{t('expense.date')}</Label>
             <Input type="date" value={date} onChange={e => setDate(e.target.value)} />
