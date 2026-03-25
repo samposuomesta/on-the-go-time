@@ -176,7 +176,7 @@ export default function AdminVacationApprovals() {
           <CardHeader className="pb-3">
             <CardTitle className="text-base lg:text-lg font-display flex items-center gap-2">
               <CalendarDays className="h-5 w-5" />
-              History
+              {t('admin.history')}
               <Badge variant="secondary" className="ml-auto">{handled.length}</Badge>
             </CardTitle>
           </CardHeader>
@@ -185,18 +185,18 @@ export default function AdminVacationApprovals() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Employee</TableHead>
-                    <TableHead>Start Date</TableHead>
-                    <TableHead>End Date</TableHead>
-                    <TableHead>Comment</TableHead>
-                    <TableHead>Status</TableHead>
+                    <TableHead>{t('admin.employee')}</TableHead>
+                    <TableHead>{t('admin.startDate')}</TableHead>
+                    <TableHead>{t('admin.endDate')}</TableHead>
+                    <TableHead>{t('admin.comment')}</TableHead>
+                    <TableHead>{t('admin.status')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {handled.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
-                        No history yet
+                        {t('admin.noHistoryYet')}
                       </TableCell>
                     </TableRow>
                   ) : handled.map((r: any) => (
