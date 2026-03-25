@@ -1366,8 +1366,8 @@ function ApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Clock className="h-5 w-5 text-muted-foreground" />
-              <CardTitle className="text-base font-display">Project Hours</CardTitle>
-              <Badge variant="secondary">{pendingHours.length} pending</Badge>
+               <CardTitle className="text-base font-display">{t('admin.projectHoursTitle')}</CardTitle>
+               <Badge variant="secondary">{pendingHours.length} {t('admin.pending')}</Badge>
             </div>
             <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => exportAdminProjectHoursCSV(filteredHours)}>
               <Download className="h-3.5 w-3.5" /> CSV
