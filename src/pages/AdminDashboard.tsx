@@ -1546,12 +1546,12 @@ function AbsencesPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: str
               <TableHeader>
                 <TableRow className="bg-muted/50">
                   <TableHead className="font-semibold">{t("admin.employee")}</TableHead>
-                  <TableHead className="font-semibold">Type</TableHead>
-                  <TableHead className="font-semibold">Reason</TableHead>
-                  <TableHead className="font-semibold">Start Date</TableHead>
-                  <TableHead className="font-semibold">End Date</TableHead>
-                  <TableHead className="font-semibold">{t("admin.status")}</TableHead>
-                  <TableHead className="text-right font-semibold">Actions</TableHead>
+                   <TableHead className="font-semibold">{t("admin.type")}</TableHead>
+                   <TableHead className="font-semibold">{t("admin.reason")}</TableHead>
+                   <TableHead className="font-semibold">{t("admin.startDate")}</TableHead>
+                   <TableHead className="font-semibold">{t("admin.endDate")}</TableHead>
+                   <TableHead className="font-semibold">{t("admin.status")}</TableHead>
+                   <TableHead className="text-right font-semibold">{t("admin.actions")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
