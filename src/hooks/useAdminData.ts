@@ -530,7 +530,7 @@ export function useAdminData() {
   });
 
   return {
-    employees, projects, companies, workplaces, reminderRules, userManagers, absenceReasons, auditLog,
+    employees, projects, companies, reminderRules, userManagers, absenceReasons, auditLog,
     pendingTravel, pendingHours, pendingTimeEntries, absences, vacationRequests,
     allTimeEntries, allWorkBank, allTravel, allHours, allTimeEntriesWithNames,
     approveTravel, approveHours, approveAbsence, approveVacation, approveTimeEntry, updateTimeEntry,
