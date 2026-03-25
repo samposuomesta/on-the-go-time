@@ -1873,9 +1873,9 @@ function ProjectManagementPanel({ admin }: { admin: any }) {
       {/* Filters */}
       <div className="flex flex-wrap gap-3 items-end">
         <div className="space-y-1">
-          <Label className="text-xs">Project</Label>
-          <Select value={projectFilter} onValueChange={setProjectFilter}>
-            <SelectTrigger className="w-[180px]"><SelectValue placeholder="All projects" /></SelectTrigger>
+           <Label className="text-xs">{t("admin.projectLabel")}</Label>
+           <Select value={projectFilter} onValueChange={setProjectFilter}>
+             <SelectTrigger className="w-[180px]"><SelectValue placeholder={t("admin.allProjects")} /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">{t("admin.allProjects")}</SelectItem>
               {projects.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
