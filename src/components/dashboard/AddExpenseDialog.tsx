@@ -23,6 +23,8 @@ export function AddExpenseDialog({ open, onOpenChange, mode }: Props) {
   const projects = useProjects();
   const { t } = useTranslation();
   const [projectId, setProjectId] = useState('');
+  const [customerName, setCustomerName] = useState('');
+  const [route, setRoute] = useState('');
   const [kilometers, setKilometers] = useState('');
   const [parkingCost, setParkingCost] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
