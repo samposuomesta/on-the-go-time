@@ -10,11 +10,18 @@ export interface ActiveEntry {
   project_id: string | null;
 }
 
+export interface CompletedEntry {
+  id: string;
+  start_time: string;
+  end_time: string;
+}
+
 
 export function useTimeTracking() {
   const userId = useUserId();
   const [activeEntry, setActiveEntry] = useState<ActiveEntry | null>(null);
   const [todayCompleted, setTodayCompleted] = useState(false);
+  const [todayEntries, setTodayEntries] = useState<CompletedEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchActive = useCallback(async () => {
@@ -31,19 +38,19 @@ export function useTimeTracking() {
         .maybeSingle(),
       supabase
         .from('time_entries')
-        .select('id')
+        .select('id, start_time, end_time')
         .eq('user_id', userId)
         .not('end_time', 'is', null)
         .gte('start_time', todayStr)
-        .limit(1)
-        .maybeSingle(),
+        .order('start_time', { ascending: true }),
     ]);
 
     if (activeRes.error) {
       console.error('Error fetching active entry:', activeRes.error);
     }
     setActiveEntry(activeRes.data);
-    setTodayCompleted(!!completedRes.data);
+    setTodayEntries((completedRes.data ?? []) as CompletedEntry[]);
+    setTodayCompleted((completedRes.data ?? []).length > 0);
     setLoading(false);
   }, [userId]);
 
