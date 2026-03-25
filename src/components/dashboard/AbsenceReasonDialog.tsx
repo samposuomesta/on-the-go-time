@@ -23,6 +23,8 @@ export function AbsenceReasonDialog({ open, onOpenChange }: AbsenceReasonDialogP
   const userId = useUserId();
   const companyId = useCompanyId();
   const [submitting, setSubmitting] = useState(false);
+  const [showExplanation, setShowExplanation] = useState(false);
+  const [explanation, setExplanation] = useState('');
   const { language, t } = useTranslation();
 
   const { data: reasons } = useQuery({
