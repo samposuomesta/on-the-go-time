@@ -99,15 +99,15 @@ export function VacationTimeline({ employees, vacationRequests, userManagers, co
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-display font-bold">Vacation Timeline</h2>
-          <p className="text-sm text-muted-foreground">Visual overview of all vacation requests</p>
+          <h2 className="text-xl font-display font-bold">{t('admin.vacationTimeline')}</h2>
+          <p className="text-sm text-muted-foreground">{t('admin.vacationTimelineDesc')}</p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setCurrentDate(d => subMonths(d, 1))}>
             <ChevronLeft className="h-4 w-4" />
           </Button>
           <span className="text-sm font-medium min-w-[140px] text-center">
-            {format(months[0], 'MMM yyyy')} — {format(months[months.length - 1], 'MMM yyyy')}
+            {format(months[0], 'MMM yyyy', { locale: dateLocale })} — {format(months[months.length - 1], 'MMM yyyy', { locale: dateLocale })}
           </span>
           <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setCurrentDate(d => addMonths(d, 1))}>
             <ChevronRight className="h-4 w-4" />
@@ -119,20 +119,20 @@ export function VacationTimeline({ employees, vacationRequests, userManagers, co
       <div className="flex items-center gap-4 text-xs flex-wrap">
         <div className="flex items-center gap-1.5">
           <div className="w-4 h-3 rounded-sm bg-warning/60 border border-warning/40" />
-          <span className="text-muted-foreground">Pending</span>
+          <span className="text-muted-foreground">{t('admin.legendPending')}</span>
         </div>
         <div className="flex items-center gap-1.5">
           <div className="w-4 h-3 rounded-sm bg-success/60 border border-success/40" />
-          <span className="text-muted-foreground">Approved</span>
+          <span className="text-muted-foreground">{t('admin.legendApproved')}</span>
         </div>
         <div className="flex items-center gap-1.5">
           <div className="w-4 h-3 rounded-sm bg-muted border border-border" />
-          <span className="text-muted-foreground">Weekend</span>
+          <span className="text-muted-foreground">{t('admin.legendWeekend')}</span>
         </div>
         {companyCountry === 'Finland' && (
           <div className="flex items-center gap-1.5">
             <div className="w-4 h-3 rounded-sm bg-destructive/30 border border-destructive/40" />
-            <span className="text-muted-foreground">Bank Holiday</span>
+            <span className="text-muted-foreground">{t('admin.legendHoliday')}</span>
           </div>
         )}
       </div>
