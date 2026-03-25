@@ -66,7 +66,7 @@ const translations = {
     // Menu
     'menu.title': 'Menu',
     'menu.vacationRequests': 'Vacation Requests',
-    'menu.longSickLeave': 'Long Sick Leave',
+    'menu.longSickLeave': 'Absence Notification',
     'menu.myEntries': 'My Entries',
     'menu.myStatistics': 'My Statistics',
     'menu.travelExpenses': 'Travel Expenses',
