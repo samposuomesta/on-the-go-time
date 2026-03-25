@@ -90,7 +90,7 @@ export function AddExpenseDialog({ open, onOpenChange, mode }: Props) {
     const { error } = await supabase.from('travel_expenses').insert({
       user_id: userId,
       project_id: projectId || null,
-      customer_name: mode === 'kilometers' ? (customerName || null) : null,
+      customer_name: (mode === 'kilometers' || mode === 'parking') ? (customerName || null) : null,
       route: mode === 'kilometers' ? (route || null) : null,
       date,
       kilometers: mode === 'kilometers' ? parseFloat(kilometers.replace(',', '.')) || 0 : 0,
