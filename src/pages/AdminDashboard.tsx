@@ -499,8 +499,8 @@ function StatisticsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: s
         <CardHeader>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <CardTitle className="text-base font-display">Employee & Manager Breakdown</CardTitle>
-              <CardDescription>Individual statistics for all team members</CardDescription>
+              <CardTitle className="text-base font-display">{t('admin.employeeBreakdown')}</CardTitle>
+              <CardDescription>{t('admin.individualStats')}</CardDescription>
             </div>
             <StatisticsDatePicker fromDate={breakdownFrom} toDate={breakdownTo} setFromDate={setBreakdownFrom} setToDate={setBreakdownTo} />
           </div>
