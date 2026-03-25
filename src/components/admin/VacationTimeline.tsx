@@ -153,7 +153,7 @@ export function VacationTimeline({ employees, vacationRequests, userManagers, co
                     return (
                       <div key={mi} className="border-r border-border last:border-r-0">
                         <div className="text-xs font-semibold text-center py-1.5 bg-muted/50 border-b border-border">
-                          {format(month, 'MMMM yyyy')}
+                          {format(month, 'LLLL yyyy', { locale: dateLocale })}
                         </div>
                         <div className="flex">
                           {daysInMonth.map((day, di) => {
