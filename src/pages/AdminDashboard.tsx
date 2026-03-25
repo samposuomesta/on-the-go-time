@@ -1453,7 +1453,7 @@ function ApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
               </TableHeader>
               <TableBody>
                 {filteredTravel.length === 0 ? (
-                  <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">No travel expenses found</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">{t('admin.noTravelExpenses')}</TableCell></TableRow>
                 ) : filteredTravel.slice(0, 200).map((t: any) => (
                   <TableRow key={t.id} className="hover:bg-muted/30">
                     <TableCell className="font-medium">{t.users?.name ?? 'Unknown'}</TableCell>
