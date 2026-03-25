@@ -2791,7 +2791,7 @@ function AuditTrailPanel({ admin }: { admin: any }) {
         </Select>
         <div className="space-y-1">
           <Label className="text-xs">{t("admin.from")}</Label>
-          <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="w-[150px] dark:[color-scheme:dark]" />
+          <DatePickerInput value={dateFrom} onChange={setDateFrom} />
         </div>
         <div className="space-y-1">
           <Label className="text-xs">{t("admin.to")}</Label>
