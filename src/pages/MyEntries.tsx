@@ -349,7 +349,7 @@ export default function MyEntries() {
                           <StatusBadge status={a.status} t={t} />
                         </div>
                         <p className="text-xs text-muted-foreground mt-0.5">
-                          {format(parseISO(a.start_date), 'MMM d')}{a.start_date !== a.end_date ? ` — ${format(parseISO(a.end_date), 'MMM d, yyyy')}` : `, ${format(parseISO(a.start_date), 'yyyy')}`}
+                          {format(parseISO(a.start_date), 'MMM d', { locale: dateLocale })}{a.start_date !== a.end_date ? ` — ${format(parseISO(a.end_date), 'MMM d, yyyy', { locale: dateLocale })}` : `, ${format(parseISO(a.start_date), 'yyyy')}`}
                         </p>
                       </div>
                       <Badge variant="outline" className={cn("text-[10px]", a.type === 'sick' ? 'bg-destructive/10 text-destructive border-destructive/30' : 'bg-warning/10 text-warning border-warning/30')}>

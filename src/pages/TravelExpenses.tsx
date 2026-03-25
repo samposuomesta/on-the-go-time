@@ -111,7 +111,7 @@ export default function TravelExpenses() {
               <div className="flex justify-between items-start">
                 <div>
                   <p className="text-sm font-medium">{ex.projects?.name ?? t('entries.noProject')}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">{format(parseISO(ex.date), 'EEE, MMM d')}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{format(parseISO(ex.date), 'EEE, MMM d', { locale: dateLocale })}</p>
                 </div>
                 <div className="text-right flex flex-col items-end gap-1">
                   <div>

@@ -172,7 +172,7 @@ export default function VacationRequests() {
                 <div className="flex justify-between items-start">
                   <div>
                     <p className="text-sm font-medium">
-                      {format(parseISO(r.start_date), 'MMM d')} — {format(parseISO(r.end_date), 'MMM d, yyyy')}
+                      {format(parseISO(r.start_date), 'MMM d', { locale: dateLocale })} — {format(parseISO(r.end_date), 'MMM d, yyyy', { locale: dateLocale })}
                     </p>
                     {r.comment && (
                       <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{r.comment}</p>

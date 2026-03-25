@@ -142,7 +142,7 @@ export default function LongSickLeave() {
           absences.map((a) => (
             <div key={a.id} className="bg-card rounded-lg border border-border p-3 flex justify-between items-center">
               <div>
-                <p className="text-sm font-medium">{format(parseISO(a.start_date), 'MMM d')} — {format(parseISO(a.end_date), 'MMM d, yyyy')}</p>
+                <p className="text-sm font-medium">{format(parseISO(a.start_date), 'MMM d', { locale: dateLocale })} — {format(parseISO(a.end_date), 'MMM d, yyyy', { locale: dateLocale })}</p>
               </div>
               <div className="flex items-center gap-2">
                 <Badge variant="outline" className={cn("text-xs capitalize", statusColors[a.status])}>{t(`common.${a.status}` as any)}</Badge>
