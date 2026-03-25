@@ -42,6 +42,7 @@ const navItemDefs = [
   { key: 'reminders', labelKey: 'admin.reminders', icon: Bell, descKey: 'admin.remindersDesc' },
   { key: 'employees', labelKey: 'admin.employees', icon: Users, descKey: 'admin.employeesDesc' },
   { key: 'companies', labelKey: 'admin.companies', icon: Building2, descKey: 'admin.companiesDesc' },
+  { key: 'reports', labelKey: 'admin.reports', icon: Download, descKey: 'admin.reportsDesc' },
   { key: 'audit', labelKey: 'admin.audit', icon: FileText, descKey: 'admin.auditDesc' },
 ] as const;
 
