@@ -2864,20 +2864,20 @@ function AuditTrailPanel({ admin }: { admin: any }) {
 
       <div className="flex flex-wrap gap-3 items-end">
         <Select value={tableFilter} onValueChange={setTableFilter}>
-          <SelectTrigger className="w-[180px]"><SelectValue placeholder="All tables" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All tables</SelectItem>
-            {tables.map(t => <SelectItem key={t} value={t}>{t.replace(/_/g, ' ')}</SelectItem>)}
-          </SelectContent>
-        </Select>
-        <Select value={actionFilter} onValueChange={setActionFilter}>
-          <SelectTrigger className="w-[140px]"><SelectValue placeholder="All actions" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All actions</SelectItem>
-            <SelectItem value="INSERT">Insert</SelectItem>
-            <SelectItem value="UPDATE">Update</SelectItem>
-            <SelectItem value="DELETE">Delete</SelectItem>
-          </SelectContent>
+           <SelectTrigger className="w-[180px]"><SelectValue placeholder={t("admin.allTables")} /></SelectTrigger>
+           <SelectContent>
+             <SelectItem value="all">{t("admin.allTables")}</SelectItem>
+             {tables.map(t => <SelectItem key={t} value={t}>{t.replace(/_/g, ' ')}</SelectItem>)}
+           </SelectContent>
+         </Select>
+         <Select value={actionFilter} onValueChange={setActionFilter}>
+           <SelectTrigger className="w-[140px]"><SelectValue placeholder={t("admin.allActions")} /></SelectTrigger>
+           <SelectContent>
+             <SelectItem value="all">{t("admin.allActions")}</SelectItem>
+             <SelectItem value="INSERT">{t("admin.insert")}</SelectItem>
+             <SelectItem value="UPDATE">{t("admin.update")}</SelectItem>
+             <SelectItem value="DELETE">{t("admin.deleteAction")}</SelectItem>
+           </SelectContent>
         </Select>
         <div className="space-y-1">
           <Label className="text-xs">{t("admin.from")}</Label>
