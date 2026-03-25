@@ -1965,8 +1965,8 @@ function CompaniesPanel({ admin }: { admin: any }) {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-display font-bold">Companies</h2>
-          <p className="text-sm text-muted-foreground">{companies.length} companies</p>
+          <h2 className="text-xl font-display font-bold">{t('admin.companiesTitle')}</h2>
+          <p className="text-sm text-muted-foreground">{companies.length} {t('admin.companiesTitle').toLowerCase()}</p>
         </div>
         <AddCompanyDialog onCreate={(data) => { admin.createCompany.mutate(data); toast.success('Company added'); }} />
       </div>
