@@ -2035,27 +2035,30 @@ function WorkplacesPanel({ admin }: { admin: any }) {
                   <TableHead className="font-semibold">{t("common.name")}</TableHead>
                   <TableHead className="font-semibold">{t("admin.latitude")}</TableHead>
                   <TableHead className="font-semibold">{t("admin.longitude")}</TableHead>
-                  <TableHead className="font-semibold">{t("admin.radiusLabel")}</TableHead>
-                  <TableHead className="w-[60px]"></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {workplaces.length === 0 ? (
-                  <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-12">{t('admin.noWorkplaces')}</TableCell></TableRow>
-                ) : workplaces.map((w: any) => (
-                  <TableRow key={w.id} className="hover:bg-muted/30">
-                    <TableCell className="font-medium">
-                      <div className="flex items-center gap-2"><MapPin className="h-4 w-4 text-primary shrink-0" />{w.name}</div>
-                    </TableCell>
-                    <TableCell className="font-mono text-sm">{w.latitude.toFixed(5)}</TableCell>
-                    <TableCell className="font-mono text-sm">{w.longitude.toFixed(5)}</TableCell>
-                    <TableCell>{w.radius_meters}m</TableCell>
-                    <TableCell>
-                      <Button size="icon" variant="ghost" className="text-destructive hover:text-destructive h-8 w-8"
-                        onClick={() => { admin.deleteWorkplace.mutate(w.id); toast.success(t('common.deleted')); }}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
+                   <TableHead className="font-semibold">{t("admin.radiusLabel")}</TableHead>
+                   <TableHead className="w-[100px]"></TableHead>
+                 </TableRow>
+               </TableHeader>
+               <TableBody>
+                 {workplaces.length === 0 ? (
+                   <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-12">{t('admin.noWorkplaces')}</TableCell></TableRow>
+                 ) : workplaces.map((w: any) => (
+                   <TableRow key={w.id} className="hover:bg-muted/30">
+                     <TableCell className="font-medium">
+                       <div className="flex items-center gap-2"><MapPin className="h-4 w-4 text-primary shrink-0" />{w.name}</div>
+                     </TableCell>
+                     <TableCell className="font-mono text-sm">{w.latitude.toFixed(5)}</TableCell>
+                     <TableCell className="font-mono text-sm">{w.longitude.toFixed(5)}</TableCell>
+                     <TableCell>{w.radius_meters}m</TableCell>
+                     <TableCell>
+                       <div className="flex gap-1">
+                         <EditWorkplaceDialog workplace={w} onUpdate={(data) => { admin.updateWorkplace.mutate({ id: w.id, ...data }); toast.success(t('common.saved')); }} />
+                         <Button size="icon" variant="ghost" className="text-destructive hover:text-destructive h-8 w-8"
+                           onClick={() => { admin.deleteWorkplace.mutate(w.id); toast.success(t('common.deleted')); }}>
+                           <Trash2 className="h-4 w-4" />
+                         </Button>
+                       </div>
+                     </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
