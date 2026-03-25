@@ -78,12 +78,12 @@ function ApproveRejectButtons({ id, onApprove, isPending, t }: {
   );
 }
 
-function SickLeaveApproveButtons({ id, onApprove, isPending, t }: {
+function SickLeaveApproveButtons({ id, onApprove, isPending }: {
   id: string;
   onApprove: (id: string, status: 'approved' | 'rejected') => void;
   isPending?: boolean;
-  t: (key: any) => string;
 }) {
+  const { t } = useTranslation();
   const [certDialogOpen, setCertDialogOpen] = useState(false);
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
 
