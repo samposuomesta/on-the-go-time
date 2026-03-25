@@ -599,7 +599,7 @@ const translations = {
     // Menu
     'menu.title': 'Valikko',
     'menu.vacationRequests': 'Lomapyynnöt',
-    'menu.longSickLeave': 'Pitkä sairausloma',
+    'menu.longSickLeave': 'Poissaolo ilmoitus',
     'menu.myEntries': 'Omat kirjaukset',
     'menu.myStatistics': 'Omat tilastot',
     'menu.travelExpenses': 'Matkakulut',
