@@ -267,13 +267,13 @@ export function VacationTimeline({ employees, vacationRequests, userManagers, co
                                             <div className="flex gap-1 mt-1.5">
                                               <Button size="sm" variant="outline" className="h-6 text-[10px] gap-1 text-success border-success/30"
                                                 disabled={isPending}
-                                                onClick={() => { onApprove(vac.id, 'approved'); toast.success('Approved'); }}>
-                                                <CheckCircle2 className="h-3 w-3" /> Approve
+                                                onClick={() => { onApprove(vac.id, 'approved'); toast.success(t('admin.approved')); }}>
+                                                <CheckCircle2 className="h-3 w-3" /> {t('admin.approve')}
                                               </Button>
                                               <Button size="sm" variant="outline" className="h-6 text-[10px] gap-1 text-destructive border-destructive/30"
                                                 disabled={isPending}
-                                                onClick={() => { onApprove(vac.id, 'rejected'); toast.success('Rejected'); }}>
-                                                <XCircle className="h-3 w-3" /> Reject
+                                                onClick={() => { onApprove(vac.id, 'rejected'); toast.success(t('admin.rejected')); }}>
+                                                <XCircle className="h-3 w-3" /> {t('admin.reject')}
                                               </Button>
                                             </div>
                                           )}
