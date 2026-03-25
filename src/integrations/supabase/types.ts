@@ -780,6 +780,10 @@ export type Database = {
       auth_user_company_id: { Args: never; Returns: string }
       auth_user_id: { Args: never; Returns: string }
       auth_user_role: { Args: never; Returns: string }
+      is_same_company_user: {
+        Args: { _target_user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       absence_type: "sick" | "absence"
