@@ -54,24 +54,25 @@ function StatusBadge({ status }: { status: string }) {
   return <Badge variant="outline" className={cn("capitalize text-xs", config[status])}>{status}</Badge>;
 }
 
-function ApproveRejectButtons({ id, onApprove, isPending }: {
+function ApproveRejectButtons({ id, onApprove, isPending, t }: {
   id: string;
   onApprove: (id: string, status: 'approved' | 'rejected') => void;
   isPending?: boolean;
+  t: (key: any) => string;
 }) {
   return (
     <div className="flex gap-1.5">
       <Button size="sm" variant="outline"
         className="gap-1 text-xs h-8 text-success hover:text-success border-success/30 hover:bg-success/10"
         disabled={isPending}
-        onClick={() => { onApprove(id, 'approved'); toast.success('Approved'); }}>
-        <CheckCircle2 className="h-3.5 w-3.5" /> Approve
+        onClick={() => { onApprove(id, 'approved'); toast.success(t('admin.approved')); }}>
+        <CheckCircle2 className="h-3.5 w-3.5" /> {t('admin.approve')}
       </Button>
       <Button size="sm" variant="outline"
         className="gap-1 text-xs h-8 text-destructive hover:text-destructive border-destructive/30 hover:bg-destructive/10"
         disabled={isPending}
-        onClick={() => { onApprove(id, 'rejected'); toast.success('Rejected'); }}>
-        <XCircle className="h-3.5 w-3.5" /> Reject
+        onClick={() => { onApprove(id, 'rejected'); toast.success(t('admin.rejected')); }}>
+        <XCircle className="h-3.5 w-3.5" /> {t('admin.reject')}
       </Button>
     </div>
   );
