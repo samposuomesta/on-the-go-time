@@ -12,6 +12,7 @@ import { useOfflineSync } from '@/hooks/useOfflineSync';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useTranslation } from '@/lib/i18n';
 import { StatusCard } from './StatusCard';
+import { HeaderClock } from './HeaderClock';
 import { ActionButton } from './ActionButton';
 import { AddProjectHoursDialog } from './AddProjectHoursDialog';
 import { AbsenceReasonDialog } from './AbsenceReasonDialog';
