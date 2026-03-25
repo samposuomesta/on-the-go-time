@@ -353,6 +353,14 @@ export function useAdminData() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-workplaces'] }),
   });
 
+  const updateWorkplace = useMutation({
+    mutationFn: async ({ id, ...data }: { id: string; name?: string; latitude?: number; longitude?: number; radius_meters?: number }) => {
+      const { error } = await supabase.from('workplaces').update(data).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-workplaces'] }),
+  });
+
   const deleteWorkplace = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from('workplaces').delete().eq('id', id);
