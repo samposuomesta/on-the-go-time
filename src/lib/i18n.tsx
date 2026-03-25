@@ -974,6 +974,7 @@ const translations = {
     'common.email': 'Sähköposti',
     'common.role': 'Rooli',
     'common.actions': 'Toiminnot',
+    'common.saved': 'Tallennettu',
     'common.updated': 'Päivitetty',
     'common.deleted': 'Poistettu',
     'common.added': 'Lisätty',
