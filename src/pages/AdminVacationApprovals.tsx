@@ -151,7 +151,7 @@ export default function AdminVacationApprovals() {
                             disabled={approveVacation.isPending}
                             onClick={() => approveVacation.mutate({ id: r.id, status: 'approved' })}
                           >
-                            <CheckCircle2 className="h-4 w-4" /> Approve
+                            <CheckCircle2 className="h-4 w-4" /> {t('admin.approve')}
                           </Button>
                           <Button
                             size="sm"
@@ -160,7 +160,7 @@ export default function AdminVacationApprovals() {
                             disabled={approveVacation.isPending}
                             onClick={() => approveVacation.mutate({ id: r.id, status: 'rejected' })}
                           >
-                            <XCircle className="h-4 w-4" /> Reject
+                            <XCircle className="h-4 w-4" /> {t('admin.reject')}
                           </Button>
                         </div>
                       </TableCell>
