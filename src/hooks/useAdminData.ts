@@ -56,18 +56,8 @@ export function useAdminData() {
     },
   });
 
-  const workplaces = useQuery({
-    queryKey: ['admin-workplaces'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('workplaces')
-        .select('*')
-        .eq('company_id', companyId)
-        .order('name');
-      if (error) throw error;
-      return data;
-    },
-  });
+
+
 
   const absenceReasons = useQuery({
     queryKey: ['admin-absence-reasons'],
@@ -345,29 +335,8 @@ export function useAdminData() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-companies'] }),
   });
 
-  const createWorkplace = useMutation({
-    mutationFn: async (data: { name: string; latitude: number; longitude: number; radius_meters: number }) => {
-      const { error } = await supabase.from('workplaces').insert({ ...data, company_id: companyId });
-      if (error) throw error;
-    },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-workplaces'] }),
-  });
 
-  const updateWorkplace = useMutation({
-    mutationFn: async ({ id, ...data }: { id: string; name?: string; latitude?: number; longitude?: number; radius_meters?: number }) => {
-      const { error } = await supabase.from('workplaces').update(data).eq('id', id);
-      if (error) throw error;
-    },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-workplaces'] }),
-  });
 
-  const deleteWorkplace = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from('workplaces').delete().eq('id', id);
-      if (error) throw error;
-    },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-workplaces'] }),
-  });
 
   const createReminder = useMutation({
     mutationFn: async (data: { type: string; time: string; message: string; message_fi?: string; day_of_month?: number; resend_after_days?: number }) => {
@@ -530,14 +499,13 @@ export function useAdminData() {
   });
 
   return {
-    employees, projects, companies, workplaces, reminderRules, userManagers, absenceReasons, auditLog,
+    employees, projects, companies, reminderRules, userManagers, absenceReasons, auditLog,
     pendingTravel, pendingHours, pendingTimeEntries, absences, vacationRequests,
     allTimeEntries, allWorkBank, allTravel, allHours, allTimeEntriesWithNames,
     approveTravel, approveHours, approveAbsence, approveVacation, approveTimeEntry, updateTimeEntry,
     updateProjectHours, updateTravelExpense, insertAuditReason,
     updateEmployee, toggleProject, createProject, updateProject, createEmployee,
     createCompany, updateCompany,
-    createWorkplace, updateWorkplace, deleteWorkplace,
     createReminder, updateReminder, toggleReminder, deleteReminder,
     createAbsenceReason, updateAbsenceReason, toggleAbsenceReason, deleteAbsenceReason,
     setEmployeeManagers, addBankAdjustment, setBankBalance,

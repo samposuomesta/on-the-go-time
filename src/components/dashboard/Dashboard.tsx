@@ -8,7 +8,7 @@ import {
 import { useTimeTracking, OverlapEntry } from '@/hooks/useTimeTracking';
 import { useWorkBank } from '@/hooks/useWorkBank';
 import { useOfflineSync } from '@/hooks/useOfflineSync';
-import { useWorkplaceDetection } from '@/hooks/useWorkplaceDetection';
+
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useTranslation } from '@/lib/i18n';
 import { StatusCard } from './StatusCard';
@@ -48,7 +48,7 @@ export function Dashboard() {
   const { data: currentUser } = useCurrentUser();
   const { t } = useTranslation();
   useOfflineSync();
-  useWorkplaceDetection(!!activeEntry);
+  
   const navigate = useNavigate();
   const [showProjectHours, setShowProjectHours] = useState(false);
   const [expenseMode, setExpenseMode] = useState<'kilometers' | 'parking' | 'receipt' | null>(null);

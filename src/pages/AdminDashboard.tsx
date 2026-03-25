@@ -3,7 +3,7 @@ import { format, parseISO, differenceInBusinessDays, differenceInHours, differen
 import { useDateLocale } from '@/lib/date-locale';
 import {
   ArrowLeft, Users, Briefcase, Car, Clock, CalendarOff,
-  CalendarDays, Plus, Pencil, MapPin, Bell, Building2, Trash2, CheckCircle2, XCircle, X, BarChart3, CalendarIcon, FileText, Download, Upload
+  CalendarDays, Plus, Pencil, Bell, Building2, Trash2, CheckCircle2, XCircle, X, BarChart3, CalendarIcon, FileText, Download, Upload
 } from 'lucide-react';
 import { Link, Navigate } from 'react-router-dom';
 import { useAdminData } from '@/hooks/useAdminData';
@@ -38,7 +38,7 @@ const navItemDefs = [
   { key: 'absences', labelKey: 'admin.absences', icon: CalendarOff, descKey: 'admin.absencesDesc' },
   { key: 'projects', labelKey: 'admin.projects', icon: Briefcase, descKey: 'admin.projectsDesc' },
   { key: 'project-management', labelKey: 'admin.projectManagement', icon: BarChart3, descKey: 'admin.projectManagementDesc' },
-  { key: 'workplaces', labelKey: 'admin.workplaces', icon: MapPin, descKey: 'admin.workplacesDesc' },
+  
   { key: 'reminders', labelKey: 'admin.reminders', icon: Bell, descKey: 'admin.remindersDesc' },
   { key: 'employees', labelKey: 'admin.employees', icon: Users, descKey: 'admin.employeesDesc' },
   { key: 'companies', labelKey: 'admin.companies', icon: Building2, descKey: 'admin.companiesDesc' },
@@ -272,7 +272,7 @@ function AdminContent({ activeTab, admin, canSeeUser, isManager }: { activeTab: 
     case 'absences': return <AbsencesPanel admin={admin} canSeeUser={canSeeUser} />;
     case 'vacation-approvals': return <VacationApprovalsPanel admin={admin} canSeeUser={canSeeUser} />;
     case 'companies': return isManager ? null : <CompaniesPanel admin={admin} />;
-    case 'workplaces': return <WorkplacesPanel admin={admin} />;
+    
     case 'reminders': return <RemindersPanel admin={admin} />;
     case 'audit': return isManager ? null : <AuditTrailPanel admin={admin} />;
     default: return null;
@@ -2012,64 +2012,6 @@ function CompaniesPanel({ admin }: { admin: any }) {
   );
 }
 
-/* ===== GPS WORKPLACES ===== */
-
-function WorkplacesPanel({ admin }: { admin: any }) {
-  const { t } = useTranslation();
-  const workplaces = admin.workplaces.data ?? [];
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-xl font-display font-bold">{t('admin.gpsWorkplaceLocations')}</h2>
-          <p className="text-sm text-muted-foreground">{workplaces.length} {t('admin.locationsConfigured')}</p>
-        </div>
-        <AddWorkplaceDialog onCreate={(data) => { admin.createWorkplace.mutate(data); toast.success(t('admin.workplaceAdded')); }} />
-      </div>
-      <Card>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-muted/50">
-                  <TableHead className="font-semibold">{t("common.name")}</TableHead>
-                  <TableHead className="font-semibold">{t("admin.latitude")}</TableHead>
-                  <TableHead className="font-semibold">{t("admin.longitude")}</TableHead>
-                   <TableHead className="font-semibold">{t("admin.radiusLabel")}</TableHead>
-                   <TableHead className="w-[100px]"></TableHead>
-                 </TableRow>
-               </TableHeader>
-               <TableBody>
-                 {workplaces.length === 0 ? (
-                   <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-12">{t('admin.noWorkplaces')}</TableCell></TableRow>
-                 ) : workplaces.map((w: any) => (
-                   <TableRow key={w.id} className="hover:bg-muted/30">
-                     <TableCell className="font-medium">
-                       <div className="flex items-center gap-2"><MapPin className="h-4 w-4 text-primary shrink-0" />{w.name}</div>
-                     </TableCell>
-                     <TableCell className="font-mono text-sm">{w.latitude.toFixed(5)}</TableCell>
-                     <TableCell className="font-mono text-sm">{w.longitude.toFixed(5)}</TableCell>
-                     <TableCell>{w.radius_meters}m</TableCell>
-                     <TableCell>
-                       <div className="flex gap-1">
-                         <EditWorkplaceDialog workplace={w} onUpdate={(data) => { admin.updateWorkplace.mutate({ id: w.id, ...data }); toast.success(t('common.saved')); }} />
-                         <Button size="icon" variant="ghost" className="text-destructive hover:text-destructive h-8 w-8"
-                           onClick={() => { admin.deleteWorkplace.mutate(w.id); toast.success(t('common.deleted')); }}>
-                           <Trash2 className="h-4 w-4" />
-                         </Button>
-                       </div>
-                     </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
-
 /* ===== REMINDERS ===== */
 
 function RemindersPanel({ admin }: { admin: any }) {
@@ -2613,90 +2555,6 @@ function EditCompanyDialog({ company, onSave }: { company: any; onSave: (data: a
           onSave({ name: name.trim(), company_id_code: companyIdCode.trim() || null, address: address.trim() || null, country: country || null, km_rate: parseFloat(kmRate) || 0.25 });
           setOpen(false);
         }}>{t("admin.saveChanges")}</Button>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-function AddWorkplaceDialog({ onCreate }: { onCreate: (data: { name: string; latitude: number; longitude: number; radius_meters: number }) => void }) {
-  const { t } = useTranslation();
-  const [open, setOpen] = useState(false);
-  const [name, setName] = useState('');
-  const [lat, setLat] = useState('');
-  const [lng, setLng] = useState('');
-  const [radius, setRadius] = useState('200');
-
-  const useCurrentLocation = () => {
-    navigator.geolocation.getCurrentPosition(
-      (pos) => { setLat(pos.coords.latitude.toFixed(6)); setLng(pos.coords.longitude.toFixed(6)); toast.success(t('admin.locationCaptured')); },
-      () => toast.error(t('admin.couldNotGetLocation')),
-      { timeout: 5000 }
-    );
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setName(''); setLat(''); setLng(''); setRadius('200'); } }}>
-      <DialogTrigger asChild><Button className="gap-1.5"><Plus className="h-4 w-4" /> {t("admin.addWorkplace")}</Button></DialogTrigger>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader><DialogTitle className="font-display">{t("admin.addWorkplaceLocation")}</DialogTitle></DialogHeader>
-        <div className="space-y-4 mt-2">
-          <div className="space-y-1.5"><Label>{t("common.name")}</Label><Input value={name} onChange={(e) => setName(e.target.value)} placeholder={t("admin.addWorkplace")} /></div>
-           <Button type="button" variant="outline" className="w-full gap-1.5" onClick={useCurrentLocation}>
-             <MapPin className="h-4 w-4" /> {t('admin.useCurrentLocationBtn')}
-          </Button>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5"><Label>{t("admin.latitude")}</Label><Input type="number" step="0.000001" value={lat} onChange={(e) => setLat(e.target.value)} placeholder="60.1699" /></div>
-            <div className="space-y-1.5"><Label>{t("admin.longitude")}</Label><Input type="number" step="0.000001" value={lng} onChange={(e) => setLng(e.target.value)} placeholder="24.9384" /></div>
-          </div>
-          <div className="space-y-1.5"><Label>{t("admin.radius")}</Label><Input type="number" value={radius} onChange={(e) => setRadius(e.target.value)} min="50" max="5000" /></div>
-          <Button className="w-full" disabled={!name.trim() || !lat || !lng} onClick={() => {
-            onCreate({ name: name.trim(), latitude: parseFloat(lat), longitude: parseFloat(lng), radius_meters: parseInt(radius) || 200 });
-            setOpen(false); setName(''); setLat(''); setLng(''); setRadius('200');
-          }}>{t("admin.addWorkplace")}</Button>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-function EditWorkplaceDialog({ workplace, onUpdate }: { workplace: any; onUpdate: (data: { name: string; latitude: number; longitude: number; radius_meters: number }) => void }) {
-  const { t } = useTranslation();
-  const [open, setOpen] = useState(false);
-  const [name, setName] = useState(workplace.name);
-  const [lat, setLat] = useState(String(workplace.latitude));
-  const [lng, setLng] = useState(String(workplace.longitude));
-  const [radius, setRadius] = useState(String(workplace.radius_meters));
-
-  const useCurrentLocation = () => {
-    navigator.geolocation.getCurrentPosition(
-      (pos) => { setLat(pos.coords.latitude.toFixed(6)); setLng(pos.coords.longitude.toFixed(6)); toast.success(t('admin.locationCaptured')); },
-      () => toast.error(t('admin.couldNotGetLocation')),
-      { timeout: 5000 }
-    );
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (o) { setName(workplace.name); setLat(String(workplace.latitude)); setLng(String(workplace.longitude)); setRadius(String(workplace.radius_meters)); } }}>
-      <DialogTrigger asChild>
-        <Button size="icon" variant="ghost" className="h-8 w-8"><Pencil className="h-4 w-4" /></Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader><DialogTitle className="font-display">{t("admin.editWorkplace")}</DialogTitle></DialogHeader>
-        <div className="space-y-4 mt-2">
-          <div className="space-y-1.5"><Label>{t("common.name")}</Label><Input value={name} onChange={(e) => setName(e.target.value)} /></div>
-          <Button type="button" variant="outline" className="w-full gap-1.5" onClick={useCurrentLocation}>
-            <MapPin className="h-4 w-4" /> {t('admin.useCurrentLocationBtn')}
-          </Button>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5"><Label>{t("admin.latitude")}</Label><Input type="number" step="0.000001" value={lat} onChange={(e) => setLat(e.target.value)} /></div>
-            <div className="space-y-1.5"><Label>{t("admin.longitude")}</Label><Input type="number" step="0.000001" value={lng} onChange={(e) => setLng(e.target.value)} /></div>
-          </div>
-          <div className="space-y-1.5"><Label>{t("admin.radius")}</Label><Input type="number" value={radius} onChange={(e) => setRadius(e.target.value)} min="50" max="5000" /></div>
-          <Button className="w-full" disabled={!name.trim() || !lat || !lng} onClick={() => {
-            onUpdate({ name: name.trim(), latitude: parseFloat(lat), longitude: parseFloat(lng), radius_meters: parseInt(radius) || 200 });
-            setOpen(false);
-          }}>{t("common.save")}</Button>
-        </div>
       </DialogContent>
     </Dialog>
   );
