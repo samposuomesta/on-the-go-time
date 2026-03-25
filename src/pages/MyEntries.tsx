@@ -223,7 +223,7 @@ export default function MyEntries() {
                   <div className="flex justify-between items-start">
                     <div>
                       <div className="flex items-center gap-2">
-                        <p className="text-sm font-medium">{format(new Date(e.start_time), 'EEE, MMM d')}</p>
+                        <p className="text-sm font-medium">{format(new Date(e.start_time), 'EEE, MMM d', { locale: dateLocale })}</p>
                         <StatusBadge status={e.status} t={t} />
                       </div>
                       <p className="text-xs text-muted-foreground mt-0.5">
