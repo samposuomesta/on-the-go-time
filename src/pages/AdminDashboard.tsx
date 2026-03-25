@@ -443,8 +443,8 @@ function StatisticsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: s
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <h2 className="text-xl font-display font-bold">Statistics Overview</h2>
-          <p className="text-sm text-muted-foreground">Company-wide metrics and per-employee breakdown</p>
+          <h2 className="text-xl font-display font-bold">{t('admin.statisticsOverview')}</h2>
+          <p className="text-sm text-muted-foreground">{t('admin.companyMetrics')}</p>
         </div>
         <StatisticsDatePicker fromDate={overviewFrom} toDate={overviewTo} setFromDate={setOverviewFrom} setToDate={setOverviewTo} />
       </div>
