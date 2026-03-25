@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Clock, Timer, CheckCircle2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
-import { ActiveEntry } from '@/hooks/useTimeTracking';
+import { ActiveEntry, CompletedEntry } from '@/hooks/useTimeTracking';
 import { format } from 'date-fns';
 import { useTranslation } from '@/lib/i18n';
 
@@ -25,14 +25,22 @@ function useElapsedTime(startTime: string | null) {
   return elapsed;
 }
 
+function formatDurationHM(start: string, end: string) {
+  const ms = new Date(end).getTime() - new Date(start).getTime();
+  const h = Math.floor(ms / 3600000);
+  const m = Math.floor((ms % 3600000) / 60000);
+  return `${h}h ${m}m`;
+}
+
 interface StatusCardProps {
   activeEntry: ActiveEntry | null;
   loading: boolean;
   bankBalance: number;
   todayCompleted?: boolean;
+  todayEntries?: CompletedEntry[];
 }
 
-export function StatusCard({ activeEntry, loading, bankBalance, todayCompleted }: StatusCardProps) {
+export function StatusCard({ activeEntry, loading, bankBalance, todayCompleted, todayEntries = [] }: StatusCardProps) {
   const { t } = useTranslation();
   const elapsed = useElapsedTime(activeEntry?.start_time ?? null);
 
@@ -81,6 +89,22 @@ export function StatusCard({ activeEntry, loading, bankBalance, todayCompleted }
             </p>
           </div>
         </div>
+
+        {/* Today's completed sessions */}
+        {todayEntries.length > 0 && (
+          <div className="space-y-1 pt-1 border-t border-border">
+            <span className="text-xs text-muted-foreground">{t('dashboard.todaySessions') ?? 'Tänään'}</span>
+            {todayEntries.map((entry) => (
+              <div key={entry.id} className="flex items-center justify-between text-xs">
+                <span className="text-muted-foreground tabular-nums">
+                  {format(new Date(entry.start_time), 'HH:mm')} – {format(new Date(entry.end_time), 'HH:mm')}
+                </span>
+                <span className="font-medium tabular-nums">{formatDurationHM(entry.start_time, entry.end_time)}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
         <div className="flex items-center gap-2 pt-1 border-t border-border">
           <span className="text-xs text-muted-foreground">{t('dashboard.timeBank')}</span>
           <span className={`text-sm font-semibold ${bankBalance >= 0 ? 'text-success' : 'text-destructive'}`}>
