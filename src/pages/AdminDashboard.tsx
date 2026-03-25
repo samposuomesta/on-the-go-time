@@ -457,7 +457,7 @@ function StatisticsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: s
               <div className="rounded-lg bg-primary/10 p-2.5"><Clock className="h-5 w-5 text-primary" /></div>
               <div>
                 <p className="text-2xl font-bold">{totalWorkedHours.toFixed(1)}</p>
-                <p className="text-xs text-muted-foreground">Total Work Hours</p>
+                <p className="text-xs text-muted-foreground">{t('admin.totalWorkHours')}</p>
               </div>
             </div>
           </CardContent>
