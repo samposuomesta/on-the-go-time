@@ -61,6 +61,17 @@ export function StatusCard({ activeEntry, loading, bankBalance, todayCompleted, 
   };
   const status = getStatus();
 
+  // Total worked time today from completed entries (ms)
+  const totalWorkedMs = todayEntries.reduce((sum, e) => {
+    return sum + (new Date(e.end_time).getTime() - new Date(e.start_time).getTime());
+  }, 0);
+  const totalH = String(Math.floor(totalWorkedMs / 3600000)).padStart(2, '0');
+  const totalM = String(Math.floor((totalWorkedMs % 3600000) / 60000)).padStart(2, '0');
+  const totalWorkedFormatted = `${totalH}:${totalM}`;
+
+  // Last completed entry for "Työpäivä kirjattu HH:mm - HH:mm"
+  const lastEntry = todayEntries.length > 0 ? todayEntries[todayEntries.length - 1] : null;
+
   return (
     <Card className={status === 'active' ? 'border-success/30 bg-success/5' : status === 'completed' ? 'border-success/30 bg-success/5' : ''}>
       <CardContent className="p-4 space-y-3">
@@ -78,32 +89,23 @@ export function StatusCard({ activeEntry, loading, bankBalance, todayCompleted, 
           </div>
           <div>
             <p className="text-sm font-medium text-muted-foreground">
-              {status === 'active' ? `${t('dashboard.workingSince')} ${format(new Date(activeEntry!.start_time), 'HH:mm')}` : status === 'completed' ? t('dashboard.workDayMarked') : t('dashboard.notClockedIn')}
+              {status === 'active'
+                ? `${t('dashboard.workingSince')} ${format(new Date(activeEntry!.start_time), 'HH:mm')}`
+                : status === 'completed' && lastEntry
+                ? `${t('dashboard.workDayMarked')} ${format(new Date(lastEntry.start_time), 'HH:mm')} – ${format(new Date(lastEntry.end_time), 'HH:mm')}`
+                : status === 'completed'
+                ? t('dashboard.workDayMarked')
+                : t('dashboard.notClockedIn')}
             </p>
             <p className="text-lg font-display font-semibold tabular-nums">
               {status === 'active'
                 ? elapsed
                 : status === 'completed'
-                ? t('dashboard.workDayCompleted')
+                ? `${t('dashboard.workTimeRecordedToday')} ${totalWorkedFormatted}`
                 : t('dashboard.startYourDay')}
             </p>
           </div>
         </div>
-
-        {/* Today's completed sessions */}
-        {todayEntries.length > 0 && (
-          <div className="space-y-1 pt-1 border-t border-border">
-            <span className="text-xs text-muted-foreground">{t('dashboard.todaySessions')}</span>
-            {todayEntries.map((entry) => (
-              <div key={entry.id} className="flex items-center justify-between text-xs">
-                <span className="text-muted-foreground tabular-nums">
-                  {format(new Date(entry.start_time), 'HH:mm')} – {format(new Date(entry.end_time), 'HH:mm')}
-                </span>
-                <span className="font-medium tabular-nums">{formatDurationHM(entry.start_time, entry.end_time)}</span>
-              </div>
-            ))}
-          </div>
-        )}
 
         <div className="flex items-center gap-2 pt-1 border-t border-border">
           <span className="text-xs text-muted-foreground">{t('dashboard.timeBank')}</span>
