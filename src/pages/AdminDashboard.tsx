@@ -2244,9 +2244,9 @@ function ImportEmployeesDialog({ onCreate, companies }: { onCreate: (data: any) 
                   </TableBody>
                 </Table>
               </div>
-              <Button className="w-full" disabled={preview.filter(r => !r.error).length === 0} onClick={handleImport}>
-                Import {preview.filter(r => !r.error).length} Employee(s)
-              </Button>
+               <Button className="w-full" disabled={preview.filter(r => !r.error).length === 0} onClick={handleImport}>
+                 {t('admin.importCount')} {preview.filter(r => !r.error).length} {t('admin.employees_count')}
+               </Button>
             </>
           )}
         </div>
