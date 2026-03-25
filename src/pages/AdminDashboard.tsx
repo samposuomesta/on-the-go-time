@@ -394,6 +394,7 @@ function StatisticsDatePicker({ fromDate, toDate, setFromDate, setToDate }: {
 }
 
 function StatisticsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: string) => boolean }) {
+  const { t } = useTranslation();
   const now = new Date();
   const defaultFrom = () => { const d = new Date(now); d.setDate(d.getDate() - 120); return d; };
 
