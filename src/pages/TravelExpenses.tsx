@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { format, startOfMonth, endOfMonth, parseISO } from 'date-fns';
+import { useDateLocale } from '@/lib/date-locale';
 import { ArrowLeft, Car, CalendarIcon, Download } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { exportTravelExpensesCSV } from '@/lib/csv-export';
