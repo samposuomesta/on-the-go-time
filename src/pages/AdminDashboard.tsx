@@ -1968,7 +1968,7 @@ function CompaniesPanel({ admin }: { admin: any }) {
           <h2 className="text-xl font-display font-bold">{t('admin.companiesTitle')}</h2>
           <p className="text-sm text-muted-foreground">{companies.length} {t('admin.companiesTitle').toLowerCase()}</p>
         </div>
-        <AddCompanyDialog onCreate={(data) => { admin.createCompany.mutate(data); toast.success('Company added'); }} />
+        <AddCompanyDialog onCreate={(data) => { admin.createCompany.mutate(data); toast.success(t('admin.companyAdded')); }} />
       </div>
       <Card>
         <CardContent className="p-0">
