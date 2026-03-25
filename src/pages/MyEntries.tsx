@@ -320,7 +320,7 @@ export default function MyEntries() {
           </TabsContent>
           <TabsContent value="absences" className="mt-3 space-y-2">
             {absences.length === 0 && vacations.length === 0 ? (
-              <EmptyState label="No absences in this period" />
+              <EmptyState label={t('entries.noAbsences')} />
             ) : (
               <>
                 {vacations.map((v: any) => (

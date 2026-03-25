@@ -1,13 +1,15 @@
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, differenceInMinutes } from 'date-fns';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, differenceInMinutes, addMonths, subMonths } from 'date-fns';
 import { useDateLocale } from '@/lib/date-locale';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useUserId } from '@/contexts/AuthContext';
 import { useTranslation } from '@/lib/i18n';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 
 const COLORS = ['hsl(220,25%,18%)', 'hsl(152,60%,40%)', 'hsl(38,92%,50%)', 'hsl(210,80%,52%)', 'hsl(0,72%,51%)'];
 
@@ -15,12 +17,13 @@ export default function MyStatistics() {
   const userId = useUserId();
   const { t } = useTranslation();
   const dateLocale = useDateLocale();
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const monthStart = startOfMonth(currentMonth);
+  const monthEnd = endOfMonth(currentMonth);
   const now = new Date();
-  const monthStart = startOfMonth(now);
-  const monthEnd = endOfMonth(now);
 
   const { data: timeEntries = [] } = useQuery({
-    queryKey: ['stats-time-entries'],
+    queryKey: ['stats-time-entries', monthStart.toISOString()],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('time_entries')
@@ -35,7 +38,7 @@ export default function MyStatistics() {
   });
 
   const { data: projectHours = [] } = useQuery({
-    queryKey: ['stats-project-hours'],
+    queryKey: ['stats-project-hours', monthStart.toISOString()],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('project_hours')
@@ -48,7 +51,7 @@ export default function MyStatistics() {
     },
   });
 
-  const days = eachDayOfInterval({ start: monthStart, end: now > monthEnd ? monthEnd : now });
+  const days = eachDayOfInterval({ start: monthStart, end: now > monthEnd ? monthEnd : (now < monthStart ? monthStart : now) });
   const dailyData = days.map(day => {
     const dayStr = format(day, 'yyyy-MM-dd');
     const hours = timeEntries
@@ -74,6 +77,8 @@ export default function MyStatistics() {
   const totalProjectHours = projectHours.reduce((s, ph) => s + Number(ph.hours), 0);
   const workDays = new Set(timeEntries.map(e => format(new Date(e.start_time), 'yyyy-MM-dd'))).size;
 
+  const isCurrentMonth = monthStart.getTime() === startOfMonth(now).getTime();
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <header className="sticky top-0 z-50 bg-card border-b border-border px-4 py-3 flex items-center gap-3">
@@ -81,7 +86,17 @@ export default function MyStatistics() {
           <ArrowLeft className="h-5 w-5" />
         </Link>
         <h1 className="text-lg font-display font-bold">{t('stats.title')}</h1>
-        <span className="text-xs text-muted-foreground ml-auto">{format(monthStart, 'MMMM yyyy', { locale: dateLocale })}</span>
+        <div className="ml-auto flex items-center gap-1">
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setCurrentMonth(prev => subMonths(prev, 1))}>
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <span className="text-sm font-medium capitalize min-w-[120px] text-center">
+            {format(monthStart, 'MMMM yyyy', { locale: dateLocale })}
+          </span>
+          <Button variant="ghost" size="icon" className="h-8 w-8" disabled={isCurrentMonth} onClick={() => setCurrentMonth(prev => addMonths(prev, 1))}>
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
       </header>
 
       <main className="flex-1 px-4 py-4 max-w-lg mx-auto w-full space-y-4">
@@ -130,31 +145,33 @@ export default function MyStatistics() {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-display">{t('stats.projectHours')} ({totalProjectHours.toFixed(1)}h)</CardTitle>
           </CardHeader>
-          <CardContent className="h-48">
+          <CardContent className="min-h-[12rem]">
             {projectData.length > 0 ? (
-              <div className="flex items-center gap-4 h-full">
-                <ResponsiveContainer width="50%" height="100%">
-                  <PieChart>
-                    <Pie data={projectData} dataKey="hours" nameKey="name" cx="50%" cy="50%" outerRadius={60}>
-                      {projectData.map((_, i) => (
-                        <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={(val: number) => [`${val}h`, t('projectHours.hours')]} />
-                  </PieChart>
-                </ResponsiveContainer>
-                <div className="space-y-1.5 flex-1">
+              <div className="flex items-start gap-4">
+                <div className="w-1/2 h-48">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie data={projectData} dataKey="hours" nameKey="name" cx="50%" cy="50%" outerRadius={60}>
+                        {projectData.map((_, i) => (
+                          <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip formatter={(val: number) => [`${val}h`, t('projectHours.hours')]} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="space-y-1.5 flex-1 pt-2">
                   {projectData.map((p, i) => (
-                    <div key={p.name} className="flex items-center gap-2 text-xs">
-                      <div className="w-3 h-3 rounded-sm shrink-0" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
-                      <span className="truncate">{p.name}</span>
-                      <span className="ml-auto font-medium">{p.hours}h</span>
+                    <div key={p.name} className="flex items-start gap-2 text-xs">
+                      <div className="w-3 h-3 rounded-sm shrink-0 mt-0.5" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
+                      <span className="break-words flex-1 leading-tight">{p.name}</span>
+                      <span className="ml-auto font-medium shrink-0">{p.hours}h</span>
                     </div>
                   ))}
                 </div>
               </div>
             ) : (
-              <div className="flex items-center justify-center h-full text-sm text-muted-foreground">{t('stats.noProjectHours')}</div>
+              <div className="flex items-center justify-center h-48 text-sm text-muted-foreground">{t('stats.noProjectHours')}</div>
             )}
           </CardContent>
         </Card>
