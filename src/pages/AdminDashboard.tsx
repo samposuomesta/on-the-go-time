@@ -51,7 +51,9 @@ function StatusBadge({ status }: { status: string }) {
     approved: 'bg-success/15 text-success border-success/30',
     rejected: 'bg-destructive/15 text-destructive border-destructive/30',
   };
-  return <Badge variant="outline" className={cn("capitalize text-xs", config[status])}>{status}</Badge>;
+  const { t } = useTranslation();
+  const statusLabels: Record<string, string> = { pending: t('common.pending'), approved: t('common.approved'), rejected: t('common.rejected') };
+  return <Badge variant="outline" className={cn("capitalize text-xs", config[status])}>{statusLabels[status] ?? status}</Badge>;
 }
 
 function ApproveRejectButtons({ id, onApprove, isPending }: {
