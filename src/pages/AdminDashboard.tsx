@@ -1999,7 +1999,7 @@ function CompaniesPanel({ admin }: { admin: any }) {
                     </TableCell>
                     <TableCell>€{Number(c.km_rate).toFixed(2)}/km</TableCell>
                     <TableCell>
-                      <EditCompanyDialog company={c} onSave={(data) => { admin.updateCompany.mutate({ id: c.id, ...data }); toast.success('Updated'); }} />
+                      <EditCompanyDialog company={c} onSave={(data) => { admin.updateCompany.mutate({ id: c.id, ...data }); toast.success(t('common.updated')); }} />
                     </TableCell>
                   </TableRow>
                 ))}
