@@ -332,7 +332,7 @@ export default function MyEntries() {
                           <StatusBadge status={v.status} t={t} />
                         </div>
                         <p className="text-xs text-muted-foreground mt-0.5">
-                          {format(parseISO(v.start_date), 'MMM d')} — {format(parseISO(v.end_date), 'MMM d, yyyy')}
+                          {format(parseISO(v.start_date), 'MMM d', { locale: dateLocale })} — {format(parseISO(v.end_date), 'MMM d, yyyy', { locale: dateLocale })}
                         </p>
                       </div>
                       <Badge variant="outline" className="text-[10px] bg-primary/10 text-primary border-primary/30">Vacation</Badge>
