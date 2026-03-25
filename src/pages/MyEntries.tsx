@@ -171,7 +171,7 @@ export default function MyEntries() {
             <PopoverTrigger asChild>
               <Button variant="outline" className="flex-1 justify-start text-left font-normal gap-2">
                 <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-                <span>{format(range.to, 'MMM d, yyyy')}</span>
+                <span>{format(range.to, 'MMM d, yyyy', { locale: dateLocale })}</span>
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
