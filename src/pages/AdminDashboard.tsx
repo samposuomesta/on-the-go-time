@@ -2021,10 +2021,10 @@ function WorkplacesPanel({ admin }: { admin: any }) {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-display font-bold">GPS Workplace Locations</h2>
-          <p className="text-sm text-muted-foreground">{workplaces.length} locations configured</p>
+          <h2 className="text-xl font-display font-bold">{t('admin.gpsWorkplaceLocations')}</h2>
+          <p className="text-sm text-muted-foreground">{workplaces.length} {t('admin.locationsConfigured')}</p>
         </div>
-        <AddWorkplaceDialog onCreate={(data) => { admin.createWorkplace.mutate(data); toast.success('Workplace added'); }} />
+        <AddWorkplaceDialog onCreate={(data) => { admin.createWorkplace.mutate(data); toast.success(t('admin.workplaceAdded')); }} />
       </div>
       <Card>
         <CardContent className="p-0">
