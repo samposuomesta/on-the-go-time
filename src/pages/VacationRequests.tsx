@@ -115,7 +115,10 @@ export default function VacationRequests() {
 
               <div className="space-y-1.5">
                 <Label>{t('vacation.endDate')}</Label>
-                <Popover open={endOpen} onOpenChange={setEndOpen}>
+                <Popover open={endOpen} onOpenChange={(open) => {
+                  if (open && startDate && !endDate) setEndDate(startDate);
+                  setEndOpen(open);
+                }}>
                   <PopoverTrigger asChild>
                     <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !endDate && "text-muted-foreground")}>
                       <CalendarIcon className="h-4 w-4 mr-2" />
@@ -126,6 +129,7 @@ export default function VacationRequests() {
                     <Calendar
                       mode="single"
                       selected={endDate}
+                      defaultMonth={startDate || undefined}
                       onSelect={(d) => { setEndDate(d); setEndOpen(false); }}
                       disabled={(d) => d < (startDate || new Date(new Date().setHours(0, 0, 0, 0)))}
                       locale={dateLocale}

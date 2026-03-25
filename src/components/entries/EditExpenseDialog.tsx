@@ -33,8 +33,8 @@ export function EditExpenseDialog({ entry, open, onOpenChange }: Props) {
         .update({
           project_id: projectId || null,
           date,
-          kilometers: parseFloat(kilometers) || 0,
-          parking_cost: parseFloat(parkingCost) || 0,
+          kilometers: parseFloat(kilometers.replace(',', '.')) || 0,
+          parking_cost: parseFloat(parkingCost.replace(',', '.')) || 0,
           description: description || null,
         })
         .eq('id', entry.id)
@@ -86,11 +86,11 @@ export function EditExpenseDialog({ entry, open, onOpenChange }: Props) {
           </div>
           <div>
             <Label>{t('dashboard.kilometers')}</Label>
-            <Input type="number" step="0.1" min={0} value={kilometers} onChange={(e) => setKilometers(e.target.value)} />
+            <Input type="text" inputMode="decimal" value={kilometers} onChange={(e) => setKilometers(e.target.value)} />
           </div>
           <div>
             <Label>{t('dashboard.parking')} (€)</Label>
-            <Input type="number" step="0.01" min={0} value={parkingCost} onChange={(e) => setParkingCost(e.target.value)} />
+            <Input type="text" inputMode="decimal" value={parkingCost} onChange={(e) => setParkingCost(e.target.value)} />
           </div>
           <div>
             <Label>{t('projectHours.description')}</Label>

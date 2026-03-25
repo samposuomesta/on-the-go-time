@@ -23,6 +23,8 @@ export function AddExpenseDialog({ open, onOpenChange, mode }: Props) {
   const projects = useProjects();
   const { t } = useTranslation();
   const [projectId, setProjectId] = useState('');
+  const [customerName, setCustomerName] = useState('');
+  const [route, setRoute] = useState('');
   const [kilometers, setKilometers] = useState('');
   const [parkingCost, setParkingCost] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
@@ -88,12 +90,14 @@ export function AddExpenseDialog({ open, onOpenChange, mode }: Props) {
     const { error } = await supabase.from('travel_expenses').insert({
       user_id: userId,
       project_id: projectId || null,
+      customer_name: mode === 'kilometers' ? (customerName || null) : null,
+      route: mode === 'kilometers' ? (route || null) : null,
       date,
-      kilometers: mode === 'kilometers' ? parseFloat(kilometers) || 0 : 0,
-      parking_cost: mode === 'parking' ? parseFloat(parkingCost) || 0 : 0,
+      kilometers: mode === 'kilometers' ? parseFloat(kilometers.replace(',', '.')) || 0 : 0,
+      parking_cost: mode === 'parking' ? parseFloat(parkingCost.replace(',', '.')) || 0 : 0,
       description: description || null,
       receipt_image: receiptUrl,
-    });
+    } as any);
     setSaving(false);
     if (error) {
       toast.error(t('expense.failedToSave'));
@@ -102,6 +106,7 @@ export function AddExpenseDialog({ open, onOpenChange, mode }: Props) {
     toast.success(t('expense.added'));
     onOpenChange(false);
     setKilometers(''); setParkingCost(''); setDescription('');
+    setCustomerName(''); setRoute('');
     clearReceipt();
   };
 
@@ -112,31 +117,44 @@ export function AddExpenseDialog({ open, onOpenChange, mode }: Props) {
           <DialogTitle className="font-display">{t(titleKeys[mode])}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
-          <div>
-            <Label>{t('expense.project')}</Label>
-            <Select value={projectId} onValueChange={setProjectId}>
-              <SelectTrigger><SelectValue placeholder={t('expense.selectProject')} /></SelectTrigger>
-              <SelectContent>
-                {projects.map(p => (
-                  <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          {mode === 'kilometers' ? (
+            <div>
+              <Label>{t('expense.customer')}</Label>
+              <Input value={customerName} onChange={e => setCustomerName(e.target.value)} placeholder={t('expense.customerPlaceholder')} />
+            </div>
+          ) : (
+            <div>
+              <Label>{t('expense.project')}</Label>
+              <Select value={projectId} onValueChange={setProjectId}>
+                <SelectTrigger><SelectValue placeholder={t('expense.selectProject')} /></SelectTrigger>
+                <SelectContent>
+                  {projects.map(p => (
+                    <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
           <div>
             <Label>{t('expense.date')}</Label>
             <Input type="date" value={date} onChange={e => setDate(e.target.value)} />
           </div>
           {mode === 'kilometers' && (
-            <div>
-              <Label>{t('expense.kilometers')} *</Label>
-              <Input type="number" step="0.1" min="0" value={kilometers} onChange={e => setKilometers(e.target.value)} placeholder="0" />
-            </div>
+            <>
+              <div>
+                <Label>{t('expense.kilometers')} *</Label>
+                <Input type="text" inputMode="decimal" value={kilometers} onChange={e => setKilometers(e.target.value)} placeholder="0" />
+              </div>
+              <div>
+                <Label>{t('expense.route')}</Label>
+                <Input value={route} onChange={e => setRoute(e.target.value)} placeholder={t('expense.routePlaceholder')} />
+              </div>
+            </>
           )}
           {mode === 'parking' && (
             <div>
               <Label>{t('expense.parkingCost')} *</Label>
-              <Input type="number" step="0.01" min="0" value={parkingCost} onChange={e => setParkingCost(e.target.value)} placeholder="0.00" />
+              <Input type="text" inputMode="decimal" value={parkingCost} onChange={e => setParkingCost(e.target.value)} placeholder="0,00" />
             </div>
           )}
           {mode === 'receipt' && (

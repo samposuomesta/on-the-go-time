@@ -120,8 +120,8 @@ export default function AdminVacationApprovals() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>{t('admin.employee')}</TableHead>
-                    <TableHead>{t('admin.startDate')}</TableHead>
+                     <TableHead className="sticky left-0 bg-card z-10">{t('admin.employee')}</TableHead>
+                     <TableHead>{t('admin.startDate')}</TableHead>
                     <TableHead>{t('admin.endDate')}</TableHead>
                     <TableHead>{t('admin.comment')}</TableHead>
                     <TableHead>{t('admin.submitted')}</TableHead>
@@ -137,7 +137,7 @@ export default function AdminVacationApprovals() {
                     </TableRow>
                   ) : pending.map((r: any) => (
                     <TableRow key={r.id}>
-                      <TableCell className="font-medium">{r.users?.name ?? 'Unknown'}</TableCell>
+                      <TableCell className="font-medium sticky left-0 bg-card z-10">{r.users?.name ?? 'Unknown'}</TableCell>
                       <TableCell>{format(parseISO(r.start_date), 'd.M.yyyy')}</TableCell>
                       <TableCell>{format(parseISO(r.end_date), 'd.M.yyyy')}</TableCell>
                       <TableCell className="text-muted-foreground max-w-[200px] truncate">{r.comment || '—'}</TableCell>
@@ -185,11 +185,11 @@ export default function AdminVacationApprovals() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>{t('admin.employee')}</TableHead>
-                    <TableHead>{t('admin.startDate')}</TableHead>
-                    <TableHead>{t('admin.endDate')}</TableHead>
-                    <TableHead>{t('admin.comment')}</TableHead>
-                    <TableHead>{t('admin.status')}</TableHead>
+                     <TableHead className="sticky left-0 bg-card z-10">{t('admin.employee')}</TableHead>
+                     <TableHead>{t('admin.startDate')}</TableHead>
+                     <TableHead>{t('admin.endDate')}</TableHead>
+                     <TableHead>{t('admin.comment')}</TableHead>
+                     <TableHead>{t('admin.status')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -201,11 +201,11 @@ export default function AdminVacationApprovals() {
                     </TableRow>
                   ) : handled.map((r: any) => (
                     <TableRow key={r.id}>
-                      <TableCell className="font-medium">{r.users?.name ?? 'Unknown'}</TableCell>
-                      <TableCell>{format(parseISO(r.start_date), 'd.M.yyyy')}</TableCell>
-                      <TableCell>{format(parseISO(r.end_date), 'd.M.yyyy')}</TableCell>
-                      <TableCell className="text-muted-foreground max-w-[200px] truncate">{r.comment || '—'}</TableCell>
-                      <TableCell>{statusBadge(r.status)}</TableCell>
+                     <TableCell className="font-medium sticky left-0 bg-card z-10">{r.users?.name ?? 'Unknown'}</TableCell>
+                       <TableCell>{format(parseISO(r.start_date), 'd.M.yyyy')}</TableCell>
+                       <TableCell>{format(parseISO(r.end_date), 'd.M.yyyy')}</TableCell>
+                       <TableCell className="text-muted-foreground max-w-[200px] truncate">{r.comment || '—'}</TableCell>
+                       <TableCell>{statusBadge(r.status)}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
