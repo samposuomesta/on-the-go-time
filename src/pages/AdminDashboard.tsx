@@ -2795,7 +2795,7 @@ function AuditTrailPanel({ admin }: { admin: any }) {
         </div>
         <div className="space-y-1">
           <Label className="text-xs">{t("admin.to")}</Label>
-          <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="w-[150px] dark:[color-scheme:dark]" />
+          <DatePickerInput value={dateTo} onChange={setDateTo} />
         </div>
         {(tableFilter !== 'all' || actionFilter !== 'all' || dateFrom || dateTo) && (
            <Button variant="ghost" size="sm" onClick={() => { setTableFilter('all'); setActionFilter('all'); setDateFrom(''); setDateTo(''); }}>
