@@ -79,6 +79,11 @@ export function Dashboard() {
   };
 
   const markAbsence = async (type: 'sick' | 'absence') => {
+    // If clocked in, stop work first and record sick/absence for rest of day
+    if (activeEntry && type === 'sick') {
+      await stopWork();
+    }
+
     const { error } = await supabase.from('absences').insert({
       user_id: userId,
       type,
