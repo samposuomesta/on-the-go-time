@@ -196,10 +196,10 @@ export function Dashboard() {
         <section>
           <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">{t('dashboard.absence')}</h2>
           <div className="grid grid-cols-2 gap-3">
-            <ActionButton
+             <ActionButton
               icon={Thermometer}
               label={t('dashboard.sickToday')}
-              onClick={() => markAbsence('sick')}
+              onClick={() => setShowSickConfirm(true)}
               variant="secondary"
             />
             <ActionButton
