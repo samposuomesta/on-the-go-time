@@ -22,6 +22,8 @@ interface VacationTimelineProps {
 }
 
 export function VacationTimeline({ employees, vacationRequests, userManagers, companyCountry, onApprove, isPending }: VacationTimelineProps) {
+  const { t } = useTranslation();
+  const dateLocale = useDateLocale();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [monthsToShow] = useState(3);
 
