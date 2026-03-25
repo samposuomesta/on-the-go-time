@@ -1260,21 +1260,21 @@ function ApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
           {/* Bulk action bar */}
           {selectedTimeEntries.size > 0 && (
             <div className="flex items-center gap-3 px-4 py-2 bg-muted/50 border-b">
-              <span className="text-sm font-medium">{selectedTimeEntries.size} selected</span>
+              <span className="text-sm font-medium">{selectedTimeEntries.size} {t('admin.selected')}</span>
               <Button size="sm" variant="outline"
                 className="gap-1 text-xs h-7 text-success hover:text-success border-success/30 hover:bg-success/10"
                 disabled={bulkProcessing}
                 onClick={() => handleBulkAction('approved')}>
-                <CheckCircle2 className="h-3.5 w-3.5" /> Approve All
+                <CheckCircle2 className="h-3.5 w-3.5" /> {t('admin.approveAll')}
               </Button>
               <Button size="sm" variant="outline"
                 className="gap-1 text-xs h-7 text-destructive hover:text-destructive border-destructive/30 hover:bg-destructive/10"
                 disabled={bulkProcessing}
                 onClick={() => handleBulkAction('rejected')}>
-                <XCircle className="h-3.5 w-3.5" /> Reject All
+                <XCircle className="h-3.5 w-3.5" /> {t('admin.rejectAll')}
               </Button>
               <Button size="sm" variant="ghost" className="text-xs h-7" onClick={() => setSelectedTimeEntries(new Set())}>
-                Clear
+                {t('admin.clear')}
               </Button>
             </div>
           )}
