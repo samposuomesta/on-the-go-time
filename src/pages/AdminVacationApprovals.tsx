@@ -132,7 +132,7 @@ export default function AdminVacationApprovals() {
                   {pending.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
-                        No pending vacation requests
+                        {t('admin.noPendingVacation')}
                       </TableCell>
                     </TableRow>
                   ) : pending.map((r: any) => (
