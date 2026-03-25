@@ -1978,9 +1978,9 @@ function CompaniesPanel({ admin }: { admin: any }) {
                 <TableRow className="bg-muted/50">
                   <TableHead className="font-semibold">{t("common.name")}</TableHead>
                   <TableHead className="font-semibold">{t("admin.companyId")}</TableHead>
-                  <TableHead className="font-semibold">Address</TableHead>
-                  <TableHead className="font-semibold">{t("admin.country")}</TableHead>
-                  <TableHead className="font-semibold">KM Rate</TableHead>
+                   <TableHead className="font-semibold">{t("admin.addressLabel")}</TableHead>
+                   <TableHead className="font-semibold">{t("admin.country")}</TableHead>
+                   <TableHead className="font-semibold">{t("admin.kmRateLabel")}</TableHead>
                   <TableHead className="w-[60px]"></TableHead>
                 </TableRow>
               </TableHeader>
