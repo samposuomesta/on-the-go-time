@@ -1236,8 +1236,8 @@ function ApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
           <Label htmlFor="show-pending" className="text-xs cursor-pointer">{t("admin.showOnlyPending")}</Label>
         </div>
         {(employeeFilter !== 'all' || dateFrom || dateTo || !showOnlyPending) && (
-          <Button variant="ghost" size="sm" onClick={() => { setEmployeeFilter('all'); setDateFrom(''); setDateTo(''); setShowOnlyPending(true); }}>
-            <X className="h-3.5 w-3.5 mr-1" /> Clear
+           <Button variant="ghost" size="sm" onClick={() => { setEmployeeFilter('all'); setDateFrom(''); setDateTo(''); setShowOnlyPending(true); }}>
+             <X className="h-3.5 w-3.5 mr-1" /> {t('admin.clear')}
           </Button>
         )}
       </div>
