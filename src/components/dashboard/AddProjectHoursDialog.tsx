@@ -67,9 +67,9 @@ export function AddProjectHoursDialog({ open, onOpenChange }: Props) {
             <Label>{t('projectHours.project')} *</Label>
             <Select value={projectId} onValueChange={setProjectId}>
               <SelectTrigger><SelectValue placeholder={t('projectHours.selectProject')} /></SelectTrigger>
-              <SelectContent>
+              <SelectContent className="max-w-[calc(100vw-3rem)]">
                 {projects.map(p => (
-                  <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                  <SelectItem key={p.id} value={p.id} className="whitespace-normal break-words">{p.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
