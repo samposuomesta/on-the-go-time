@@ -1560,7 +1560,7 @@ function AbsencesPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: str
                 ) : pending.map((a: any) => (
                   <TableRow key={a.id} className="hover:bg-muted/30">
                     <TableCell className="font-medium">{a.users?.name ?? 'Unknown'}</TableCell>
-                    <TableCell><Badge variant="outline" className="capitalize">{a.type === 'sick' ? '🤒 Sick' : '📋 Absence'}</Badge></TableCell>
+                     <TableCell><Badge variant="outline" className="capitalize">{a.type === 'sick' ? t('admin.sickType') : t('admin.absenceType')}</Badge></TableCell>
                     <TableCell className="text-muted-foreground">{reasonLabel(a.reason_id) || '—'}</TableCell>
                     <TableCell>{format(parseISO(a.start_date), 'MMM d, yyyy')}</TableCell>
                     <TableCell>{format(parseISO(a.end_date), 'MMM d, yyyy')}</TableCell>
