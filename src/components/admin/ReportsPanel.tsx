@@ -266,7 +266,7 @@ export function ReportsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (i
     rows.forEach(row => {
       html += '<tr>';
       activeColumns.forEach(c => {
-        html += `<td>${row[c.key]}</td>`;
+        html += `<td>${escapeHtml(row[c.key])}</td>`;
       });
       html += '</tr>';
     });
