@@ -1390,7 +1390,7 @@ function ApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
               </TableHeader>
               <TableBody>
                 {filteredHours.length === 0 ? (
-                  <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">No project hours found</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">{t('admin.noProjectHoursFound')}</TableCell></TableRow>
                 ) : filteredHours.slice(0, 200).map((h: any) => (
                   <TableRow key={h.id} className="hover:bg-muted/30">
                     <TableCell className="font-medium">{h.users?.name ?? 'Unknown'}</TableCell>
