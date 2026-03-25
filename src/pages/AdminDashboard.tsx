@@ -2035,7 +2035,7 @@ function WorkplacesPanel({ admin }: { admin: any }) {
                   <TableHead className="font-semibold">{t("common.name")}</TableHead>
                   <TableHead className="font-semibold">{t("admin.latitude")}</TableHead>
                   <TableHead className="font-semibold">{t("admin.longitude")}</TableHead>
-                  <TableHead className="font-semibold">Radius</TableHead>
+                  <TableHead className="font-semibold">{t("admin.radiusLabel")}</TableHead>
                   <TableHead className="w-[60px]"></TableHead>
                 </TableRow>
               </TableHeader>
