@@ -260,8 +260,8 @@ export function VacationTimeline({ employees, vacationRequests, userManagers, co
                                       {vac && (
                                         <>
                                           <p className="font-medium">{person.name}</p>
-                                          <p>{format(parseISO(vac.start_date), 'MMM d')} — {format(parseISO(vac.end_date), 'MMM d, yyyy')}</p>
-                                          <p className="capitalize font-medium mt-0.5">{vac.status}</p>
+                                          <p>{format(parseISO(vac.start_date), 'd.M.', { locale: dateLocale })} — {format(parseISO(vac.end_date), 'd.M.yyyy', { locale: dateLocale })}</p>
+                                          <p className="capitalize font-medium mt-0.5">{t(`admin.${vac.status}`)}</p>
                                           {vac.comment && <p className="text-muted-foreground mt-0.5">{vac.comment}</p>}
                                           {vac.status === 'pending' && (
                                             <div className="flex gap-1 mt-1.5">
