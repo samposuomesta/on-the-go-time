@@ -3,7 +3,7 @@ import { format, parseISO, differenceInBusinessDays, differenceInHours, differen
 import { useDateLocale } from '@/lib/date-locale';
 import {
   ArrowLeft, Users, Briefcase, Car, Clock, CalendarOff,
-  CalendarDays, Plus, Pencil, MapPin, Bell, Building2, Trash2, CheckCircle2, XCircle, X, BarChart3, CalendarIcon, FileText, Download, Upload
+  CalendarDays, Plus, Pencil, Bell, Building2, Trash2, CheckCircle2, XCircle, X, BarChart3, CalendarIcon, FileText, Download, Upload
 } from 'lucide-react';
 import { Link, Navigate } from 'react-router-dom';
 import { useAdminData } from '@/hooks/useAdminData';
