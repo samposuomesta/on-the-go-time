@@ -59,19 +59,20 @@ function ApproveRejectButtons({ id, onApprove, isPending }: {
   onApprove: (id: string, status: 'approved' | 'rejected') => void;
   isPending?: boolean;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="flex gap-1.5">
       <Button size="sm" variant="outline"
         className="gap-1 text-xs h-8 text-success hover:text-success border-success/30 hover:bg-success/10"
         disabled={isPending}
-        onClick={() => { onApprove(id, 'approved'); toast.success('Approved'); }}>
-        <CheckCircle2 className="h-3.5 w-3.5" /> Approve
+        onClick={() => { onApprove(id, 'approved'); toast.success(t('admin.approved')); }}>
+        <CheckCircle2 className="h-3.5 w-3.5" /> {t('admin.approve')}
       </Button>
       <Button size="sm" variant="outline"
         className="gap-1 text-xs h-8 text-destructive hover:text-destructive border-destructive/30 hover:bg-destructive/10"
         disabled={isPending}
-        onClick={() => { onApprove(id, 'rejected'); toast.success('Rejected'); }}>
-        <XCircle className="h-3.5 w-3.5" /> Reject
+        onClick={() => { onApprove(id, 'rejected'); toast.success(t('admin.rejected')); }}>
+        <XCircle className="h-3.5 w-3.5" /> {t('admin.reject')}
       </Button>
     </div>
   );
@@ -82,6 +83,7 @@ function SickLeaveApproveButtons({ id, onApprove, isPending }: {
   onApprove: (id: string, status: 'approved' | 'rejected') => void;
   isPending?: boolean;
 }) {
+  const { t } = useTranslation();
   const [certDialogOpen, setCertDialogOpen] = useState(false);
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
 
@@ -92,27 +94,27 @@ function SickLeaveApproveButtons({ id, onApprove, isPending }: {
           className="gap-1 text-xs h-8 text-success hover:text-success border-success/30 hover:bg-success/10"
           disabled={isPending}
           onClick={() => setCertDialogOpen(true)}>
-          <CheckCircle2 className="h-3.5 w-3.5" /> Approve
+          <CheckCircle2 className="h-3.5 w-3.5" /> {t('admin.approve')}
         </Button>
         <Button size="sm" variant="outline"
           className="gap-1 text-xs h-8 text-destructive hover:text-destructive border-destructive/30 hover:bg-destructive/10"
           disabled={isPending}
           onClick={() => setRejectDialogOpen(true)}>
-          <XCircle className="h-3.5 w-3.5" /> Reject
+          <XCircle className="h-3.5 w-3.5" /> {t('admin.reject')}
         </Button>
       </div>
       <AlertDialog open={certDialogOpen} onOpenChange={setCertDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Sick Leave Certificate</AlertDialogTitle>
+            <AlertDialogTitle>{t('admin.sickLeaveCertificate')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Have you seen the sick leave certificate for this request?
+              {t('admin.sickLeaveCertificateQuestion')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={() => setCertDialogOpen(false)}>No</AlertDialogCancel>
-            <AlertDialogAction className="bg-success text-success-foreground hover:bg-success/90" onClick={() => { onApprove(id, 'approved'); setCertDialogOpen(false); toast.success('Approved'); }}>
-              Yes
+            <AlertDialogCancel className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={() => setCertDialogOpen(false)}>{t('admin.no')}</AlertDialogCancel>
+            <AlertDialogAction className="bg-success text-success-foreground hover:bg-success/90" onClick={() => { onApprove(id, 'approved'); setCertDialogOpen(false); toast.success(t('admin.approved')); }}>
+              {t('admin.yes')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -120,15 +122,15 @@ function SickLeaveApproveButtons({ id, onApprove, isPending }: {
       <AlertDialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Reject Sick Leave</AlertDialogTitle>
+            <AlertDialogTitle>{t('admin.rejectSickLeave')}</AlertDialogTitle>
             <AlertDialogDescription>
-              If rejected, these will be marked as unpaid leave for the user. Mark this as unpaid leave for user?
+              {t('admin.rejectSickLeaveQuestion')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={() => setRejectDialogOpen(false)}>No</AlertDialogCancel>
-            <AlertDialogAction className="bg-success text-success-foreground hover:bg-success/90" onClick={() => { onApprove(id, 'rejected'); setRejectDialogOpen(false); toast.success('Rejected — marked as unpaid leave'); }}>
-              Yes
+            <AlertDialogCancel className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={() => setRejectDialogOpen(false)}>{t('admin.no')}</AlertDialogCancel>
+            <AlertDialogAction className="bg-success text-success-foreground hover:bg-success/90" onClick={() => { onApprove(id, 'rejected'); setRejectDialogOpen(false); toast.success(t('admin.rejectedUnpaidLeave')); }}>
+              {t('admin.yes')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -356,10 +358,11 @@ function StatisticsDatePicker({ fromDate, toDate, setFromDate, setToDate }: {
   fromDate: Date; toDate: Date; setFromDate: (d: Date) => void; setToDate: (d: Date) => void;
 }) {
   const dateLocale = useDateLocale();
+  const { t } = useTranslation();
   return (
     <div className="flex items-center gap-2">
       <div className="flex flex-col gap-1">
-        <Label className="text-xs text-muted-foreground">From</Label>
+        <Label className="text-xs text-muted-foreground">{t('admin.from')}</Label>
         <Popover>
           <PopoverTrigger asChild>
             <Button variant="outline" className={cn("w-[140px] justify-start text-left font-normal h-9 text-sm")}>
@@ -373,7 +376,7 @@ function StatisticsDatePicker({ fromDate, toDate, setFromDate, setToDate }: {
         </Popover>
       </div>
       <div className="flex flex-col gap-1">
-        <Label className="text-xs text-muted-foreground">To</Label>
+        <Label className="text-xs text-muted-foreground">{t('admin.to')}</Label>
         <Popover>
           <PopoverTrigger asChild>
             <Button variant="outline" className={cn("w-[140px] justify-start text-left font-normal h-9 text-sm")}>
@@ -391,6 +394,7 @@ function StatisticsDatePicker({ fromDate, toDate, setFromDate, setToDate }: {
 }
 
 function StatisticsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: string) => boolean }) {
+  const { t } = useTranslation();
   const now = new Date();
   const defaultFrom = () => { const d = new Date(now); d.setDate(d.getDate() - 120); return d; };
 
@@ -496,8 +500,8 @@ function StatisticsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: s
         <CardHeader>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <CardTitle className="text-base font-display">Employee & Manager Breakdown</CardTitle>
-              <CardDescription>Individual statistics for all team members</CardDescription>
+              <CardTitle className="text-base font-display">{t('admin.employeeBreakdown')}</CardTitle>
+              <CardDescription>{t('admin.individualStats')}</CardDescription>
             </div>
             <StatisticsDatePicker fromDate={breakdownFrom} toDate={breakdownTo} setFromDate={setBreakdownFrom} setToDate={setBreakdownTo} />
           </div>
@@ -507,13 +511,13 @@ function StatisticsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: s
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/50">
-                  <TableHead className="font-semibold">Name</TableHead>
-                  <TableHead className="font-semibold">Role</TableHead>
-                  <TableHead className="font-semibold text-right">Work Hours</TableHead>
-                  <TableHead className="font-semibold text-right">Time Bank</TableHead>
-                  <TableHead className="font-semibold">Vacation (Used / Total)</TableHead>
-                  <TableHead className="font-semibold text-right">Sick Days</TableHead>
-                  <TableHead className="font-semibold text-right">Absence Days</TableHead>
+                   <TableHead className="font-semibold">{t('common.name')}</TableHead>
+                   <TableHead className="font-semibold">{t('common.role')}</TableHead>
+                   <TableHead className="font-semibold text-right">{t('admin.workHours')}</TableHead>
+                   <TableHead className="font-semibold text-right">{t('admin.timeBank')}</TableHead>
+                   <TableHead className="font-semibold">{t('admin.vacationUsedTotal')}</TableHead>
+                   <TableHead className="font-semibold text-right">{t('admin.sickDays')}</TableHead>
+                   <TableHead className="font-semibold text-right">{t('admin.absenceDays')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -562,6 +566,7 @@ function StatisticsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: s
 /* ===== EMPLOYEES ===== */
 
 function FennoaImportDialog({ onCreate, companies }: { onCreate: (data: any) => void; companies: any[] }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [preview, setPreview] = useState<Array<{ firstName: string; lastName: string; email: string; employeeNumber: string; contractDate: string; companyId: string; error?: string }>>([]);
   const fileRef = React.useRef<HTMLInputElement>(null);
@@ -639,12 +644,12 @@ function FennoaImportDialog({ onCreate, companies }: { onCreate: (data: any) => 
 
   return (
     <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setPreview([]); if (fileRef.current) fileRef.current.value = ''; } }}>
-      <DialogTrigger asChild><Button variant="outline" className="gap-1.5"><Upload className="h-4 w-4" /> Fennoa Imp.</Button></DialogTrigger>
+      <DialogTrigger asChild><Button variant="outline" className="gap-1.5"><Upload className="h-4 w-4" /> {t("admin.importFennoa")}</Button></DialogTrigger>
       <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader><DialogTitle className="font-display">Import Employees from Fennoa (XLSX)</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle className="font-display">{t("admin.importFennoaTitle")}</DialogTitle></DialogHeader>
         <div className="space-y-4 mt-2">
           <div className="space-y-2">
-            <Label>XLSX File</Label>
+            <Label>{t("admin.xlsxFile")}</Label>
             <Input ref={fileRef} type="file" accept=".xlsx,.xls" onChange={handleFile} />
             <p className="text-xs text-muted-foreground">Columns: A=Emp#, B=First name, C=Last name, K=Email, P=Contract start. Row 1 is ignored. Vacation days=0, work hours=8h, auto lunch 30min if &gt;6h.</p>
           </div>
@@ -657,12 +662,12 @@ function FennoaImportDialog({ onCreate, companies }: { onCreate: (data: any) => 
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-muted/50">
-                      <TableHead>Emp #</TableHead>
-                      <TableHead>First Name</TableHead>
-                      <TableHead>Last Name</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Contract Start</TableHead>
-                      <TableHead>Status</TableHead>
+                      <TableHead>{t("admin.empNumber")}</TableHead>
+                      <TableHead>{t("admin.firstName")}</TableHead>
+                      <TableHead>{t("admin.lastName")}</TableHead>
+                      <TableHead>{t("admin.email")}</TableHead>
+                      <TableHead>{t("admin.contractStartLabel")}</TableHead>
+                      <TableHead>{t("admin.status")}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -691,6 +696,7 @@ function FennoaImportDialog({ onCreate, companies }: { onCreate: (data: any) => 
 }
 
 function EmployeesPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: string) => boolean }) {
+  const { t } = useTranslation();
   const employees = (admin.employees.data ?? []).filter((e: any) => canSeeUser(e.id));
   const userManagers = admin.userManagers.data ?? [];
   const workBankTxns = admin.allWorkBank.data ?? [];
@@ -727,11 +733,11 @@ function EmployeesPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
               <TableHeader>
                 <TableRow className="bg-muted/50">
                   <TableHead className="font-semibold">Employee #</TableHead>
-                  <TableHead className="font-semibold">Name</TableHead>
-                  <TableHead className="font-semibold">Email</TableHead>
-                  <TableHead className="font-semibold">Role</TableHead>
-                  <TableHead className="font-semibold">Managers</TableHead>
-                  <TableHead className="font-semibold">Contract Start</TableHead>
+                  <TableHead className="font-semibold">{t("common.name")}</TableHead>
+                  <TableHead className="font-semibold">{t("admin.email")}</TableHead>
+                  <TableHead className="font-semibold">{t("admin.roleLabel")}</TableHead>
+                  <TableHead className="font-semibold">{t("admin.managers")}</TableHead>
+                  <TableHead className="font-semibold">{t("admin.contractStartLabel")}</TableHead>
                   <TableHead className="font-semibold">Vacation Days</TableHead>
                   <TableHead className="font-semibold">Daily Hours</TableHead>
                   <TableHead className="font-semibold">Lunch Break</TableHead>
@@ -800,6 +806,7 @@ function EmployeesPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
 /* ===== APPROVALS (Working Hours + Travel + Project Hours) ===== */
 
 function EditTimeEntryDialog({ entry, onSave }: { entry: any; onSave: (data: any) => void }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
@@ -820,23 +827,23 @@ function EditTimeEntryDialog({ entry, onSave }: { entry: any; onSave: (data: any
         <Button size="sm" variant="ghost" className="h-8 w-8 p-0"><Pencil className="h-3.5 w-3.5" /></Button>
       </DialogTrigger>
       <DialogContent className="max-w-sm">
-        <DialogHeader><DialogTitle className="font-display">Edit Working Hours</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle className="font-display">{t("admin.editWorkingHoursTitle")}</DialogTitle></DialogHeader>
         <div className="space-y-3">
           <div>
-            <Label className="text-xs">Start Time</Label>
+            <Label className="text-xs">{t("admin.startTimeLabel")}</Label>
             <Input type="datetime-local" value={startTime} onChange={e => setStartTime(e.target.value)} />
           </div>
           <div>
-            <Label className="text-xs">End Time</Label>
+            <Label className="text-xs">{t("admin.endTimeLabel")}</Label>
             <Input type="datetime-local" value={endTime} onChange={e => setEndTime(e.target.value)} />
           </div>
           <div>
-            <Label className="text-xs">Break (minutes)</Label>
+            <Label className="text-xs">{t("admin.breakLabel")}</Label>
             <Input type="number" min="0" value={breakMins} onChange={e => setBreakMins(e.target.value)} />
           </div>
           {startTime && endTime && (
             <div className="text-xs text-muted-foreground">
-              Net hours: {Math.max(0, (differenceInMinutes(new Date(endTime), new Date(startTime)) - Number(breakMins)) / 60).toFixed(1)}h
+              {t("admin.netHoursValue")}: {Math.max(0, (differenceInMinutes(new Date(endTime), new Date(startTime)) - Number(breakMins)) / 60).toFixed(1)}h
             </div>
           )}
           <Button className="w-full" onClick={() => {
@@ -846,8 +853,8 @@ function EditTimeEntryDialog({ entry, onSave }: { entry: any; onSave: (data: any
               break_minutes: Number(breakMins),
             });
             setOpen(false);
-            toast.success('Hours updated');
-          }}>Save Changes</Button>
+            toast.success(t('admin.hoursUpdated'));
+          }}>{t("admin.saveChanges")}</Button>
         </div>
       </DialogContent>
     </Dialog>
@@ -855,6 +862,7 @@ function EditTimeEntryDialog({ entry, onSave }: { entry: any; onSave: (data: any
 }
 
 function EditProjectHoursDialog({ entry, onSave, isHistory, onAuditReason }: { entry: any; onSave: (data: any) => void; isHistory?: boolean; onAuditReason?: (tableName: string, recordId: string, oldData: any, newData: any, reason: string) => void }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [hours, setHours] = useState('');
   const [date, setDate] = useState('');
@@ -901,34 +909,34 @@ function EditProjectHoursDialog({ entry, onSave, isHistory, onAuditReason }: { e
           <Button size="sm" variant="ghost" className="h-8 w-8 p-0"><Pencil className="h-3.5 w-3.5" /></Button>
         </DialogTrigger>
         <DialogContent className="max-w-sm">
-          <DialogHeader><DialogTitle className="font-display">Edit Project Hours</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle className="font-display">{t("admin.editProjectHours")}</DialogTitle></DialogHeader>
           <div className="space-y-3">
             <div>
-              <Label className="text-xs">Date</Label>
+              <Label className="text-xs">{t("admin.dateLabel")}</Label>
               <Input type="date" value={date} onChange={e => setDate(e.target.value)} className="dark:[color-scheme:dark]" />
             </div>
             <div>
-              <Label className="text-xs">Hours</Label>
+              <Label className="text-xs">{t("admin.hoursLabel")}</Label>
               <Input type="number" min="0" step="0.5" value={hours} onChange={e => setHours(e.target.value)} />
             </div>
             <div>
-              <Label className="text-xs">Description</Label>
+              <Label className="text-xs">{t("admin.descriptionLabel")}</Label>
               <Input value={description} onChange={e => setDescription(e.target.value)} />
             </div>
-            <Button className="w-full" onClick={handleSave}>Save Changes</Button>
+            <Button className="w-full" onClick={handleSave}>{t("admin.saveChanges")}</Button>
           </div>
         </DialogContent>
       </Dialog>
       <AlertDialog open={reasonOpen} onOpenChange={setReasonOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Reason for Change</AlertDialogTitle>
-            <AlertDialogDescription>This record has already been processed. Please provide a reason for this modification.</AlertDialogDescription>
+            <AlertDialogTitle>{t("admin.reasonForChange")}</AlertDialogTitle>
+            <AlertDialogDescription>{t("admin.reasonForChangeDescription")}</AlertDialogDescription>
           </AlertDialogHeader>
-          <Textarea placeholder="Enter reason for modification..." value={reason} onChange={e => setReason(e.target.value)} className="min-h-[80px]" />
+          <Textarea placeholder={t("admin.enterReason")} value={reason} onChange={e => setReason(e.target.value)} className="min-h-[80px]" />
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Cancel</AlertDialogCancel>
-            <AlertDialogAction className="bg-success text-success-foreground hover:bg-success/90" onClick={handleReasonConfirm}>Confirm</AlertDialogAction>
+            <AlertDialogCancel className="bg-destructive text-destructive-foreground hover:bg-destructive/90">{t("common.cancel")}</AlertDialogCancel>
+            <AlertDialogAction className="bg-success text-success-foreground hover:bg-success/90" onClick={handleReasonConfirm}>{t("admin.confirm")}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -937,6 +945,7 @@ function EditProjectHoursDialog({ entry, onSave, isHistory, onAuditReason }: { e
 }
 
 function EditTravelExpenseDialog({ entry, onSave, isHistory, onAuditReason }: { entry: any; onSave: (data: any) => void; isHistory?: boolean; onAuditReason?: (tableName: string, recordId: string, oldData: any, newData: any, reason: string) => void }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [date, setDate] = useState('');
   const [kilometers, setKilometers] = useState('');
@@ -988,35 +997,35 @@ function EditTravelExpenseDialog({ entry, onSave, isHistory, onAuditReason }: { 
           <DialogHeader><DialogTitle className="font-display">Edit Travel Expense</DialogTitle></DialogHeader>
           <div className="space-y-3">
             <div>
-              <Label className="text-xs">Date</Label>
+              <Label className="text-xs">{t("admin.dateLabel")}</Label>
               <Input type="date" value={date} onChange={e => setDate(e.target.value)} className="dark:[color-scheme:dark]" />
             </div>
             <div>
-              <Label className="text-xs">Kilometers</Label>
+              <Label className="text-xs">{t("admin.kilometersLabel")}</Label>
               <Input type="number" min="0" step="0.1" value={kilometers} onChange={e => setKilometers(e.target.value)} />
             </div>
             <div>
-              <Label className="text-xs">Parking Cost (€)</Label>
+              <Label className="text-xs">{t("admin.parkingCostLabel")}</Label>
               <Input type="number" min="0" step="0.01" value={parkingCost} onChange={e => setParkingCost(e.target.value)} />
             </div>
             <div>
-              <Label className="text-xs">Description</Label>
+              <Label className="text-xs">{t("admin.descriptionLabel")}</Label>
               <Input value={description} onChange={e => setDescription(e.target.value)} />
             </div>
-            <Button className="w-full" onClick={handleSave}>Save Changes</Button>
+            <Button className="w-full" onClick={handleSave}>{t("admin.saveChanges")}</Button>
           </div>
         </DialogContent>
       </Dialog>
       <AlertDialog open={reasonOpen} onOpenChange={setReasonOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Reason for Change</AlertDialogTitle>
-            <AlertDialogDescription>This record has already been processed. Please provide a reason for this modification.</AlertDialogDescription>
+            <AlertDialogTitle>{t("admin.reasonForChange")}</AlertDialogTitle>
+            <AlertDialogDescription>{t("admin.reasonForChangeDescription")}</AlertDialogDescription>
           </AlertDialogHeader>
-          <Textarea placeholder="Enter reason for modification..." value={reason} onChange={e => setReason(e.target.value)} className="min-h-[80px]" />
+          <Textarea placeholder={t("admin.enterReason")} value={reason} onChange={e => setReason(e.target.value)} className="min-h-[80px]" />
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Cancel</AlertDialogCancel>
-            <AlertDialogAction className="bg-success text-success-foreground hover:bg-success/90" onClick={handleReasonConfirm}>Confirm</AlertDialogAction>
+            <AlertDialogCancel className="bg-destructive text-destructive-foreground hover:bg-destructive/90">{t("common.cancel")}</AlertDialogCancel>
+            <AlertDialogAction className="bg-success text-success-foreground hover:bg-success/90" onClick={handleReasonConfirm}>{t("admin.confirm")}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -1025,6 +1034,7 @@ function EditTravelExpenseDialog({ entry, onSave, isHistory, onAuditReason }: { 
 }
 
 function EditTimeEntryHistoryDialog({ entry, onSave, isHistory, onAuditReason }: { entry: any; onSave: (data: any) => void; isHistory?: boolean; onAuditReason?: (tableName: string, recordId: string, oldData: any, newData: any, reason: string) => void }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
@@ -1056,7 +1066,7 @@ function EditTimeEntryHistoryDialog({ entry, onSave, isHistory, onAuditReason }:
     } else {
       onSave(data);
       setOpen(false);
-      toast.success('Hours updated');
+      toast.success(t('admin.hoursUpdated'));
     }
   };
 
@@ -1065,7 +1075,7 @@ function EditTimeEntryHistoryDialog({ entry, onSave, isHistory, onAuditReason }:
     onSave(pendingData);
     onAuditReason?.('time_entries', entry.id, entry, { ...entry, ...pendingData }, reason.trim());
     setReasonOpen(false);
-    toast.success('Hours updated');
+    toast.success(t('admin.hoursUpdated'));
   };
 
   return (
@@ -1075,39 +1085,39 @@ function EditTimeEntryHistoryDialog({ entry, onSave, isHistory, onAuditReason }:
           <Button size="sm" variant="ghost" className="h-8 w-8 p-0"><Pencil className="h-3.5 w-3.5" /></Button>
         </DialogTrigger>
         <DialogContent className="max-w-sm">
-          <DialogHeader><DialogTitle className="font-display">Edit Working Hours</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle className="font-display">{t("admin.editWorkingHoursTitle")}</DialogTitle></DialogHeader>
           <div className="space-y-3">
             <div>
-              <Label className="text-xs">Start Time</Label>
+              <Label className="text-xs">{t("admin.startTimeLabel")}</Label>
               <Input type="datetime-local" value={startTime} onChange={e => setStartTime(e.target.value)} />
             </div>
             <div>
-              <Label className="text-xs">End Time</Label>
+              <Label className="text-xs">{t("admin.endTimeLabel")}</Label>
               <Input type="datetime-local" value={endTime} onChange={e => setEndTime(e.target.value)} />
             </div>
             <div>
-              <Label className="text-xs">Break (minutes)</Label>
+              <Label className="text-xs">{t("admin.breakLabel")}</Label>
               <Input type="number" min="0" value={breakMins} onChange={e => setBreakMins(e.target.value)} />
             </div>
             {startTime && endTime && (
               <div className="text-xs text-muted-foreground">
-                Net hours: {Math.max(0, (differenceInMinutes(new Date(endTime), new Date(startTime)) - Number(breakMins)) / 60).toFixed(1)}h
+                {t("admin.netHoursValue")}: {Math.max(0, (differenceInMinutes(new Date(endTime), new Date(startTime)) - Number(breakMins)) / 60).toFixed(1)}h
               </div>
             )}
-            <Button className="w-full" onClick={handleSave}>Save Changes</Button>
+            <Button className="w-full" onClick={handleSave}>{t("admin.saveChanges")}</Button>
           </div>
         </DialogContent>
       </Dialog>
       <AlertDialog open={reasonOpen} onOpenChange={setReasonOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Reason for Change</AlertDialogTitle>
-            <AlertDialogDescription>This record has already been processed. Please provide a reason for this modification.</AlertDialogDescription>
+            <AlertDialogTitle>{t("admin.reasonForChange")}</AlertDialogTitle>
+            <AlertDialogDescription>{t("admin.reasonForChangeDescription")}</AlertDialogDescription>
           </AlertDialogHeader>
-          <Textarea placeholder="Enter reason for modification..." value={reason} onChange={e => setReason(e.target.value)} className="min-h-[80px]" />
+          <Textarea placeholder={t("admin.enterReason")} value={reason} onChange={e => setReason(e.target.value)} className="min-h-[80px]" />
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Cancel</AlertDialogCancel>
-            <AlertDialogAction className="bg-success text-success-foreground hover:bg-success/90" onClick={handleReasonConfirm}>Confirm</AlertDialogAction>
+            <AlertDialogCancel className="bg-destructive text-destructive-foreground hover:bg-destructive/90">{t("common.cancel")}</AlertDialogCancel>
+            <AlertDialogAction className="bg-success text-success-foreground hover:bg-success/90" onClick={handleReasonConfirm}>{t("admin.confirm")}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -1116,6 +1126,7 @@ function EditTimeEntryHistoryDialog({ entry, onSave, isHistory, onAuditReason }:
 }
 
 function ApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: string) => boolean }) {
+  const { t } = useTranslation();
   const [employeeFilter, setEmployeeFilter] = useState('all');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
@@ -1183,7 +1194,7 @@ function ApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
       toast.success(`${selectedTimeEntries.size} entries ${status}`);
       setSelectedTimeEntries(new Set());
     } catch {
-      toast.error('Some entries failed to update');
+      toast.error(t('admin.someEntriesFailed'));
     } finally {
       setBulkProcessing(false);
     }
@@ -1193,34 +1204,34 @@ function ApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-display font-bold">Approvals</h2>
-          <p className="text-sm text-muted-foreground">Review working hours, travel expenses and project hours</p>
+          <h2 className="text-xl font-display font-bold">{t("admin.approvals")}</h2>
+          <p className="text-sm text-muted-foreground">{t("admin.reviewDescription")}</p>
         </div>
       </div>
 
       {/* Filters */}
       <div className="flex flex-wrap gap-3 items-end">
         <div className="space-y-1">
-          <Label className="text-xs">Employee</Label>
+          <Label className="text-xs">{t("admin.employee")}</Label>
           <Select value={employeeFilter} onValueChange={setEmployeeFilter}>
-            <SelectTrigger className="w-[180px]"><SelectValue placeholder="All employees" /></SelectTrigger>
+            <SelectTrigger className="w-[180px]"><SelectValue placeholder={t("admin.allEmployees")} /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All employees</SelectItem>
+              <SelectItem value="all">{t("admin.allEmployees")}</SelectItem>
               {employees.map((e: any) => <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>)}
             </SelectContent>
           </Select>
         </div>
         <div className="space-y-1">
-          <Label className="text-xs">From</Label>
+          <Label className="text-xs">{t("admin.from")}</Label>
           <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="w-[150px] dark:[color-scheme:dark]" />
         </div>
         <div className="space-y-1">
-          <Label className="text-xs">To</Label>
+          <Label className="text-xs">{t("admin.to")}</Label>
           <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="w-[150px] dark:[color-scheme:dark]" />
         </div>
         <div className="flex items-center gap-2">
           <Checkbox id="show-pending" checked={showOnlyPending} onCheckedChange={(v) => setShowOnlyPending(!!v)} />
-          <Label htmlFor="show-pending" className="text-xs cursor-pointer">Show only pending</Label>
+          <Label htmlFor="show-pending" className="text-xs cursor-pointer">{t("admin.showOnlyPending")}</Label>
         </div>
         {(employeeFilter !== 'all' || dateFrom || dateTo || !showOnlyPending) && (
           <Button variant="ghost" size="sm" onClick={() => { setEmployeeFilter('all'); setDateFrom(''); setDateTo(''); setShowOnlyPending(true); }}>
@@ -1235,7 +1246,7 @@ function ApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Clock className="h-5 w-5 text-muted-foreground" />
-              <CardTitle className="text-base font-display">Working Hours</CardTitle>
+              <CardTitle className="text-base font-display">{t("admin.workingHours")}</CardTitle>
               <Badge variant="secondary">{pendingTimeEntries.length} pending</Badge>
             </div>
             <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => exportAdminWorkingHoursCSV(filteredTimeEntries)}>
@@ -1277,14 +1288,14 @@ function ApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
                       className={somePendingSelected && !allPendingSelected ? 'opacity-50' : ''}
                     />
                   </TableHead>
-                  <TableHead className="font-semibold">Employee</TableHead>
-                  <TableHead className="font-semibold">Date</TableHead>
+                  <TableHead className="font-semibold">{t("admin.employee")}</TableHead>
+                  <TableHead className="font-semibold">{t("admin.dateLabel")}</TableHead>
                   <TableHead className="font-semibold">Start</TableHead>
                   <TableHead className="font-semibold">End</TableHead>
                   <TableHead className="font-semibold">Break</TableHead>
                   <TableHead className="font-semibold">Net Hours</TableHead>
                   <TableHead className="font-semibold">Project</TableHead>
-                  <TableHead className="font-semibold">Status</TableHead>
+                  <TableHead className="font-semibold">{t("admin.status")}</TableHead>
                   <TableHead className="text-right font-semibold">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -1366,12 +1377,12 @@ function ApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/50">
-                  <TableHead className="font-semibold">Employee</TableHead>
+                  <TableHead className="font-semibold">{t("admin.employee")}</TableHead>
                   <TableHead className="font-semibold">Project</TableHead>
-                  <TableHead className="font-semibold">Date</TableHead>
-                  <TableHead className="font-semibold">Hours</TableHead>
-                  <TableHead className="font-semibold">Description</TableHead>
-                  <TableHead className="font-semibold">Status</TableHead>
+                  <TableHead className="font-semibold">{t("admin.dateLabel")}</TableHead>
+                  <TableHead className="font-semibold">{t("admin.hoursLabel")}</TableHead>
+                  <TableHead className="font-semibold">{t("admin.descriptionLabel")}</TableHead>
+                  <TableHead className="font-semibold">{t("admin.status")}</TableHead>
                   <TableHead className="text-right font-semibold">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -1428,13 +1439,13 @@ function ApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/50">
-                  <TableHead className="font-semibold">Employee</TableHead>
+                  <TableHead className="font-semibold">{t("admin.employee")}</TableHead>
                   <TableHead className="font-semibold">Project</TableHead>
-                  <TableHead className="font-semibold">Date</TableHead>
-                  <TableHead className="font-semibold">Kilometers</TableHead>
+                  <TableHead className="font-semibold">{t("admin.dateLabel")}</TableHead>
+                  <TableHead className="font-semibold">{t("admin.kilometersLabel")}</TableHead>
                   <TableHead className="font-semibold">Parking</TableHead>
-                  <TableHead className="font-semibold">Description</TableHead>
-                  <TableHead className="font-semibold">Status</TableHead>
+                  <TableHead className="font-semibold">{t("admin.descriptionLabel")}</TableHead>
+                  <TableHead className="font-semibold">{t("admin.status")}</TableHead>
                   <TableHead className="text-right font-semibold">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -1532,12 +1543,12 @@ function AbsencesPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: str
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/50">
-                  <TableHead className="font-semibold">Employee</TableHead>
+                  <TableHead className="font-semibold">{t("admin.employee")}</TableHead>
                   <TableHead className="font-semibold">Type</TableHead>
                   <TableHead className="font-semibold">Reason</TableHead>
                   <TableHead className="font-semibold">Start Date</TableHead>
                   <TableHead className="font-semibold">End Date</TableHead>
-                  <TableHead className="font-semibold">Status</TableHead>
+                  <TableHead className="font-semibold">{t("admin.status")}</TableHead>
                   <TableHead className="text-right font-semibold">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -1580,12 +1591,12 @@ function AbsencesPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: str
               <Table>
                 <TableHeader>
                   <TableRow className="bg-muted/50">
-                    <TableHead className="font-semibold">Employee</TableHead>
+                    <TableHead className="font-semibold">{t("admin.employee")}</TableHead>
                     <TableHead className="font-semibold">Type</TableHead>
                     <TableHead className="font-semibold">Reason</TableHead>
                     <TableHead className="font-semibold">Start Date</TableHead>
                     <TableHead className="font-semibold">End Date</TableHead>
-                    <TableHead className="font-semibold">Status</TableHead>
+                    <TableHead className="font-semibold">{t("admin.status")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -1832,8 +1843,8 @@ function ProjectManagementPanel({ admin }: { admin: any }) {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-display font-bold">Project Management</h2>
-        <p className="text-sm text-muted-foreground">Track project hours and progress per employee</p>
+        <h2 className="text-xl font-display font-bold">{t("admin.projectManagementTitle")}</h2>
+        <p className="text-sm text-muted-foreground">{t("admin.projectManagementDescription")}</p>
       </div>
 
       {/* Progress cards for projects with targets */}
@@ -1864,27 +1875,27 @@ function ProjectManagementPanel({ admin }: { admin: any }) {
           <Select value={projectFilter} onValueChange={setProjectFilter}>
             <SelectTrigger className="w-[180px]"><SelectValue placeholder="All projects" /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All projects</SelectItem>
+              <SelectItem value="all">{t("admin.allProjects")}</SelectItem>
               {projects.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
             </SelectContent>
           </Select>
         </div>
         <div className="space-y-1">
-          <Label className="text-xs">Employee</Label>
+          <Label className="text-xs">{t("admin.employee")}</Label>
           <Select value={employeeFilter} onValueChange={setEmployeeFilter}>
-            <SelectTrigger className="w-[180px]"><SelectValue placeholder="All employees" /></SelectTrigger>
+            <SelectTrigger className="w-[180px]"><SelectValue placeholder={t("admin.allEmployees")} /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All employees</SelectItem>
+              <SelectItem value="all">{t("admin.allEmployees")}</SelectItem>
               {employees.map((e: any) => <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>)}
             </SelectContent>
           </Select>
         </div>
         <div className="space-y-1">
-          <Label className="text-xs">From</Label>
+          <Label className="text-xs">{t("admin.from")}</Label>
           <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="w-[150px] dark:[color-scheme:dark]" />
         </div>
         <div className="space-y-1">
-          <Label className="text-xs">To</Label>
+          <Label className="text-xs">{t("admin.to")}</Label>
           <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="w-[150px] dark:[color-scheme:dark]" />
         </div>
         {hasFilters && (
@@ -1908,14 +1919,14 @@ function ProjectManagementPanel({ admin }: { admin: any }) {
               <TableHeader>
                 <TableRow className="bg-muted/50">
                   <TableHead className="font-semibold">Project</TableHead>
-                  <TableHead className="font-semibold">Employee</TableHead>
-                  <TableHead className="font-semibold">Description</TableHead>
-                  <TableHead className="font-semibold">Date</TableHead>
-                  <TableHead className="font-semibold text-right">Hours</TableHead>
+                  <TableHead className="font-semibold">{t("admin.employee")}</TableHead>
+                  <TableHead className="font-semibold">{t("admin.descriptionLabel")}</TableHead>
+                  <TableHead className="font-semibold">{t("admin.dateLabel")}</TableHead>
+                  <TableHead className="font-semibold text-right">{t("admin.hoursLabel")}</TableHead>
                   <TableHead className="font-semibold text-right">Target</TableHead>
                   <TableHead className="font-semibold text-right">Approved</TableHead>
                   <TableHead className="font-semibold text-right">Unapproved</TableHead>
-                  <TableHead className="font-semibold">Status</TableHead>
+                  <TableHead className="font-semibold">{t("admin.status")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -1946,6 +1957,7 @@ function ProjectManagementPanel({ admin }: { admin: any }) {
 /* ===== COMPANIES ===== */
 
 function CompaniesPanel({ admin }: { admin: any }) {
+  const { t } = useTranslation();
   const companies = admin.companies.data ?? [];
   return (
     <div className="space-y-4">
@@ -1962,10 +1974,10 @@ function CompaniesPanel({ admin }: { admin: any }) {
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/50">
-                  <TableHead className="font-semibold">Name</TableHead>
-                  <TableHead className="font-semibold">Company ID</TableHead>
+                  <TableHead className="font-semibold">{t("common.name")}</TableHead>
+                  <TableHead className="font-semibold">{t("admin.companyId")}</TableHead>
                   <TableHead className="font-semibold">Address</TableHead>
-                  <TableHead className="font-semibold">Country</TableHead>
+                  <TableHead className="font-semibold">{t("admin.country")}</TableHead>
                   <TableHead className="font-semibold">KM Rate</TableHead>
                   <TableHead className="w-[60px]"></TableHead>
                 </TableRow>
@@ -2001,6 +2013,7 @@ function CompaniesPanel({ admin }: { admin: any }) {
 /* ===== GPS WORKPLACES ===== */
 
 function WorkplacesPanel({ admin }: { admin: any }) {
+  const { t } = useTranslation();
   const workplaces = admin.workplaces.data ?? [];
   return (
     <div className="space-y-4">
@@ -2017,9 +2030,9 @@ function WorkplacesPanel({ admin }: { admin: any }) {
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/50">
-                  <TableHead className="font-semibold">Name</TableHead>
-                  <TableHead className="font-semibold">Latitude</TableHead>
-                  <TableHead className="font-semibold">Longitude</TableHead>
+                  <TableHead className="font-semibold">{t("common.name")}</TableHead>
+                  <TableHead className="font-semibold">{t("admin.latitude")}</TableHead>
+                  <TableHead className="font-semibold">{t("admin.longitude")}</TableHead>
                   <TableHead className="font-semibold">Radius</TableHead>
                   <TableHead className="w-[60px]"></TableHead>
                 </TableRow>
@@ -2116,6 +2129,7 @@ function RemindersPanel({ admin }: { admin: any }) {
 /* ===== SUB-DIALOGS ===== */
 
 function ImportEmployeesDialog({ onCreate, companies }: { onCreate: (data: any) => void; companies: any[] }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [preview, setPreview] = useState<Array<{ firstName: string; lastName: string; email: string; company: string; employeeNumber: string; contractDate: string; companyId: string; error?: string }>>([]);
   const fileRef = React.useRef<HTMLInputElement>(null);
@@ -2186,12 +2200,12 @@ function ImportEmployeesDialog({ onCreate, companies }: { onCreate: (data: any) 
 
   return (
     <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setPreview([]); if (fileRef.current) fileRef.current.value = ''; } }}>
-      <DialogTrigger asChild><Button variant="outline" className="gap-1.5"><Upload className="h-4 w-4" /> Import CSV</Button></DialogTrigger>
+      <DialogTrigger asChild><Button variant="outline" className="gap-1.5"><Upload className="h-4 w-4" /> {t("admin.importCsv")}</Button></DialogTrigger>
       <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader><DialogTitle className="font-display">Import Employees from CSV</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle className="font-display">{t("admin.importCsvTitle")}</DialogTitle></DialogHeader>
         <div className="space-y-4 mt-2">
           <div className="space-y-2">
-            <Label>CSV File</Label>
+            <Label>{t("admin.csvFile")}</Label>
             <Input ref={fileRef} type="file" accept=".csv,.txt" onChange={handleFile} />
             <p className="text-xs text-muted-foreground">Columns: first name, last name, email, company, employee number, contract start date (dd.mm.yyyy)</p>
           </div>
@@ -2204,13 +2218,13 @@ function ImportEmployeesDialog({ onCreate, companies }: { onCreate: (data: any) 
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-muted/50">
-                      <TableHead>First Name</TableHead>
-                      <TableHead>Last Name</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Company</TableHead>
-                      <TableHead>Emp #</TableHead>
-                      <TableHead>Contract Start</TableHead>
-                      <TableHead>Status</TableHead>
+                      <TableHead>{t("admin.firstName")}</TableHead>
+                      <TableHead>{t("admin.lastName")}</TableHead>
+                      <TableHead>{t("admin.email")}</TableHead>
+                      <TableHead>{t("admin.company")}</TableHead>
+                      <TableHead>{t("admin.empNumber")}</TableHead>
+                      <TableHead>{t("admin.contractStartLabel")}</TableHead>
+                      <TableHead>{t("admin.status")}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -2240,6 +2254,7 @@ function ImportEmployeesDialog({ onCreate, companies }: { onCreate: (data: any) 
 }
 
 function AddEmployeeDialog({ onCreate, companies }: { onCreate: (data: any) => void; companies: any[] }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -2260,20 +2275,20 @@ function AddEmployeeDialog({ onCreate, companies }: { onCreate: (data: any) => v
 
   return (
     <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) reset(); }}>
-      <DialogTrigger asChild><Button className="gap-1.5"><Plus className="h-4 w-4" /> Add Employee</Button></DialogTrigger>
+      <DialogTrigger asChild><Button className="gap-1.5"><Plus className="h-4 w-4" /> {t("admin.addEmployee")}</Button></DialogTrigger>
       <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
-        <DialogHeader><DialogTitle className="font-display">Add Employee</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle className="font-display">{t("admin.addEmployee")}</DialogTitle></DialogHeader>
         <div className="grid gap-4 mt-2 sm:grid-cols-2">
-          <div className="space-y-1.5"><Label>First Name</Label><Input value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="First name" /></div>
-          <div className="space-y-1.5"><Label>Last Name</Label><Input value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Last name" /></div>
-          <div className="space-y-1.5 sm:col-span-2"><Label>Email</Label><Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="email@company.com" /></div>
+          <div className="space-y-1.5"><Label>{t("admin.firstName")}</Label><Input value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder={t("admin.firstName")} /></div>
+          <div className="space-y-1.5"><Label>{t("admin.lastName")}</Label><Input value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder={t("admin.lastName")} /></div>
+          <div className="space-y-1.5 sm:col-span-2"><Label>{t("admin.email")}</Label><Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder={t("admin.email")} /></div>
           <div className="space-y-1.5 sm:col-span-2">
-            <Label>Company *</Label>
+            <Label>{t("admin.company")} *</Label>
             {companies.length === 1 ? (
               <Input value={companies[0].name} disabled className="bg-muted" />
             ) : (
               <Select value={companyId} onValueChange={setCompanyId}>
-                <SelectTrigger><SelectValue placeholder="Select company" /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder={t("admin.selectCompany")} /></SelectTrigger>
                 <SelectContent>
                   {companies.map((c) => (
                     <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
@@ -2282,27 +2297,27 @@ function AddEmployeeDialog({ onCreate, companies }: { onCreate: (data: any) => v
               </Select>
             )}
           </div>
-          <div className="space-y-1.5"><Label>Employee Number</Label><Input value={employeeNumber} onChange={(e) => setEmployeeNumber(e.target.value)} placeholder="EMP-001" /></div>
-          <div className="space-y-1.5"><Label>Role</Label>
+          <div className="space-y-1.5"><Label>{t("admin.employeeNumberLabel")}</Label><Input value={employeeNumber} onChange={(e) => setEmployeeNumber(e.target.value)} placeholder={t("admin.employeeNumberLabel")} /></div>
+          <div className="space-y-1.5"><Label>{t("admin.roleLabel")}</Label>
             <Select value={role} onValueChange={(v: any) => setRole(v)}>
               <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent><SelectItem value="employee">Employee</SelectItem><SelectItem value="manager">Manager</SelectItem><SelectItem value="admin">Admin</SelectItem></SelectContent>
+              <SelectContent><SelectItem value="employee">{t("admin.employee")}</SelectItem><SelectItem value="manager">Manager</SelectItem><SelectItem value="admin">Admin</SelectItem></SelectContent>
             </Select>
           </div>
-          <div className="space-y-1.5"><Label>Contract Start</Label><Input type="date" value={contractDate} onChange={(e) => setContractDate(e.target.value)} /></div>
-          <div className="space-y-1.5"><Label>Vacation Days/Year</Label><Input type="number" value={vacationDays} onChange={(e) => setVacationDays(e.target.value)} min="0" max="50" /></div>
-          <div className="space-y-1.5"><Label>Daily Working Hours</Label><Input type="number" step="0.5" value={dailyWorkHours} onChange={(e) => setDailyWorkHours(e.target.value)} min="1" max="24" /></div>
+          <div className="space-y-1.5"><Label>{t("admin.contractStartLabel")}</Label><Input type="date" value={contractDate} onChange={(e) => setContractDate(e.target.value)} /></div>
+          <div className="space-y-1.5"><Label>{t("admin.vacationDaysYear")}</Label><Input type="number" value={vacationDays} onChange={(e) => setVacationDays(e.target.value)} min="0" max="50" /></div>
+          <div className="space-y-1.5"><Label>{t("admin.dailyWorkingHours")}</Label><Input type="number" step="0.5" value={dailyWorkHours} onChange={(e) => setDailyWorkHours(e.target.value)} min="1" max="24" /></div>
           <div className="sm:col-span-2 space-y-3 rounded-lg border border-border p-3">
             <div className="flex items-center justify-between">
               <div>
-                <Label>Auto-subtract 30 min lunch</Label>
-                <p className="text-xs text-muted-foreground mt-0.5">Automatically deduct lunch break from daily hours</p>
+                <Label>{t("admin.autoSubtractLunch")}</Label>
+                <p className="text-xs text-muted-foreground mt-0.5">{t("admin.autoSubtractLunchDesc")}</p>
               </div>
               <Switch checked={autoSubtractLunch} onCheckedChange={setAutoSubtractLunch} />
             </div>
             {autoSubtractLunch && (
               <div className="space-y-1.5">
-                <Label className="text-xs">If daily work exceeds (hours)</Label>
+                <Label className="text-xs">{t("admin.ifDailyWorkExceeds")}</Label>
                 <Input type="number" step="0.5" value={lunchThreshold} onChange={(e) => setLunchThreshold(e.target.value)} min="1" max="12" />
               </div>
             )}
@@ -2312,7 +2327,7 @@ function AddEmployeeDialog({ onCreate, companies }: { onCreate: (data: any) => v
           const fullName = `${firstName.trim()} ${lastName.trim()}`;
           onCreate({ name: fullName, email: email.trim(), employee_number: employeeNumber.trim() || null, company_id: companyId, role, contract_start_date: contractDate || null, annual_vacation_days: parseInt(vacationDays) || 25, daily_work_hours: parseFloat(dailyWorkHours) || 7.5, auto_subtract_lunch: autoSubtractLunch, lunch_threshold_hours: parseFloat(lunchThreshold) || 5 });
           setOpen(false); reset();
-        }}>Add Employee</Button>
+        }}>{t("admin.addEmployee")}</Button>
       </DialogContent>
     </Dialog>
   );
@@ -2368,27 +2383,27 @@ function EditEmployeeDialog({ employee, allEmployees, currentManagerIds, onSave,
       <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader><DialogTitle className="font-display">{t('common.edit')} {employee.name}</DialogTitle></DialogHeader>
         <div className="grid gap-4 mt-2 sm:grid-cols-2">
-          <div className="space-y-1.5"><Label>{t('common.name')}</Label><Input value={employeeNumber} onChange={(e) => setEmployeeNumber(e.target.value)} placeholder="EMP-001" /></div>
+          <div className="space-y-1.5"><Label>{t('common.name')}</Label><Input value={employeeNumber} onChange={(e) => setEmployeeNumber(e.target.value)} placeholder={t("admin.employeeNumberLabel")} /></div>
           <div className="space-y-1.5"><Label>{t('common.role')}</Label>
             <Select value={role} onValueChange={(v: any) => setRole(v)}>
               <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent><SelectItem value="employee">Employee</SelectItem><SelectItem value="manager">Manager</SelectItem><SelectItem value="admin">Admin</SelectItem></SelectContent>
+              <SelectContent><SelectItem value="employee">{t("admin.employee")}</SelectItem><SelectItem value="manager">Manager</SelectItem><SelectItem value="admin">Admin</SelectItem></SelectContent>
             </Select>
           </div>
-          <div className="space-y-1.5"><Label>Contract Start</Label><Input type="date" value={contractDate} onChange={(e) => setContractDate(e.target.value)} /></div>
-          <div className="space-y-1.5"><Label>Vacation Days/Year</Label><Input type="number" value={vacationDays} onChange={(e) => setVacationDays(e.target.value)} min="0" max="50" /></div>
-          <div className="space-y-1.5"><Label>Daily Working Hours</Label><Input type="number" step="0.5" value={dailyWorkHours} onChange={(e) => setDailyWorkHours(e.target.value)} min="1" max="24" /></div>
+          <div className="space-y-1.5"><Label>{t("admin.contractStartLabel")}</Label><Input type="date" value={contractDate} onChange={(e) => setContractDate(e.target.value)} /></div>
+          <div className="space-y-1.5"><Label>{t("admin.vacationDaysYear")}</Label><Input type="number" value={vacationDays} onChange={(e) => setVacationDays(e.target.value)} min="0" max="50" /></div>
+          <div className="space-y-1.5"><Label>{t("admin.dailyWorkingHours")}</Label><Input type="number" step="0.5" value={dailyWorkHours} onChange={(e) => setDailyWorkHours(e.target.value)} min="1" max="24" /></div>
           <div className="sm:col-span-2 space-y-3 rounded-lg border border-border p-3">
             <div className="flex items-center justify-between">
               <div>
-                <Label>Auto-subtract 30 min lunch</Label>
-                <p className="text-xs text-muted-foreground mt-0.5">Automatically deduct lunch break from daily hours</p>
+                <Label>{t("admin.autoSubtractLunch")}</Label>
+                <p className="text-xs text-muted-foreground mt-0.5">{t("admin.autoSubtractLunchDesc")}</p>
               </div>
               <Switch checked={autoSubtractLunch} onCheckedChange={setAutoSubtractLunch} />
             </div>
             {autoSubtractLunch && (
               <div className="space-y-1.5">
-                <Label className="text-xs">If daily work exceeds (hours)</Label>
+                <Label className="text-xs">{t("admin.ifDailyWorkExceeds")}</Label>
                 <Input type="number" step="0.5" value={lunchThreshold} onChange={(e) => setLunchThreshold(e.target.value)} min="1" max="12" />
               </div>
             )}
@@ -2414,9 +2429,9 @@ function EditEmployeeDialog({ employee, allEmployees, currentManagerIds, onSave,
             </div>
           )}
           <div className="space-y-1.5 sm:col-span-2">
-            <Label>Managers</Label>
+            <Label>{t("admin.managers")}</Label>
             {availableManagers.length === 0 ? (
-              <p className="text-xs text-muted-foreground">No managers/admins available</p>
+              <p className="text-xs text-muted-foreground">{t("admin.noManagersAvailable")}</p>
             ) : (
               <div className="space-y-2 max-h-[120px] overflow-y-auto border border-border rounded-lg p-2">
                 {availableManagers.map((mgr: any) => (
@@ -2512,6 +2527,7 @@ function EditProjectDialog({ project, onSave }: { project: any; onSave: (data: {
 }
 
 function AddCompanyDialog({ onCreate }: { onCreate: (data: any) => void }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
   const [companyIdCode, setCompanyIdCode] = useState('');
@@ -2522,15 +2538,15 @@ function AddCompanyDialog({ onCreate }: { onCreate: (data: any) => void }) {
 
   return (
     <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) reset(); }}>
-      <DialogTrigger asChild><Button className="gap-1.5"><Plus className="h-4 w-4" /> Add Company</Button></DialogTrigger>
+      <DialogTrigger asChild><Button className="gap-1.5"><Plus className="h-4 w-4" /> {t("admin.addCompany")}</Button></DialogTrigger>
       <DialogContent className="sm:max-w-md">
-        <DialogHeader><DialogTitle className="font-display">Add Company</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle className="font-display">{t("admin.addCompany")}</DialogTitle></DialogHeader>
         <div className="grid gap-4 mt-2 sm:grid-cols-2">
-          <div className="space-y-1.5 sm:col-span-2"><Label>Company Name</Label><Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Company name" /></div>
-          <div className="space-y-1.5"><Label>Company ID</Label><Input value={companyIdCode} onChange={(e) => setCompanyIdCode(e.target.value)} placeholder="e.g. 1234567-8" /></div>
-          <div className="space-y-1.5"><Label>Country</Label>
+          <div className="space-y-1.5 sm:col-span-2"><Label>{t("admin.companyName")}</Label><Input value={name} onChange={(e) => setName(e.target.value)} placeholder={t("admin.companyName")} /></div>
+          <div className="space-y-1.5"><Label>{t("admin.companyId")}</Label><Input value={companyIdCode} onChange={(e) => setCompanyIdCode(e.target.value)} placeholder={t("admin.companyId")} /></div>
+          <div className="space-y-1.5"><Label>{t("admin.country")}</Label>
             <Select value={country} onValueChange={setCountry}>
-              <SelectTrigger><SelectValue placeholder="Select country" /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder={t("admin.selectCountry")} /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="Finland">Finland</SelectItem>
                 <SelectItem value="Sweden">Sweden</SelectItem>
@@ -2542,19 +2558,20 @@ function AddCompanyDialog({ onCreate }: { onCreate: (data: any) => void }) {
               </SelectContent>
             </Select>
           </div>
-          <div className="space-y-1.5 sm:col-span-2"><Label>Main Address</Label><Input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Street, City, Postal Code" /></div>
-          <div className="space-y-1.5"><Label>KM Rate (€)</Label><Input type="number" step="0.01" value={kmRate} onChange={(e) => setKmRate(e.target.value)} placeholder="0.25" /></div>
+          <div className="space-y-1.5 sm:col-span-2"><Label>{t("admin.mainAddress")}</Label><Input value={address} onChange={(e) => setAddress(e.target.value)} placeholder={t("admin.mainAddress")} /></div>
+          <div className="space-y-1.5"><Label>{t("admin.kmRate")}</Label><Input type="number" step="0.01" value={kmRate} onChange={(e) => setKmRate(e.target.value)} placeholder="0.25" /></div>
         </div>
         <Button className="w-full mt-2" disabled={!name.trim()} onClick={() => {
           onCreate({ name: name.trim(), company_id_code: companyIdCode.trim() || null, address: address.trim() || null, country: country || null, km_rate: parseFloat(kmRate) || 0.25 });
           setOpen(false); reset();
-        }}>Add Company</Button>
+        }}>{t("admin.addCompany")}</Button>
       </DialogContent>
     </Dialog>
   );
 }
 
 function EditCompanyDialog({ company, onSave }: { company: any; onSave: (data: any) => void }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState(company.name);
   const [companyIdCode, setCompanyIdCode] = useState(company.company_id_code || '');
@@ -2566,13 +2583,13 @@ function EditCompanyDialog({ company, onSave }: { company: any; onSave: (data: a
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild><Button size="icon" variant="ghost" className="h-8 w-8"><Pencil className="h-3.5 w-3.5" /></Button></DialogTrigger>
       <DialogContent className="sm:max-w-md">
-        <DialogHeader><DialogTitle className="font-display">Edit {company.name}</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle className="font-display">{t("admin.editCompany")}</DialogTitle></DialogHeader>
         <div className="grid gap-4 mt-2 sm:grid-cols-2">
-          <div className="space-y-1.5 sm:col-span-2"><Label>Company Name</Label><Input value={name} onChange={(e) => setName(e.target.value)} /></div>
-          <div className="space-y-1.5"><Label>Company ID</Label><Input value={companyIdCode} onChange={(e) => setCompanyIdCode(e.target.value)} placeholder="e.g. 1234567-8" /></div>
-          <div className="space-y-1.5"><Label>Country</Label>
+          <div className="space-y-1.5 sm:col-span-2"><Label>{t("admin.companyName")}</Label><Input value={name} onChange={(e) => setName(e.target.value)} /></div>
+          <div className="space-y-1.5"><Label>{t("admin.companyId")}</Label><Input value={companyIdCode} onChange={(e) => setCompanyIdCode(e.target.value)} placeholder={t("admin.companyId")} /></div>
+          <div className="space-y-1.5"><Label>{t("admin.country")}</Label>
             <Select value={country} onValueChange={setCountry}>
-              <SelectTrigger><SelectValue placeholder="Select country" /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder={t("admin.selectCountry")} /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="Finland">Finland</SelectItem>
                 <SelectItem value="Sweden">Sweden</SelectItem>
@@ -2584,19 +2601,20 @@ function EditCompanyDialog({ company, onSave }: { company: any; onSave: (data: a
               </SelectContent>
             </Select>
           </div>
-          <div className="space-y-1.5 sm:col-span-2"><Label>Main Address</Label><Input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Street, City, Postal Code" /></div>
-          <div className="space-y-1.5"><Label>KM Rate (€)</Label><Input type="number" step="0.01" value={kmRate} onChange={(e) => setKmRate(e.target.value)} /></div>
+          <div className="space-y-1.5 sm:col-span-2"><Label>{t("admin.mainAddress")}</Label><Input value={address} onChange={(e) => setAddress(e.target.value)} placeholder={t("admin.mainAddress")} /></div>
+          <div className="space-y-1.5"><Label>{t("admin.kmRate")}</Label><Input type="number" step="0.01" value={kmRate} onChange={(e) => setKmRate(e.target.value)} /></div>
         </div>
         <Button className="w-full mt-2" onClick={() => {
           onSave({ name: name.trim(), company_id_code: companyIdCode.trim() || null, address: address.trim() || null, country: country || null, km_rate: parseFloat(kmRate) || 0.25 });
           setOpen(false);
-        }}>Save Changes</Button>
+        }}>{t("admin.saveChanges")}</Button>
       </DialogContent>
     </Dialog>
   );
 }
 
 function AddWorkplaceDialog({ onCreate }: { onCreate: (data: { name: string; latitude: number; longitude: number; radius_meters: number }) => void }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
   const [lat, setLat] = useState('');
@@ -2605,31 +2623,31 @@ function AddWorkplaceDialog({ onCreate }: { onCreate: (data: { name: string; lat
 
   const useCurrentLocation = () => {
     navigator.geolocation.getCurrentPosition(
-      (pos) => { setLat(pos.coords.latitude.toFixed(6)); setLng(pos.coords.longitude.toFixed(6)); toast.success('Location captured'); },
-      () => toast.error('Could not get location'),
+      (pos) => { setLat(pos.coords.latitude.toFixed(6)); setLng(pos.coords.longitude.toFixed(6)); toast.success(t('admin.locationCaptured')); },
+      () => toast.error(t('admin.couldNotGetLocation')),
       { timeout: 5000 }
     );
   };
 
   return (
     <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setName(''); setLat(''); setLng(''); setRadius('200'); } }}>
-      <DialogTrigger asChild><Button className="gap-1.5"><Plus className="h-4 w-4" /> Add Workplace</Button></DialogTrigger>
+      <DialogTrigger asChild><Button className="gap-1.5"><Plus className="h-4 w-4" /> {t("admin.addWorkplace")}</Button></DialogTrigger>
       <DialogContent className="sm:max-w-md">
-        <DialogHeader><DialogTitle className="font-display">Add Workplace Location</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle className="font-display">{t("admin.addWorkplaceLocation")}</DialogTitle></DialogHeader>
         <div className="space-y-4 mt-2">
-          <div className="space-y-1.5"><Label>Name</Label><Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Office, Warehouse..." /></div>
+          <div className="space-y-1.5"><Label>{t("common.name")}</Label><Input value={name} onChange={(e) => setName(e.target.value)} placeholder={t("admin.addWorkplace")} /></div>
           <Button type="button" variant="outline" className="w-full gap-1.5" onClick={useCurrentLocation}>
             <MapPin className="h-4 w-4" /> Use Current Location
           </Button>
           <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5"><Label>Latitude</Label><Input type="number" step="0.000001" value={lat} onChange={(e) => setLat(e.target.value)} placeholder="60.1699" /></div>
-            <div className="space-y-1.5"><Label>Longitude</Label><Input type="number" step="0.000001" value={lng} onChange={(e) => setLng(e.target.value)} placeholder="24.9384" /></div>
+            <div className="space-y-1.5"><Label>{t("admin.latitude")}</Label><Input type="number" step="0.000001" value={lat} onChange={(e) => setLat(e.target.value)} placeholder="60.1699" /></div>
+            <div className="space-y-1.5"><Label>{t("admin.longitude")}</Label><Input type="number" step="0.000001" value={lng} onChange={(e) => setLng(e.target.value)} placeholder="24.9384" /></div>
           </div>
-          <div className="space-y-1.5"><Label>Radius (meters)</Label><Input type="number" value={radius} onChange={(e) => setRadius(e.target.value)} min="50" max="5000" /></div>
+          <div className="space-y-1.5"><Label>{t("admin.radius")}</Label><Input type="number" value={radius} onChange={(e) => setRadius(e.target.value)} min="50" max="5000" /></div>
           <Button className="w-full" disabled={!name.trim() || !lat || !lng} onClick={() => {
             onCreate({ name: name.trim(), latitude: parseFloat(lat), longitude: parseFloat(lng), radius_meters: parseInt(radius) || 200 });
             setOpen(false); setName(''); setLat(''); setLng(''); setRadius('200');
-          }}>Add Workplace</Button>
+          }}>{t("admin.addWorkplace")}</Button>
         </div>
       </DialogContent>
     </Dialog>
@@ -2773,6 +2791,7 @@ function EditReminderDialog({ reminder, onSave }: { reminder: any; onSave: (data
 /* ===== AUDIT TRAIL ===== */
 
 function AuditTrailPanel({ admin }: { admin: any }) {
+  const { t } = useTranslation();
   const [tableFilter, setTableFilter] = useState('all');
   const [actionFilter, setActionFilter] = useState('all');
   const [dateFrom, setDateFrom] = useState('');
@@ -2859,11 +2878,11 @@ function AuditTrailPanel({ admin }: { admin: any }) {
           </SelectContent>
         </Select>
         <div className="space-y-1">
-          <Label className="text-xs">From</Label>
+          <Label className="text-xs">{t("admin.from")}</Label>
           <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="w-[150px] dark:[color-scheme:dark]" />
         </div>
         <div className="space-y-1">
-          <Label className="text-xs">To</Label>
+          <Label className="text-xs">{t("admin.to")}</Label>
           <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="w-[150px] dark:[color-scheme:dark]" />
         </div>
         {(tableFilter !== 'all' || actionFilter !== 'all' || dateFrom || dateTo) && (
@@ -2884,16 +2903,16 @@ function AuditTrailPanel({ admin }: { admin: any }) {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Time</TableHead>
-                <TableHead>Table</TableHead>
-                <TableHead>Action</TableHead>
-                <TableHead>Changes</TableHead>
-                <TableHead>By</TableHead>
+                <TableHead>{t("admin.auditTime")}</TableHead>
+                <TableHead>{t("admin.auditTable")}</TableHead>
+                <TableHead>{t("admin.auditAction")}</TableHead>
+                <TableHead>{t("admin.auditChanges")}</TableHead>
+                <TableHead>{t("admin.auditBy")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filtered.length === 0 ? (
-                <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">No audit entries found</TableCell></TableRow>
+                <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">{t("admin.noAuditEntries")}</TableCell></TableRow>
               ) : filtered.slice(0, 100).map((log: any) => (
                 <TableRow key={log.id}>
                   <TableCell className="text-xs whitespace-nowrap text-muted-foreground">
