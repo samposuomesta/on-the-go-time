@@ -54,12 +54,12 @@ function StatusBadge({ status }: { status: string }) {
   return <Badge variant="outline" className={cn("capitalize text-xs", config[status])}>{status}</Badge>;
 }
 
-function ApproveRejectButtons({ id, onApprove, isPending, t }: {
+function ApproveRejectButtons({ id, onApprove, isPending }: {
   id: string;
   onApprove: (id: string, status: 'approved' | 'rejected') => void;
   isPending?: boolean;
-  t: (key: any) => string;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="flex gap-1.5">
       <Button size="sm" variant="outline"
