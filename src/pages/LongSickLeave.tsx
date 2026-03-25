@@ -20,6 +20,7 @@ export default function LongSickLeave() {
   const userId = useUserId();
   const queryClient = useQueryClient();
   const { t } = useTranslation();
+  const dateLocale = useDateLocale();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [startDate, setStartDate] = useState<Date>();
   const [endDate, setEndDate] = useState<Date>();
