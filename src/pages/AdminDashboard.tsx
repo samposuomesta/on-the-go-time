@@ -566,6 +566,7 @@ function StatisticsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: s
 /* ===== EMPLOYEES ===== */
 
 function FennoaImportDialog({ onCreate, companies }: { onCreate: (data: any) => void; companies: any[] }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [preview, setPreview] = useState<Array<{ firstName: string; lastName: string; email: string; employeeNumber: string; contractDate: string; companyId: string; error?: string }>>([]);
   const fileRef = React.useRef<HTMLInputElement>(null);
@@ -695,6 +696,7 @@ function FennoaImportDialog({ onCreate, companies }: { onCreate: (data: any) => 
 }
 
 function EmployeesPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: string) => boolean }) {
+  const { t } = useTranslation();
   const employees = (admin.employees.data ?? []).filter((e: any) => canSeeUser(e.id));
   const userManagers = admin.userManagers.data ?? [];
   const workBankTxns = admin.allWorkBank.data ?? [];
@@ -804,6 +806,7 @@ function EmployeesPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
 /* ===== APPROVALS (Working Hours + Travel + Project Hours) ===== */
 
 function EditTimeEntryDialog({ entry, onSave }: { entry: any; onSave: (data: any) => void }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
@@ -859,6 +862,7 @@ function EditTimeEntryDialog({ entry, onSave }: { entry: any; onSave: (data: any
 }
 
 function EditProjectHoursDialog({ entry, onSave, isHistory, onAuditReason }: { entry: any; onSave: (data: any) => void; isHistory?: boolean; onAuditReason?: (tableName: string, recordId: string, oldData: any, newData: any, reason: string) => void }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [hours, setHours] = useState('');
   const [date, setDate] = useState('');
@@ -941,6 +945,7 @@ function EditProjectHoursDialog({ entry, onSave, isHistory, onAuditReason }: { e
 }
 
 function EditTravelExpenseDialog({ entry, onSave, isHistory, onAuditReason }: { entry: any; onSave: (data: any) => void; isHistory?: boolean; onAuditReason?: (tableName: string, recordId: string, oldData: any, newData: any, reason: string) => void }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [date, setDate] = useState('');
   const [kilometers, setKilometers] = useState('');
@@ -1029,6 +1034,7 @@ function EditTravelExpenseDialog({ entry, onSave, isHistory, onAuditReason }: { 
 }
 
 function EditTimeEntryHistoryDialog({ entry, onSave, isHistory, onAuditReason }: { entry: any; onSave: (data: any) => void; isHistory?: boolean; onAuditReason?: (tableName: string, recordId: string, oldData: any, newData: any, reason: string) => void }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
@@ -1120,6 +1126,7 @@ function EditTimeEntryHistoryDialog({ entry, onSave, isHistory, onAuditReason }:
 }
 
 function ApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: string) => boolean }) {
+  const { t } = useTranslation();
   const [employeeFilter, setEmployeeFilter] = useState('all');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
@@ -1950,6 +1957,7 @@ function ProjectManagementPanel({ admin }: { admin: any }) {
 /* ===== COMPANIES ===== */
 
 function CompaniesPanel({ admin }: { admin: any }) {
+  const { t } = useTranslation();
   const companies = admin.companies.data ?? [];
   return (
     <div className="space-y-4">
@@ -2005,6 +2013,7 @@ function CompaniesPanel({ admin }: { admin: any }) {
 /* ===== GPS WORKPLACES ===== */
 
 function WorkplacesPanel({ admin }: { admin: any }) {
+  const { t } = useTranslation();
   const workplaces = admin.workplaces.data ?? [];
   return (
     <div className="space-y-4">
@@ -2120,6 +2129,7 @@ function RemindersPanel({ admin }: { admin: any }) {
 /* ===== SUB-DIALOGS ===== */
 
 function ImportEmployeesDialog({ onCreate, companies }: { onCreate: (data: any) => void; companies: any[] }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [preview, setPreview] = useState<Array<{ firstName: string; lastName: string; email: string; company: string; employeeNumber: string; contractDate: string; companyId: string; error?: string }>>([]);
   const fileRef = React.useRef<HTMLInputElement>(null);
@@ -2244,6 +2254,7 @@ function ImportEmployeesDialog({ onCreate, companies }: { onCreate: (data: any) 
 }
 
 function AddEmployeeDialog({ onCreate, companies }: { onCreate: (data: any) => void; companies: any[] }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -2516,6 +2527,7 @@ function EditProjectDialog({ project, onSave }: { project: any; onSave: (data: {
 }
 
 function AddCompanyDialog({ onCreate }: { onCreate: (data: any) => void }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
   const [companyIdCode, setCompanyIdCode] = useState('');
@@ -2559,6 +2571,7 @@ function AddCompanyDialog({ onCreate }: { onCreate: (data: any) => void }) {
 }
 
 function EditCompanyDialog({ company, onSave }: { company: any; onSave: (data: any) => void }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState(company.name);
   const [companyIdCode, setCompanyIdCode] = useState(company.company_id_code || '');
@@ -2601,6 +2614,7 @@ function EditCompanyDialog({ company, onSave }: { company: any; onSave: (data: a
 }
 
 function AddWorkplaceDialog({ onCreate }: { onCreate: (data: { name: string; latitude: number; longitude: number; radius_meters: number }) => void }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
   const [lat, setLat] = useState('');
@@ -2777,6 +2791,7 @@ function EditReminderDialog({ reminder, onSave }: { reminder: any; onSave: (data
 /* ===== AUDIT TRAIL ===== */
 
 function AuditTrailPanel({ admin }: { admin: any }) {
+  const { t } = useTranslation();
   const [tableFilter, setTableFilter] = useState('all');
   const [actionFilter, setActionFilter] = useState('all');
   const [dateFrom, setDateFrom] = useState('');
