@@ -135,6 +135,7 @@ export function ReportsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (i
           loginLng: ls.login_lng != null ? String(ls.login_lng) : '',
           logoutLat: ls.logout_lat != null ? String(ls.logout_lat) : '',
           logoutLng: ls.logout_lng != null ? String(ls.logout_lng) : '',
+          timezone: employeeTzMap[ls.user_id] ?? '',
           startTime: '', endTime: '', breakMin: '', netHours: '',
           project: '', projectHours: '', description: '', status: '',
           sortKey: ls.login_at ?? '',
