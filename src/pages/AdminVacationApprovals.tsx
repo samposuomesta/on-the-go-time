@@ -5,6 +5,8 @@ import { ArrowLeft, CalendarDays, CheckCircle2, XCircle, Clock } from 'lucide-re
 import { Link, Navigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
+import { useTranslation } from '@/lib/i18n';
+import { useDateLocale } from '@/lib/date-locale';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,6 +15,8 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
 export default function AdminVacationApprovals() {
+  const { t } = useTranslation();
+  const dateLocale = useDateLocale();
   const queryClient = useQueryClient();
   const { data: currentUser, isLoading: userLoading } = useCurrentUser();
 
@@ -76,7 +80,7 @@ export default function AdminVacationApprovals() {
     };
     return (
       <Badge variant="outline" className={cn("capitalize", config[status]?.className)}>
-        {status}
+        {t(`admin.${status}` as any)}
       </Badge>
     );
   };
@@ -97,8 +101,8 @@ export default function AdminVacationApprovals() {
           <ArrowLeft className="h-5 w-5" />
         </Link>
         <div>
-          <h1 className="text-lg lg:text-xl font-display font-bold">Vacation Approvals</h1>
-          <p className="text-xs lg:text-sm text-muted-foreground">Review and manage vacation requests</p>
+          <h1 className="text-lg lg:text-xl font-display font-bold">{t('admin.vacationApprovals')}</h1>
+          <p className="text-xs lg:text-sm text-muted-foreground">{t('admin.reviewManageVacation')}</p>
         </div>
       </header>
 
@@ -107,7 +111,7 @@ export default function AdminVacationApprovals() {
           <CardHeader className="pb-3">
             <CardTitle className="text-base lg:text-lg font-display flex items-center gap-2">
               <Clock className="h-5 w-5 text-warning" />
-              Pending Requests
+              {t('admin.pendingRequests')}
               <Badge variant="secondary" className="ml-auto">{pending.length}</Badge>
             </CardTitle>
           </CardHeader>
@@ -116,19 +120,19 @@ export default function AdminVacationApprovals() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Employee</TableHead>
-                    <TableHead>Start Date</TableHead>
-                    <TableHead>End Date</TableHead>
-                    <TableHead>Comment</TableHead>
-                    <TableHead>Submitted</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead>{t('admin.employee')}</TableHead>
+                    <TableHead>{t('admin.startDate')}</TableHead>
+                    <TableHead>{t('admin.endDate')}</TableHead>
+                    <TableHead>{t('admin.comment')}</TableHead>
+                    <TableHead>{t('admin.submitted')}</TableHead>
+                    <TableHead className="text-right">{t('admin.actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {pending.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
-                        No pending vacation requests
+                        {t('admin.noPendingVacation')}
                       </TableCell>
                     </TableRow>
                   ) : pending.map((r: any) => (
@@ -147,7 +151,7 @@ export default function AdminVacationApprovals() {
                             disabled={approveVacation.isPending}
                             onClick={() => approveVacation.mutate({ id: r.id, status: 'approved' })}
                           >
-                            <CheckCircle2 className="h-4 w-4" /> Approve
+                            <CheckCircle2 className="h-4 w-4" /> {t('admin.approve')}
                           </Button>
                           <Button
                             size="sm"
@@ -156,7 +160,7 @@ export default function AdminVacationApprovals() {
                             disabled={approveVacation.isPending}
                             onClick={() => approveVacation.mutate({ id: r.id, status: 'rejected' })}
                           >
-                            <XCircle className="h-4 w-4" /> Reject
+                            <XCircle className="h-4 w-4" /> {t('admin.reject')}
                           </Button>
                         </div>
                       </TableCell>
@@ -172,7 +176,7 @@ export default function AdminVacationApprovals() {
           <CardHeader className="pb-3">
             <CardTitle className="text-base lg:text-lg font-display flex items-center gap-2">
               <CalendarDays className="h-5 w-5" />
-              History
+              {t('admin.history')}
               <Badge variant="secondary" className="ml-auto">{handled.length}</Badge>
             </CardTitle>
           </CardHeader>
@@ -181,18 +185,18 @@ export default function AdminVacationApprovals() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Employee</TableHead>
-                    <TableHead>Start Date</TableHead>
-                    <TableHead>End Date</TableHead>
-                    <TableHead>Comment</TableHead>
-                    <TableHead>Status</TableHead>
+                    <TableHead>{t('admin.employee')}</TableHead>
+                    <TableHead>{t('admin.startDate')}</TableHead>
+                    <TableHead>{t('admin.endDate')}</TableHead>
+                    <TableHead>{t('admin.comment')}</TableHead>
+                    <TableHead>{t('admin.status')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {handled.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
-                        No history yet
+                        {t('admin.noHistoryYet')}
                       </TableCell>
                     </TableRow>
                   ) : handled.map((r: any) => (

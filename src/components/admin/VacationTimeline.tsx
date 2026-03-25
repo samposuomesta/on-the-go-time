@@ -9,6 +9,8 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { getFinnishHolidaySet, getFinnishHolidays } from '@/lib/finnish-holidays';
+import { useTranslation } from '@/lib/i18n';
+import { useDateLocale } from '@/lib/date-locale';
 
 interface VacationTimelineProps {
   employees: any[];
@@ -20,6 +22,8 @@ interface VacationTimelineProps {
 }
 
 export function VacationTimeline({ employees, vacationRequests, userManagers, companyCountry, onApprove, isPending }: VacationTimelineProps) {
+  const { t } = useTranslation();
+  const dateLocale = useDateLocale();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [monthsToShow] = useState(3);
 
@@ -95,15 +99,15 @@ export function VacationTimeline({ employees, vacationRequests, userManagers, co
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-display font-bold">Vacation Timeline</h2>
-          <p className="text-sm text-muted-foreground">Visual overview of all vacation requests</p>
+          <h2 className="text-xl font-display font-bold">{t('admin.vacationTimeline')}</h2>
+          <p className="text-sm text-muted-foreground">{t('admin.vacationTimelineDesc')}</p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setCurrentDate(d => subMonths(d, 1))}>
             <ChevronLeft className="h-4 w-4" />
           </Button>
           <span className="text-sm font-medium min-w-[140px] text-center">
-            {format(months[0], 'MMM yyyy')} — {format(months[months.length - 1], 'MMM yyyy')}
+            {format(months[0], 'MMM yyyy', { locale: dateLocale })} — {format(months[months.length - 1], 'MMM yyyy', { locale: dateLocale })}
           </span>
           <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setCurrentDate(d => addMonths(d, 1))}>
             <ChevronRight className="h-4 w-4" />
@@ -115,20 +119,20 @@ export function VacationTimeline({ employees, vacationRequests, userManagers, co
       <div className="flex items-center gap-4 text-xs flex-wrap">
         <div className="flex items-center gap-1.5">
           <div className="w-4 h-3 rounded-sm bg-warning/60 border border-warning/40" />
-          <span className="text-muted-foreground">Pending</span>
+          <span className="text-muted-foreground">{t('admin.legendPending')}</span>
         </div>
         <div className="flex items-center gap-1.5">
           <div className="w-4 h-3 rounded-sm bg-success/60 border border-success/40" />
-          <span className="text-muted-foreground">Approved</span>
+          <span className="text-muted-foreground">{t('admin.legendApproved')}</span>
         </div>
         <div className="flex items-center gap-1.5">
           <div className="w-4 h-3 rounded-sm bg-muted border border-border" />
-          <span className="text-muted-foreground">Weekend</span>
+          <span className="text-muted-foreground">{t('admin.legendWeekend')}</span>
         </div>
         {companyCountry === 'Finland' && (
           <div className="flex items-center gap-1.5">
             <div className="w-4 h-3 rounded-sm bg-destructive/30 border border-destructive/40" />
-            <span className="text-muted-foreground">Bank Holiday</span>
+            <span className="text-muted-foreground">{t('admin.legendHoliday')}</span>
           </div>
         )}
       </div>
@@ -141,7 +145,7 @@ export function VacationTimeline({ employees, vacationRequests, userManagers, co
               {/* Month headers */}
               <div className="flex border-b border-border sticky top-0 z-20 bg-card">
                 <div className="shrink-0 border-r border-border bg-muted/50" style={{ width: NAME_W, minWidth: NAME_W }}>
-                  <div className="px-3 py-2 text-xs font-semibold text-muted-foreground">Employee / Manager</div>
+                  <div className="px-3 py-2 text-xs font-semibold text-muted-foreground">{t('admin.employeeManager')}</div>
                 </div>
                 <div className="flex">
                   {months.map((month, mi) => {
@@ -149,7 +153,7 @@ export function VacationTimeline({ employees, vacationRequests, userManagers, co
                     return (
                       <div key={mi} className="border-r border-border last:border-r-0">
                         <div className="text-xs font-semibold text-center py-1.5 bg-muted/50 border-b border-border">
-                          {format(month, 'MMMM yyyy')}
+                          {format(month, 'LLLL yyyy', { locale: dateLocale })}
                         </div>
                         <div className="flex">
                           {daysInMonth.map((day, di) => {
@@ -168,7 +172,7 @@ export function VacationTimeline({ employees, vacationRequests, userManagers, co
                                     style={{ width: CELL_W, minWidth: CELL_W }}
                                   >
                                     <div className={cn("text-[9px] leading-none", isHoliday ? "text-destructive font-bold" : "text-muted-foreground")}>
-                                      {format(day, 'EEE').charAt(0)}
+                                      {format(day, 'EEEEE', { locale: dateLocale })}
                                     </div>
                                     <div className={cn("text-[10px] font-medium leading-none mt-0.5", isHoliday && "text-destructive")}>
                                       {format(day, 'd')}
@@ -178,7 +182,7 @@ export function VacationTimeline({ employees, vacationRequests, userManagers, co
                                 {isHoliday && (
                                   <TooltipContent side="bottom" className="text-xs">
                                     <p className="font-medium">{holidayName}</p>
-                                    <p className="text-muted-foreground">{format(day, 'MMM d, yyyy')}</p>
+                                    <p className="text-muted-foreground">{format(day, 'd.M.yyyy', { locale: dateLocale })}</p>
                                   </TooltipContent>
                                 )}
                               </Tooltip>
@@ -256,20 +260,20 @@ export function VacationTimeline({ employees, vacationRequests, userManagers, co
                                       {vac && (
                                         <>
                                           <p className="font-medium">{person.name}</p>
-                                          <p>{format(parseISO(vac.start_date), 'MMM d')} — {format(parseISO(vac.end_date), 'MMM d, yyyy')}</p>
-                                          <p className="capitalize font-medium mt-0.5">{vac.status}</p>
+                                          <p>{format(parseISO(vac.start_date), 'd.M.', { locale: dateLocale })} — {format(parseISO(vac.end_date), 'd.M.yyyy', { locale: dateLocale })}</p>
+                                          <p className="capitalize font-medium mt-0.5">{t(`admin.${vac.status}` as any)}</p>
                                           {vac.comment && <p className="text-muted-foreground mt-0.5">{vac.comment}</p>}
                                           {vac.status === 'pending' && (
                                             <div className="flex gap-1 mt-1.5">
                                               <Button size="sm" variant="outline" className="h-6 text-[10px] gap-1 text-success border-success/30"
                                                 disabled={isPending}
-                                                onClick={() => { onApprove(vac.id, 'approved'); toast.success('Approved'); }}>
-                                                <CheckCircle2 className="h-3 w-3" /> Approve
+                                                onClick={() => { onApprove(vac.id, 'approved'); toast.success(t('admin.approved')); }}>
+                                                <CheckCircle2 className="h-3 w-3" /> {t('admin.approve')}
                                               </Button>
                                               <Button size="sm" variant="outline" className="h-6 text-[10px] gap-1 text-destructive border-destructive/30"
                                                 disabled={isPending}
-                                                onClick={() => { onApprove(vac.id, 'rejected'); toast.success('Rejected'); }}>
-                                                <XCircle className="h-3 w-3" /> Reject
+                                                onClick={() => { onApprove(vac.id, 'rejected'); toast.success(t('admin.rejected')); }}>
+                                                <XCircle className="h-3 w-3" /> {t('admin.reject')}
                                               </Button>
                                             </div>
                                           )}
@@ -290,7 +294,7 @@ export function VacationTimeline({ employees, vacationRequests, userManagers, co
 
               {sortedPeople.length === 0 && (
                 <div className="py-12 text-center text-sm text-muted-foreground">
-                  No employees found
+                  {t('admin.noEmployeesFound')}
                 </div>
               )}
             </div>
