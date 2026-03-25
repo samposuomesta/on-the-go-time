@@ -78,10 +78,11 @@ function ApproveRejectButtons({ id, onApprove, isPending, t }: {
   );
 }
 
-function SickLeaveApproveButtons({ id, onApprove, isPending }: {
+function SickLeaveApproveButtons({ id, onApprove, isPending, t }: {
   id: string;
   onApprove: (id: string, status: 'approved' | 'rejected') => void;
   isPending?: boolean;
+  t: (key: any) => string;
 }) {
   const [certDialogOpen, setCertDialogOpen] = useState(false);
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
@@ -93,27 +94,27 @@ function SickLeaveApproveButtons({ id, onApprove, isPending }: {
           className="gap-1 text-xs h-8 text-success hover:text-success border-success/30 hover:bg-success/10"
           disabled={isPending}
           onClick={() => setCertDialogOpen(true)}>
-          <CheckCircle2 className="h-3.5 w-3.5" /> Approve
+          <CheckCircle2 className="h-3.5 w-3.5" /> {t('admin.approve')}
         </Button>
         <Button size="sm" variant="outline"
           className="gap-1 text-xs h-8 text-destructive hover:text-destructive border-destructive/30 hover:bg-destructive/10"
           disabled={isPending}
           onClick={() => setRejectDialogOpen(true)}>
-          <XCircle className="h-3.5 w-3.5" /> Reject
+          <XCircle className="h-3.5 w-3.5" /> {t('admin.reject')}
         </Button>
       </div>
       <AlertDialog open={certDialogOpen} onOpenChange={setCertDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Sick Leave Certificate</AlertDialogTitle>
+            <AlertDialogTitle>{t('admin.sickLeaveCertificate')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Have you seen the sick leave certificate for this request?
+              {t('admin.sickLeaveCertificateQuestion')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={() => setCertDialogOpen(false)}>No</AlertDialogCancel>
-            <AlertDialogAction className="bg-success text-success-foreground hover:bg-success/90" onClick={() => { onApprove(id, 'approved'); setCertDialogOpen(false); toast.success('Approved'); }}>
-              Yes
+            <AlertDialogCancel className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={() => setCertDialogOpen(false)}>{t('admin.no')}</AlertDialogCancel>
+            <AlertDialogAction className="bg-success text-success-foreground hover:bg-success/90" onClick={() => { onApprove(id, 'approved'); setCertDialogOpen(false); toast.success(t('admin.approved')); }}>
+              {t('admin.yes')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -121,15 +122,15 @@ function SickLeaveApproveButtons({ id, onApprove, isPending }: {
       <AlertDialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Reject Sick Leave</AlertDialogTitle>
+            <AlertDialogTitle>{t('admin.rejectSickLeave')}</AlertDialogTitle>
             <AlertDialogDescription>
-              If rejected, these will be marked as unpaid leave for the user. Mark this as unpaid leave for user?
+              {t('admin.rejectSickLeaveQuestion')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={() => setRejectDialogOpen(false)}>No</AlertDialogCancel>
-            <AlertDialogAction className="bg-success text-success-foreground hover:bg-success/90" onClick={() => { onApprove(id, 'rejected'); setRejectDialogOpen(false); toast.success('Rejected — marked as unpaid leave'); }}>
-              Yes
+            <AlertDialogCancel className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={() => setRejectDialogOpen(false)}>{t('admin.no')}</AlertDialogCancel>
+            <AlertDialogAction className="bg-success text-success-foreground hover:bg-success/90" onClick={() => { onApprove(id, 'rejected'); setRejectDialogOpen(false); toast.success(t('admin.rejectedUnpaidLeave')); }}>
+              {t('admin.yes')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
