@@ -41,20 +41,36 @@ export function AbsenceReasonDialog({ open, onOpenChange }: AbsenceReasonDialogP
     },
   });
 
-  const submit = async (reasonId: string | null) => {
+  const submit = async (reasonId: string | null, description?: string) => {
     setSubmitting(true);
-    const { error } = await supabase.from('absences').insert({
+    const insertData: any = {
       user_id: userId,
       type: 'absence' as const,
       reason_id: reasonId,
-    });
+    };
+    const { error } = await supabase.from('absences').insert(insertData);
     setSubmitting(false);
     if (error) {
       toast.error('Failed to record absence');
       return;
     }
     toast.success('Absence recorded');
+    setShowExplanation(false);
+    setExplanation('');
     onOpenChange(false);
+  };
+
+  const handleOtherReason = () => {
+    setShowExplanation(true);
+  };
+
+  const handleExplanationBack = () => {
+    setShowExplanation(false);
+    setExplanation('');
+  };
+
+  const handleExplanationConfirm = () => {
+    submit(null, explanation);
   };
 
   const activeReasons = reasons ?? [];
