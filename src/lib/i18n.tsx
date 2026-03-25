@@ -743,6 +743,7 @@ const translations = {
     'reports.colCompany': 'Yritys',
     'reports.colDate': 'Päivämäärä',
     'reports.colTime': 'Aika',
+    'reports.colTimezone': 'Aikavyöhyke',
     'reports.colLoginTime': 'Kirjautumisaika',
     'reports.colLogoutTime': 'Uloskirjautumisaika',
     'reports.colLoginLat': 'Kirjautuminen Lat',
