@@ -48,7 +48,7 @@ export function Dashboard() {
   const { data: currentUser } = useCurrentUser();
   const { t } = useTranslation();
   useOfflineSync();
-  useWorkplaceDetection(!!activeEntry);
+  
   const navigate = useNavigate();
   const [showProjectHours, setShowProjectHours] = useState(false);
   const [expenseMode, setExpenseMode] = useState<'kilometers' | 'parking' | 'receipt' | null>(null);
