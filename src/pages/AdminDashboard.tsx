@@ -1536,8 +1536,8 @@ function AbsencesPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: str
       <Card>
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-base font-display">Pending Review</CardTitle>
-            <Badge variant="secondary">{pending.length} pending</Badge>
+             <CardTitle className="text-base font-display">{t('admin.pendingReview')}</CardTitle>
+             <Badge variant="secondary">{pending.length} {t('admin.pending')}</Badge>
           </div>
         </CardHeader>
         <CardContent className="p-0">
