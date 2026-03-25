@@ -327,6 +327,21 @@ export function useAdminData() {
     mutationFn: async (data: { name: string; email: string; role: 'employee' | 'manager' | 'admin'; company_id?: string; contract_start_date?: string; annual_vacation_days?: number; daily_work_hours?: number; auto_subtract_lunch?: boolean; lunch_threshold_hours?: number; employee_number?: string | null }) => {
       const { error } = await supabase.from('users').insert({ ...data, company_id: data.company_id || companyId });
       if (error) throw error;
+
+      // Create auth account and send password reset email
+      try {
+        const { error: fnError } = await supabase.functions.invoke('create-auth-user', {
+          body: {
+            email: data.email,
+            redirectTo: `${window.location.origin}/reset-password`,
+          },
+        });
+        if (fnError) {
+          console.error('Auth account creation failed:', fnError);
+        }
+      } catch (e) {
+        console.error('Failed to create auth account:', e);
+      }
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-employees'] }),
   });
