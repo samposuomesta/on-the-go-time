@@ -172,7 +172,7 @@ export function VacationTimeline({ employees, vacationRequests, userManagers, co
                                     style={{ width: CELL_W, minWidth: CELL_W }}
                                   >
                                     <div className={cn("text-[9px] leading-none", isHoliday ? "text-destructive font-bold" : "text-muted-foreground")}>
-                                      {format(day, 'EEE').charAt(0)}
+                                      {format(day, 'EEEEE', { locale: dateLocale })}
                                     </div>
                                     <div className={cn("text-[10px] font-medium leading-none mt-0.5", isHoliday && "text-destructive")}>
                                       {format(day, 'd')}
