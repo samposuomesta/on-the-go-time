@@ -225,6 +225,27 @@ export function Dashboard() {
         />
       )}
       <AbsenceReasonDialog open={showAbsenceDialog} onOpenChange={setShowAbsenceDialog} />
+
+      {/* Sick confirmation dialog */}
+      <AlertDialog open={showSickConfirm} onOpenChange={setShowSickConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('dashboard.sickConfirmTitle')}</AlertDialogTitle>
+            <AlertDialogDescription>{t('dashboard.sickConfirmDesc')}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-warning/20 text-warning hover:bg-warning/30 border-warning/30">
+              {t('dashboard.sickConfirmNo')}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-success text-success-foreground hover:bg-success/90"
+              onClick={() => markAbsence('sick')}
+            >
+              {t('dashboard.sickConfirmYes')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
