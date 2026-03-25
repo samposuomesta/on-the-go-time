@@ -69,7 +69,7 @@ export default function TravelExpenses() {
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">
-            <Calendar
+             <Calendar
               mode="range"
               selected={calendarSelection as any}
               onSelect={(val: any) => {
@@ -77,6 +77,7 @@ export default function TravelExpenses() {
                 if (val?.from && val?.to) { setRange({ from: val.from, to: val.to }); setCalendarOpen(false); }
               }}
               numberOfMonths={1}
+              locale={dateLocale}
               className={cn("p-3 pointer-events-auto")}
             />
           </PopoverContent>
