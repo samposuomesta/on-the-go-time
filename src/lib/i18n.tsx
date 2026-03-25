@@ -467,6 +467,9 @@ const translations = {
     'absenceReasons.noCustomReasons': 'No custom reasons configured.',
     'absenceReasons.markAbsent': 'Mark Absent Today',
     'absenceReasons.otherReason': 'Other / No specific reason',
+    'absenceReasons.explainAbsence': 'Please describe the reason for your absence:',
+    'absenceReasons.explanationPlaceholder': 'Enter explanation...',
+    'absenceReasons.goBack': 'Back',
 
     // Projects
     'projects.title': 'Projects',
