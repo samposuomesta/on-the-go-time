@@ -14,6 +14,7 @@ const COLORS = ['hsl(220,25%,18%)', 'hsl(152,60%,40%)', 'hsl(38,92%,50%)', 'hsl(
 export default function MyStatistics() {
   const userId = useUserId();
   const { t } = useTranslation();
+  const dateLocale = useDateLocale();
   const now = new Date();
   const monthStart = startOfMonth(now);
   const monthEnd = endOfMonth(now);
