@@ -53,6 +53,7 @@ export function Dashboard() {
   const [showProjectHours, setShowProjectHours] = useState(false);
   const [expenseMode, setExpenseMode] = useState<'kilometers' | 'parking' | 'receipt' | null>(null);
   const [showAbsenceDialog, setShowAbsenceDialog] = useState(false);
+  const [showSickConfirm, setShowSickConfirm] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
   const isAdminOrManager = currentUser?.role === 'admin' || currentUser?.role === 'manager';
