@@ -72,27 +72,10 @@ export function useTimeTracking() {
     return (data as OverlapEntry[]) ?? [];
   };
 
-  const startWork = async (replaceIds?: string[]) => {
+  const startWork = async () => {
+    if (activeEntry) return; // already clocked in
+
     const now = new Date();
-
-    if (!replaceIds) {
-      const overlaps = await checkOverlap(startOfToday(), endOfDay(now));
-      if (overlaps.length > 0) {
-        return { overlaps };
-      }
-    }
-
-    if (replaceIds && replaceIds.length > 0) {
-      const { error: delError } = await supabase
-        .from('time_entries')
-        .delete()
-        .in('id', replaceIds);
-      if (delError) {
-        toast.error('Failed to replace entries');
-        console.error(delError);
-        return;
-      }
-    }
 
     let lat: number | undefined;
     let lng: number | undefined;
@@ -124,7 +107,6 @@ export function useTimeTracking() {
 
     toast.success('Work started!');
     fetchActive();
-    return undefined;
   };
 
   const stopWork = async () => {
