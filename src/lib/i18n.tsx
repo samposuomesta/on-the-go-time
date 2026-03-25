@@ -467,6 +467,9 @@ const translations = {
     'absenceReasons.noCustomReasons': 'No custom reasons configured.',
     'absenceReasons.markAbsent': 'Mark Absent Today',
     'absenceReasons.otherReason': 'Other / No specific reason',
+    'absenceReasons.explainAbsence': 'Please describe the reason for your absence:',
+    'absenceReasons.explanationPlaceholder': 'Enter explanation...',
+    'absenceReasons.goBack': 'Back',
 
     // Projects
     'projects.title': 'Projects',
@@ -990,6 +993,9 @@ const translations = {
     'absenceReasons.noCustomReasons': 'Ei mukautettuja syitä konfiguroitu.',
     'absenceReasons.markAbsent': 'Merkitse poissa tänään',
     'absenceReasons.otherReason': 'Muu / Ei erityistä syytä',
+    'absenceReasons.explainAbsence': 'Kuvaile poissaolon syy:',
+    'absenceReasons.explanationPlaceholder': 'Kirjoita selitys...',
+    'absenceReasons.goBack': 'Palaa',
 
     // Projects
     'projects.title': 'Projektit',

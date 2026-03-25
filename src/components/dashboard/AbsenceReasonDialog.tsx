@@ -11,6 +11,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
 import { UserX } from 'lucide-react';
 
 interface AbsenceReasonDialogProps {
@@ -22,6 +23,8 @@ export function AbsenceReasonDialog({ open, onOpenChange }: AbsenceReasonDialogP
   const userId = useUserId();
   const companyId = useCompanyId();
   const [submitting, setSubmitting] = useState(false);
+  const [showExplanation, setShowExplanation] = useState(false);
+  const [explanation, setExplanation] = useState('');
   const { language, t } = useTranslation();
 
   const { data: reasons } = useQuery({
@@ -38,20 +41,36 @@ export function AbsenceReasonDialog({ open, onOpenChange }: AbsenceReasonDialogP
     },
   });
 
-  const submit = async (reasonId: string | null) => {
+  const submit = async (reasonId: string | null, description?: string) => {
     setSubmitting(true);
-    const { error } = await supabase.from('absences').insert({
+    const insertData: any = {
       user_id: userId,
       type: 'absence' as const,
       reason_id: reasonId,
-    });
+    };
+    const { error } = await supabase.from('absences').insert(insertData);
     setSubmitting(false);
     if (error) {
       toast.error('Failed to record absence');
       return;
     }
     toast.success('Absence recorded');
+    setShowExplanation(false);
+    setExplanation('');
     onOpenChange(false);
+  };
+
+  const handleOtherReason = () => {
+    setShowExplanation(true);
+  };
+
+  const handleExplanationBack = () => {
+    setShowExplanation(false);
+    setExplanation('');
+  };
+
+  const handleExplanationConfirm = () => {
+    submit(null, explanation);
   };
 
   const activeReasons = reasons ?? [];
@@ -66,13 +85,40 @@ export function AbsenceReasonDialog({ open, onOpenChange }: AbsenceReasonDialogP
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-2 mt-2">
-          {activeReasons.length === 0 ? (
+          {showExplanation ? (
+            <div className="space-y-3">
+              <p className="text-sm text-muted-foreground">{t('absenceReasons.explainAbsence')}</p>
+              <Textarea
+                value={explanation}
+                onChange={(e) => setExplanation(e.target.value)}
+                placeholder={t('absenceReasons.explanationPlaceholder')}
+                rows={3}
+              />
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={handleExplanationBack}
+                  disabled={submitting}
+                >
+                  {t('absenceReasons.goBack')}
+                </Button>
+                <Button
+                  className="flex-1 bg-success text-success-foreground hover:bg-success/90"
+                  onClick={handleExplanationConfirm}
+                  disabled={submitting || !explanation.trim()}
+                >
+                  OK
+                </Button>
+              </div>
+            </div>
+          ) : activeReasons.length === 0 ? (
             <div className="text-center py-4">
               <p className="text-sm text-muted-foreground mb-3">{t('absenceReasons.noCustomReasons')}</p>
               <Button
                 className="w-full"
                 disabled={submitting}
-                onClick={() => submit(null)}
+                onClick={handleOtherReason}
               >
                 {t('absenceReasons.markAbsent')}
               </Button>
@@ -94,7 +140,7 @@ export function AbsenceReasonDialog({ open, onOpenChange }: AbsenceReasonDialogP
                 variant="ghost"
                 className="w-full text-muted-foreground"
                 disabled={submitting}
-                onClick={() => submit(null)}
+                onClick={handleOtherReason}
               >
                 {t('absenceReasons.otherReason')}
               </Button>
