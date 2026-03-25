@@ -56,6 +56,8 @@ export function Dashboard() {
   const [showAbsenceDialog, setShowAbsenceDialog] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
+  const isAdminOrManager = currentUser?.role === 'admin' || currentUser?.role === 'manager';
+
   const markAbsence = async (type: 'sick' | 'absence') => {
     // If clocked in, stop work first and record sick/absence for rest of day
     if (activeEntry && type === 'sick') {
