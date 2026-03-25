@@ -997,7 +997,7 @@ function EditTravelExpenseDialog({ entry, onSave, isHistory, onAuditReason }: { 
           <Button size="sm" variant="ghost" className="h-8 w-8 p-0"><Pencil className="h-3.5 w-3.5" /></Button>
         </DialogTrigger>
         <DialogContent className="max-w-sm">
-          <DialogHeader><DialogTitle className="font-display">Edit Travel Expense</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle className="font-display">{t("admin.editTravelExpenseTitle")}</DialogTitle></DialogHeader>
           <div className="space-y-3">
             <div>
               <Label className="text-xs">{t("admin.dateLabel")}</Label>
