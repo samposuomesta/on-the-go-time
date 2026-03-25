@@ -479,7 +479,7 @@ function StatisticsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: s
               <div className="rounded-lg bg-warning/10 p-2.5"><CalendarOff className="h-5 w-5 text-warning" /></div>
               <div>
                 <p className="text-2xl font-bold">{totalSickDays}</p>
-                <p className="text-xs text-muted-foreground">Sick Leave Days</p>
+                <p className="text-xs text-muted-foreground">{t('admin.sickLeaveDays')}</p>
               </div>
             </div>
           </CardContent>
