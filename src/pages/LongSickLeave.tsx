@@ -103,7 +103,7 @@ export default function LongSickLeave() {
                   <PopoverTrigger asChild>
                     <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !startDate && "text-muted-foreground")}>
                       <CalendarIcon className="h-4 w-4 mr-2" />
-                      {startDate ? format(startDate, 'PPP') : t('vacation.pickStartDate')}
+                      {startDate ? format(startDate, 'PPP', { locale: dateLocale }) : t('vacation.pickStartDate')}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
