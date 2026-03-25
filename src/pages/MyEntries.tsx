@@ -210,7 +210,7 @@ export default function MyEntries() {
             </TabsTrigger>
             <TabsTrigger value="absences" className="gap-1.5 text-xs">
               <CalendarOff className="h-3.5 w-3.5" />
-              Absences ({absences.length + vacations.length})
+              {t('entries.absences')} ({absences.length + vacations.length})
             </TabsTrigger>
           </TabsList>
 
