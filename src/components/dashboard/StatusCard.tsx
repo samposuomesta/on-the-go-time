@@ -34,6 +34,7 @@ interface StatusCardProps {
 
 export function StatusCard({ activeEntry, loading, bankBalance, todayCompleted }: StatusCardProps) {
   const { t } = useTranslation();
+  const elapsed = useElapsedTime(activeEntry?.start_time ?? null);
 
   if (loading) {
     return (
