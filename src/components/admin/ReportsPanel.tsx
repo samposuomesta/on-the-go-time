@@ -50,6 +50,7 @@ interface ReportRow {
   company: string;
   date: string;
   time: string;
+  timezone: string;
   loginTime: string;
   logoutTime: string;
   loginLat: string;
