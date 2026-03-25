@@ -88,13 +88,14 @@ export function AddProjectHoursDialog({ open, onOpenChange }: Props) {
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={date ? parseISO(date) : undefined}
-                  onSelect={(d) => d && setDate(format(d, 'yyyy-MM-dd'))}
-                  initialFocus
-                  className={cn("p-3 pointer-events-auto")}
-                />
+                 <Calendar
+                   mode="single"
+                   selected={date ? parseISO(date) : undefined}
+                   onSelect={(d) => d && setDate(format(d, 'yyyy-MM-dd'))}
+                   initialFocus
+                   locale={dateLocale}
+                   className={cn("p-3 pointer-events-auto")}
+                 />
               </PopoverContent>
             </Popover>
           </div>
