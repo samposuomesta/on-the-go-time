@@ -272,7 +272,7 @@ function AdminContent({ activeTab, admin, canSeeUser, isManager }: { activeTab: 
     case 'absences': return <AbsencesPanel admin={admin} canSeeUser={canSeeUser} />;
     case 'vacation-approvals': return <VacationApprovalsPanel admin={admin} canSeeUser={canSeeUser} />;
     case 'companies': return isManager ? null : <CompaniesPanel admin={admin} />;
-    case 'workplaces': return <WorkplacesPanel admin={admin} />;
+    
     case 'reminders': return <RemindersPanel admin={admin} />;
     case 'audit': return isManager ? null : <AuditTrailPanel admin={admin} />;
     default: return null;
