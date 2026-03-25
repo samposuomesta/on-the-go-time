@@ -124,49 +124,6 @@ export function useTimeTracking() {
     setActiveEntry(null);
   };
 
-  const addFullWorkday = async (replaceIds?: string[]) => {
-    const today = startOfToday();
-    const startTime = new Date(today);
-    startTime.setHours(8, 0, 0, 0);
-    const endTime = new Date(today);
-    endTime.setHours(16, 0, 0, 0);
-
-    if (!replaceIds) {
-      const overlaps = await checkOverlap(startTime, endTime);
-      if (overlaps.length > 0) {
-        return { overlaps };
-      }
-    }
-
-    if (replaceIds && replaceIds.length > 0) {
-      const { error: delError } = await supabase
-        .from('time_entries')
-        .delete()
-        .in('id', replaceIds);
-      if (delError) {
-        toast.error('Failed to replace entries');
-        console.error(delError);
-        return;
-      }
-    }
-
-    const { error } = await supabase.from('time_entries').insert({
-      user_id: userId,
-      start_time: startTime.toISOString(),
-      end_time: endTime.toISOString(),
-      break_minutes: 30,
-    });
-
-    if (error) {
-      toast.error('Failed to add workday');
-      console.error(error);
-      return;
-    }
-
-    toast.success('Workday 8:00–16:00 added (7.5h effective)');
-    fetchActive();
-    return undefined;
-  };
 
   return { activeEntry, todayCompleted, loading, startWork, stopWork, refetch: fetchActive };
 }
