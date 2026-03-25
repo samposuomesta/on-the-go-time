@@ -39,7 +39,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 
-const APP_VERSION = '0.1.0';
+
 
 export function Dashboard() {
   const userId = useUserId();
@@ -250,12 +250,8 @@ export function Dashboard() {
         </section>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-border px-4 py-3 text-center">
-        <p className="text-xs text-muted-foreground">
-          TimeTrack v{APP_VERSION}
-        </p>
-      </footer>
+
+
 
       {/* Dialogs */}
       <AddProjectHoursDialog open={showProjectHours} onOpenChange={setShowProjectHours} />
