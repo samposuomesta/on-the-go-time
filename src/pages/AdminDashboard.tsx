@@ -919,7 +919,7 @@ function EditProjectHoursDialog({ entry, onSave, isHistory, onAuditReason }: { e
           <div className="space-y-3">
             <div>
               <Label className="text-xs">{t("admin.dateLabel")}</Label>
-              <Input type="date" value={date} onChange={e => setDate(e.target.value)} className="dark:[color-scheme:dark]" />
+              <DatePickerInput value={date} onChange={setDate} className="w-full" />
             </div>
             <div>
               <Label className="text-xs">{t("admin.hoursLabel")}</Label>
