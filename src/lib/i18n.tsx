@@ -207,6 +207,7 @@ const translations = {
     'reports.colCompany': 'Company',
     'reports.colDate': 'Date',
     'reports.colTime': 'Time',
+    'reports.colTimezone': 'Timezone',
     'reports.colLoginTime': 'Login Time',
     'reports.colLogoutTime': 'Logout Time',
     'reports.colLoginLat': 'Login Lat',
