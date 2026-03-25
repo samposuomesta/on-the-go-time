@@ -144,7 +144,7 @@ export function VacationTimeline({ employees, vacationRequests, userManagers, co
             <div className="min-w-max">
               {/* Month headers */}
               <div className="flex border-b border-border sticky top-0 z-20 bg-card">
-                <div className="shrink-0 border-r border-border bg-muted/50" style={{ width: NAME_W, minWidth: NAME_W }}>
+                <div className="shrink-0 border-r border-border bg-muted/50 sticky left-0 z-30" style={{ width: NAME_W, minWidth: NAME_W }}>
                   <div className="px-3 py-2 text-xs font-semibold text-muted-foreground">{t('admin.employeeManager')}</div>
                 </div>
                 <div className="flex">
