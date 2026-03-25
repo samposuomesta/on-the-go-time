@@ -106,6 +106,7 @@ export function AddExpenseDialog({ open, onOpenChange, mode }: Props) {
     toast.success(t('expense.added'));
     onOpenChange(false);
     setKilometers(''); setParkingCost(''); setDescription('');
+    setCustomerName(''); setRoute('');
     clearReceipt();
   };
 
