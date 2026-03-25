@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, differenceInMinutes } from 'date-fns';
+import { useDateLocale } from '@/lib/date-locale';
 import { ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
