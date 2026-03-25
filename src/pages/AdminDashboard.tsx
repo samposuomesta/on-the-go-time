@@ -554,7 +554,7 @@ function StatisticsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: s
                   );
                 })}
                 {breakdownList.length === 0 && (
-                  <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">No employees found</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">{t('admin.noEmployees')}</TableCell></TableRow>
                 )}
               </TableBody>
             </Table>
