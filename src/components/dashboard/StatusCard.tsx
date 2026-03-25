@@ -69,11 +69,11 @@ export function StatusCard({ activeEntry, loading, bankBalance, todayCompleted }
           </div>
           <div>
             <p className="text-sm font-medium text-muted-foreground">
-              {status === 'active' ? t('dashboard.workingSince') : status === 'completed' ? t('dashboard.workDayMarked') : t('dashboard.notClockedIn')}
+              {status === 'active' ? `${t('dashboard.workingSince')} ${format(new Date(activeEntry!.start_time), 'HH:mm')}` : status === 'completed' ? t('dashboard.workDayMarked') : t('dashboard.notClockedIn')}
             </p>
-            <p className="text-lg font-display font-semibold">
+            <p className="text-lg font-display font-semibold tabular-nums">
               {status === 'active'
-                ? formatDistanceToNow(new Date(activeEntry!.start_time), { addSuffix: false })
+                ? elapsed
                 : status === 'completed'
                 ? t('dashboard.workDayCompleted')
                 : t('dashboard.startYourDay')}
