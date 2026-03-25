@@ -128,6 +128,7 @@ export default function VacationRequests() {
                       selected={endDate}
                       onSelect={(d) => { setEndDate(d); setEndOpen(false); }}
                       disabled={(d) => d < (startDate || new Date(new Date().setHours(0, 0, 0, 0)))}
+                      locale={dateLocale}
                       className={cn("p-3 pointer-events-auto")}
                     />
                   </PopoverContent>
