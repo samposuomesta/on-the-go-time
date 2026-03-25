@@ -2041,7 +2041,7 @@ function WorkplacesPanel({ admin }: { admin: any }) {
               </TableHeader>
               <TableBody>
                 {workplaces.length === 0 ? (
-                  <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-12">No workplace locations configured</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-12">{t('admin.noWorkplaces')}</TableCell></TableRow>
                 ) : workplaces.map((w: any) => (
                   <TableRow key={w.id} className="hover:bg-muted/30">
                     <TableCell className="font-medium">
