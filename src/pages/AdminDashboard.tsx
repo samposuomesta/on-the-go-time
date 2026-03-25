@@ -1303,7 +1303,7 @@ function ApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
               </TableHeader>
               <TableBody>
                 {filteredTimeEntries.length === 0 ? (
-                  <TableRow><TableCell colSpan={10} className="text-center text-muted-foreground py-8">No working hours found</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={10} className="text-center text-muted-foreground py-8">{t('admin.noWorkingHours')}</TableCell></TableRow>
                 ) : filteredTimeEntries.slice(0, 200).map((te: any) => {
                   const netMins = te.end_time ? differenceInMinutes(new Date(te.end_time), new Date(te.start_time)) - (te.break_minutes ?? 0) : 0;
                   const isPending = te.status === 'pending';
