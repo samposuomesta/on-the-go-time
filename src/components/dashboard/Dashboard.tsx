@@ -79,9 +79,21 @@ export function Dashboard() {
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-card border-b border-border px-4 py-3 flex items-center justify-between">
-        <div className="min-w-0">
-          <h1 className="text-lg font-display font-bold">TimeTrack</h1>
-          <p className="text-xs text-muted-foreground truncate">{currentUser?.name ?? ''}</p>
+        <div className="flex items-center gap-3 min-w-0">
+          <img src="/favicon.svg" alt="Logo" className="h-9 w-9 shrink-0 dark:brightness-0 dark:invert" />
+          <div className="min-w-0">
+            {(() => {
+              const parts = (currentUser?.name ?? '').split(' ');
+              const firstName = parts[0] || '';
+              const lastName = parts.slice(1).join(' ') || '';
+              return (
+                <>
+                  <p className="text-sm font-display font-bold leading-tight truncate">{firstName}</p>
+                  {lastName && <p className="text-xs text-muted-foreground leading-tight truncate">{lastName}</p>}
+                </>
+              );
+            })()}
+          </div>
         </div>
         <HeaderClock />
 
