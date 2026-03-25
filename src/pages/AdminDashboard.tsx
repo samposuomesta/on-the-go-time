@@ -1292,13 +1292,13 @@ function ApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
                   </TableHead>
                   <TableHead className="font-semibold">{t("admin.employee")}</TableHead>
                   <TableHead className="font-semibold">{t("admin.dateLabel")}</TableHead>
-                  <TableHead className="font-semibold">Start</TableHead>
-                  <TableHead className="font-semibold">End</TableHead>
-                  <TableHead className="font-semibold">Break</TableHead>
-                  <TableHead className="font-semibold">Net Hours</TableHead>
-                  <TableHead className="font-semibold">Project</TableHead>
-                  <TableHead className="font-semibold">{t("admin.status")}</TableHead>
-                  <TableHead className="text-right font-semibold">Actions</TableHead>
+                   <TableHead className="font-semibold">{t("admin.start")}</TableHead>
+                   <TableHead className="font-semibold">{t("admin.end")}</TableHead>
+                   <TableHead className="font-semibold">{t("admin.break")}</TableHead>
+                   <TableHead className="font-semibold">{t("admin.netHours")}</TableHead>
+                   <TableHead className="font-semibold">{t("admin.project")}</TableHead>
+                   <TableHead className="font-semibold">{t("admin.status")}</TableHead>
+                   <TableHead className="text-right font-semibold">{t("admin.actions")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
