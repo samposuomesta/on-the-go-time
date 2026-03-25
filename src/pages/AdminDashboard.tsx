@@ -2638,8 +2638,8 @@ function AddWorkplaceDialog({ onCreate }: { onCreate: (data: { name: string; lat
         <DialogHeader><DialogTitle className="font-display">{t("admin.addWorkplaceLocation")}</DialogTitle></DialogHeader>
         <div className="space-y-4 mt-2">
           <div className="space-y-1.5"><Label>{t("common.name")}</Label><Input value={name} onChange={(e) => setName(e.target.value)} placeholder={t("admin.addWorkplace")} /></div>
-          <Button type="button" variant="outline" className="w-full gap-1.5" onClick={useCurrentLocation}>
-            <MapPin className="h-4 w-4" /> Use Current Location
+           <Button type="button" variant="outline" className="w-full gap-1.5" onClick={useCurrentLocation}>
+             <MapPin className="h-4 w-4" /> {t('admin.useCurrentLocationBtn')}
           </Button>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5"><Label>{t("admin.latitude")}</Label><Input type="number" step="0.000001" value={lat} onChange={(e) => setLat(e.target.value)} placeholder="60.1699" /></div>
