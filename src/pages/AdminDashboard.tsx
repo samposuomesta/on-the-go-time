@@ -764,7 +764,7 @@ function EmployeesPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
                           </div>
                         ) : <span className="text-muted-foreground text-xs">—</span>}
                       </TableCell>
-                      <TableCell className="text-muted-foreground">{emp.contract_start_date ? format(parseISO(emp.contract_start_date), 'MMM d, yyyy') : '—'}</TableCell>
+                      <TableCell className="text-muted-foreground">{emp.contract_start_date ? format(parseISO(emp.contract_start_date), 'd.M.yyyy') : '—'}</TableCell>
                       <TableCell>{emp.annual_vacation_days ?? 25} days</TableCell>
                       <TableCell className="font-mono text-sm">{emp.daily_work_hours ?? 7.5}h</TableCell>
                       <TableCell>
@@ -1318,7 +1318,7 @@ function ApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
                         ) : <div className="w-4" />}
                       </TableCell>
                       <TableCell className="font-medium">{te.users?.name ?? 'Unknown'}</TableCell>
-                      <TableCell>{format(new Date(te.start_time), 'MMM d, yyyy')}</TableCell>
+                      <TableCell>{format(new Date(te.start_time), 'd.M.yyyy')}</TableCell>
                       <TableCell className="font-mono text-sm">{format(new Date(te.start_time), 'HH:mm')}</TableCell>
                       <TableCell className="font-mono text-sm">{te.end_time ? format(new Date(te.end_time), 'HH:mm') : '—'}</TableCell>
                       <TableCell className="text-sm">{te.break_minutes ?? 0}min</TableCell>
@@ -1395,7 +1395,7 @@ function ApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
                   <TableRow key={h.id} className="hover:bg-muted/30">
                     <TableCell className="font-medium">{h.users?.name ?? 'Unknown'}</TableCell>
                     <TableCell className="text-muted-foreground">{h.projects?.name ?? '—'}</TableCell>
-                    <TableCell>{format(parseISO(h.date), 'MMM d, yyyy')}</TableCell>
+                    <TableCell>{format(parseISO(h.date), 'd.M.yyyy')}</TableCell>
                     <TableCell className="font-medium">{h.hours}h</TableCell>
                     <TableCell className="text-muted-foreground max-w-[200px] truncate">{h.description || '—'}</TableCell>
                     <TableCell><StatusBadge status={h.status} /></TableCell>
@@ -1458,7 +1458,7 @@ function ApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
                   <TableRow key={t.id} className="hover:bg-muted/30">
                     <TableCell className="font-medium">{t.users?.name ?? 'Unknown'}</TableCell>
                     <TableCell className="text-muted-foreground">{t.projects?.name ?? '—'}</TableCell>
-                    <TableCell>{format(parseISO(t.date), 'MMM d, yyyy')}</TableCell>
+                    <TableCell>{format(parseISO(t.date), 'd.M.yyyy')}</TableCell>
                     <TableCell>{t.kilometers ?? 0} km</TableCell>
                     <TableCell>€{Number(t.parking_cost ?? 0).toFixed(2)}</TableCell>
                     <TableCell className="text-muted-foreground max-w-[200px] truncate">{t.description || '—'}</TableCell>
@@ -1562,8 +1562,8 @@ function AbsencesPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: str
                     <TableCell className="font-medium">{a.users?.name ?? 'Unknown'}</TableCell>
                      <TableCell><Badge variant="outline" className="capitalize">{a.type === 'sick' ? t('admin.sickType') : t('admin.absenceType')}</Badge></TableCell>
                     <TableCell className="text-muted-foreground">{reasonLabel(a.reason_id) || '—'}</TableCell>
-                    <TableCell>{format(parseISO(a.start_date), 'MMM d, yyyy')}</TableCell>
-                    <TableCell>{format(parseISO(a.end_date), 'MMM d, yyyy')}</TableCell>
+                    <TableCell>{format(parseISO(a.start_date), 'd.M.yyyy')}</TableCell>
+                    <TableCell>{format(parseISO(a.end_date), 'd.M.yyyy')}</TableCell>
                     <TableCell><StatusBadge status={a.status} /></TableCell>
                     <TableCell className="text-right">
                       {a.type === 'sick' ? (
@@ -1607,8 +1607,8 @@ function AbsencesPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: str
                       <TableCell className="font-medium">{a.users?.name ?? 'Unknown'}</TableCell>
                       <TableCell><Badge variant="outline" className="capitalize">{a.type === 'sick' ? t('admin.sickType') : t('admin.absenceType')}</Badge></TableCell>
                       <TableCell className="text-muted-foreground">{reasonLabel(a.reason_id) || '—'}</TableCell>
-                      <TableCell>{format(parseISO(a.start_date), 'MMM d, yyyy')}</TableCell>
-                      <TableCell>{format(parseISO(a.end_date), 'MMM d, yyyy')}</TableCell>
+                      <TableCell>{format(parseISO(a.start_date), 'd.M.yyyy')}</TableCell>
+                      <TableCell>{format(parseISO(a.end_date), 'd.M.yyyy')}</TableCell>
                       <TableCell><StatusBadge status={a.status} /></TableCell>
                     </TableRow>
                   ))}
