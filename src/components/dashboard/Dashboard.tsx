@@ -60,16 +60,7 @@ export function Dashboard() {
 
   const isAdminOrManager = currentUser?.role === 'admin' || currentUser?.role === 'manager';
 
-  const [overlapSource, setOverlapSource] = useState<'workday' | 'start'>('workday');
-
-  const handleAddFullWorkday = async () => {
-    const result = await addFullWorkday();
-    if (result?.overlaps) {
-      setOverlapEntries(result.overlaps);
-      setOverlapSource('workday');
-      setShowOverlapDialog(true);
-    }
-  };
+  const [overlapSource, setOverlapSource] = useState<'start'>('start');
 
   const handleStartWork = async () => {
     const result = await startWork();
