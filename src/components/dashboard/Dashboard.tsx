@@ -33,7 +33,7 @@ import {
 export function Dashboard() {
   const userId = useUserId();
   const { signOut } = useAuthContext();
-  const { activeEntry, todayCompleted, loading, startWork, stopWork } = useTimeTracking();
+  const { activeEntry, todayCompleted, todayEntries, loading, startWork, stopWork } = useTimeTracking();
   const { balance: bankBalance } = useWorkBank();
   const { data: currentUser } = useCurrentUser();
   const { t } = useTranslation();
