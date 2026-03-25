@@ -293,7 +293,7 @@ export default function MyEntries() {
                         <p className="text-sm font-medium">{ex.projects?.name ?? t('entries.noProject')}</p>
                         <StatusBadge status={ex.status} t={t} />
                       </div>
-                      <p className="text-xs text-muted-foreground mt-0.5">{format(parseISO(ex.date), 'EEE, MMM d')}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{format(parseISO(ex.date), 'EEE, MMM d', { locale: dateLocale })}</p>
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="text-right">
