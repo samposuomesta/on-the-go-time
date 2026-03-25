@@ -473,6 +473,7 @@ export type Database = {
       travel_expenses: {
         Row: {
           created_at: string
+          customer_name: string | null
           date: string
           description: string | null
           id: string
@@ -480,11 +481,13 @@ export type Database = {
           parking_cost: number | null
           project_id: string | null
           receipt_image: string | null
+          route: string | null
           status: Database["public"]["Enums"]["request_status"]
           user_id: string
         }
         Insert: {
           created_at?: string
+          customer_name?: string | null
           date?: string
           description?: string | null
           id?: string
@@ -492,11 +495,13 @@ export type Database = {
           parking_cost?: number | null
           project_id?: string | null
           receipt_image?: string | null
+          route?: string | null
           status?: Database["public"]["Enums"]["request_status"]
           user_id: string
         }
         Update: {
           created_at?: string
+          customer_name?: string | null
           date?: string
           description?: string | null
           id?: string
@@ -504,6 +509,7 @@ export type Database = {
           parking_cost?: number | null
           project_id?: string | null
           receipt_image?: string | null
+          route?: string | null
           status?: Database["public"]["Enums"]["request_status"]
           user_id?: string
         }
