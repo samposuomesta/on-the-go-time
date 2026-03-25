@@ -1380,7 +1380,7 @@ function ApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
               <TableHeader>
                 <TableRow className="bg-muted/50">
                   <TableHead className="font-semibold">{t("admin.employee")}</TableHead>
-                  <TableHead className="font-semibold">Project</TableHead>
+                   <TableHead className="font-semibold">{t("admin.projectLabel")}</TableHead>
                   <TableHead className="font-semibold">{t("admin.dateLabel")}</TableHead>
                   <TableHead className="font-semibold">{t("admin.hoursLabel")}</TableHead>
                   <TableHead className="font-semibold">{t("admin.descriptionLabel")}</TableHead>
