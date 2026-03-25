@@ -1233,7 +1233,7 @@ function ApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
         </div>
         <div className="space-y-1">
           <Label className="text-xs">{t("admin.to")}</Label>
-          <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="w-[150px] dark:[color-scheme:dark]" />
+          <DatePickerInput value={dateTo} onChange={setDateTo} />
         </div>
         <div className="flex items-center gap-2">
           <Checkbox id="show-pending" checked={showOnlyPending} onCheckedChange={(v) => setShowOnlyPending(!!v)} />
