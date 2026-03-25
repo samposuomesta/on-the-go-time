@@ -5,6 +5,8 @@ import { ArrowLeft, CalendarDays, CheckCircle2, XCircle, Clock } from 'lucide-re
 import { Link, Navigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
+import { useTranslation } from '@/lib/i18n';
+import { useDateLocale } from '@/lib/date-locale';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';

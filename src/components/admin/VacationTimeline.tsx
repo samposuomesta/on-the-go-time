@@ -9,6 +9,8 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { getFinnishHolidaySet, getFinnishHolidays } from '@/lib/finnish-holidays';
+import { useTranslation } from '@/lib/i18n';
+import { useDateLocale } from '@/lib/date-locale';
 
 interface VacationTimelineProps {
   employees: any[];
