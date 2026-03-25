@@ -1584,8 +1584,8 @@ function AbsencesPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: str
         <Card>
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-base font-display">History</CardTitle>
-              <Badge variant="secondary">{handled.length} processed</Badge>
+             <CardTitle className="text-base font-display">{t('admin.history')}</CardTitle>
+             <Badge variant="secondary">{handled.length} {t('admin.processed')}</Badge>
             </div>
           </CardHeader>
           <CardContent className="p-0">
