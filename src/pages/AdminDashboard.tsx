@@ -983,7 +983,7 @@ function EditTravelExpenseDialog({ entry, onSave, isHistory, onAuditReason }: { 
   };
 
   const handleReasonConfirm = () => {
-    if (!reason.trim()) { toast.error('Please provide a reason'); return; }
+    if (!reason.trim()) { toast.error(t('admin.pleaseProvideReason')); return; }
     onSave(pendingData);
     onAuditReason?.('travel_expenses', entry.id, entry, { ...entry, ...pendingData }, reason.trim());
     setReasonOpen(false);
