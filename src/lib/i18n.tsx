@@ -1002,6 +1002,12 @@ const translations = {
     'absenceReasons.explainAbsence': 'Kuvaile poissaolon syy:',
     'absenceReasons.explanationPlaceholder': 'Kirjoita selitys...',
     'absenceReasons.goBack': 'Palaa',
+    'absenceReasons.confirmTitle': 'Vahvista poissaolo',
+    'absenceReasons.date': 'Päivämäärä',
+    'absenceReasons.reasonLabel': 'Syy',
+    'absenceReasons.cancel': 'Peru',
+    'absenceReasons.failedToRecord': 'Poissaolon tallentaminen epäonnistui',
+    'absenceReasons.absenceRecorded': 'Poissaolo tallennettu',
 
     // Projects
     'projects.title': 'Projektit',
