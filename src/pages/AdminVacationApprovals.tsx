@@ -15,6 +15,8 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
 export default function AdminVacationApprovals() {
+  const { t } = useTranslation();
+  const dateLocale = useDateLocale();
   const queryClient = useQueryClient();
   const { data: currentUser, isLoading: userLoading } = useCurrentUser();
 
