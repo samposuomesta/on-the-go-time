@@ -506,7 +506,6 @@ export function useAdminData() {
     updateProjectHours, updateTravelExpense, insertAuditReason,
     updateEmployee, toggleProject, createProject, updateProject, createEmployee,
     createCompany, updateCompany,
-    createReminder,
     createReminder, updateReminder, toggleReminder, deleteReminder,
     createAbsenceReason, updateAbsenceReason, toggleAbsenceReason, deleteAbsenceReason,
     setEmployeeManagers, addBankAdjustment, setBankBalance,
