@@ -5,12 +5,13 @@ import { useDateLocale } from '@/lib/date-locale';
 import { ArrowLeft, CalendarIcon, Plus, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { useUserId } from '@/contexts/AuthContext';
-import { useTranslation } from '@/lib/i18n';
+import { useUserId, useCompanyId } from '@/contexts/AuthContext';
+import { useTranslation, getLocalizedField } from '@/lib/i18n';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -18,21 +19,37 @@ import { toast } from 'sonner';
 
 export default function LongSickLeave() {
   const userId = useUserId();
+  const companyId = useCompanyId();
   const queryClient = useQueryClient();
-  const { t } = useTranslation();
+  const { language, t } = useTranslation();
   const dateLocale = useDateLocale();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [startDate, setStartDate] = useState<Date>();
   const [endDate, setEndDate] = useState<Date>();
+  const [selectedReasonId, setSelectedReasonId] = useState<string>('');
   const [startOpen, setStartOpen] = useState(false);
   const [endOpen, setEndOpen] = useState(false);
+
+  const { data: reasons = [] } = useQuery({
+    queryKey: ['absence-reasons', companyId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('absence_reasons')
+        .select('*')
+        .eq('company_id', companyId)
+        .eq('active', true)
+        .order('label');
+      if (error) throw error;
+      return data;
+    },
+  });
 
   const { data: absences = [] } = useQuery({
     queryKey: ['sick-absences'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('absences')
-        .select('*')
+        .select('*, absence_reasons(label, label_fi)')
         .eq('user_id', userId)
         .eq('type', 'sick')
         .order('created_at', { ascending: false });
@@ -50,6 +67,7 @@ export default function LongSickLeave() {
         start_date: format(startDate, 'yyyy-MM-dd'),
         end_date: format(endDate, 'yyyy-MM-dd'),
         status: 'pending' as const,
+        reason_id: selectedReasonId || null,
       });
       if (error) throw error;
     },
@@ -59,6 +77,7 @@ export default function LongSickLeave() {
       setDialogOpen(false);
       setStartDate(undefined);
       setEndDate(undefined);
+      setSelectedReasonId('');
     },
     onError: () => toast.error(t('sickLeave.failedToSubmit')),
   });
@@ -97,6 +116,23 @@ export default function LongSickLeave() {
           <DialogContent className="max-w-sm">
             <DialogHeader><DialogTitle className="font-display">{t('sickLeave.report')}</DialogTitle></DialogHeader>
             <div className="space-y-4 mt-2">
+              {/* Absence reason selector */}
+              <div className="space-y-1.5">
+                <Label>{t('sickLeave.selectReason')}</Label>
+                <Select value={selectedReasonId} onValueChange={setSelectedReasonId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder={t('absenceReasons.selectReason')} />
+                  </SelectTrigger>
+                  <SelectContent className="max-w-[calc(100vw-3rem)]">
+                    {reasons.map((reason: any) => (
+                      <SelectItem key={reason.id} value={reason.id} className="whitespace-normal break-words">
+                        {getLocalizedField(reason, 'label', language)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
               <div className="space-y-1.5">
                 <Label>{t('vacation.startDate')}</Label>
                 <Popover open={startOpen} onOpenChange={setStartOpen}>
@@ -139,10 +175,15 @@ export default function LongSickLeave() {
             <p className="text-sm text-muted-foreground">{t('sickLeave.noRecords')}</p>
           </div>
         ) : (
-          absences.map((a) => (
+          absences.map((a: any) => (
             <div key={a.id} className="bg-card rounded-lg border border-border p-3 flex justify-between items-center">
               <div>
                 <p className="text-sm font-medium">{format(parseISO(a.start_date), 'MMM d', { locale: dateLocale })} — {format(parseISO(a.end_date), 'MMM d, yyyy', { locale: dateLocale })}</p>
+                {a.absence_reasons && (
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {getLocalizedField(a.absence_reasons, 'label', language)}
+                  </p>
+                )}
               </div>
               <div className="flex items-center gap-2">
                 <Badge variant="outline" className={cn("text-xs capitalize", statusColors[a.status])}>{t(`common.${a.status}` as any)}</Badge>
