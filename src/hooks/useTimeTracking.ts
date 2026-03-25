@@ -133,5 +133,5 @@ export function useTimeTracking() {
   };
 
 
-  return { activeEntry, todayCompleted, loading, startWork, stopWork, refetch: fetchActive };
+  return { activeEntry, todayCompleted, todayEntries, loading, startWork, stopWork, refetch: fetchActive };
 }
