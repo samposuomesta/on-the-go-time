@@ -2012,64 +2012,6 @@ function CompaniesPanel({ admin }: { admin: any }) {
   );
 }
 
-/* ===== GPS WORKPLACES ===== */
-
-function WorkplacesPanel({ admin }: { admin: any }) {
-  const { t } = useTranslation();
-  const workplaces = admin.workplaces.data ?? [];
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-xl font-display font-bold">{t('admin.gpsWorkplaceLocations')}</h2>
-          <p className="text-sm text-muted-foreground">{workplaces.length} {t('admin.locationsConfigured')}</p>
-        </div>
-        <AddWorkplaceDialog onCreate={(data) => { admin.createWorkplace.mutate(data); toast.success(t('admin.workplaceAdded')); }} />
-      </div>
-      <Card>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-muted/50">
-                  <TableHead className="font-semibold">{t("common.name")}</TableHead>
-                  <TableHead className="font-semibold">{t("admin.latitude")}</TableHead>
-                  <TableHead className="font-semibold">{t("admin.longitude")}</TableHead>
-                   <TableHead className="font-semibold">{t("admin.radiusLabel")}</TableHead>
-                   <TableHead className="w-[100px]"></TableHead>
-                 </TableRow>
-               </TableHeader>
-               <TableBody>
-                 {workplaces.length === 0 ? (
-                   <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-12">{t('admin.noWorkplaces')}</TableCell></TableRow>
-                 ) : workplaces.map((w: any) => (
-                   <TableRow key={w.id} className="hover:bg-muted/30">
-                     <TableCell className="font-medium">
-                       <div className="flex items-center gap-2"><MapPin className="h-4 w-4 text-primary shrink-0" />{w.name}</div>
-                     </TableCell>
-                     <TableCell className="font-mono text-sm">{w.latitude.toFixed(5)}</TableCell>
-                     <TableCell className="font-mono text-sm">{w.longitude.toFixed(5)}</TableCell>
-                     <TableCell>{w.radius_meters}m</TableCell>
-                     <TableCell>
-                       <div className="flex gap-1">
-                         <EditWorkplaceDialog workplace={w} onUpdate={(data) => { admin.updateWorkplace.mutate({ id: w.id, ...data }); toast.success(t('common.saved')); }} />
-                         <Button size="icon" variant="ghost" className="text-destructive hover:text-destructive h-8 w-8"
-                           onClick={() => { admin.deleteWorkplace.mutate(w.id); toast.success(t('common.deleted')); }}>
-                           <Trash2 className="h-4 w-4" />
-                         </Button>
-                       </div>
-                     </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
-
 /* ===== REMINDERS ===== */
 
 function RemindersPanel({ admin }: { admin: any }) {
