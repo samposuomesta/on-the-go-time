@@ -2341,7 +2341,7 @@ function EditEmployeeDialog({ employee, allEmployees, currentManagerIds, onSave,
               <SelectContent><SelectItem value="employee">{t("admin.employee")}</SelectItem><SelectItem value="manager">Manager</SelectItem><SelectItem value="admin">Admin</SelectItem></SelectContent>
             </Select>
           </div>
-          <div className="space-y-1.5"><Label>{t("admin.contractStartLabel")}</Label><Input type="date" value={contractDate} onChange={(e) => setContractDate(e.target.value)} /></div>
+          <div className="space-y-1.5"><Label>{t("admin.contractStartLabel")}</Label><DatePickerInput value={contractDate} onChange={setContractDate} className="w-full" /></div>
           <div className="space-y-1.5"><Label>{t("admin.vacationDaysYear")}</Label><Input type="number" value={vacationDays} onChange={(e) => setVacationDays(e.target.value)} min="0" max="50" /></div>
           <div className="space-y-1.5"><Label>{t("admin.dailyWorkingHours")}</Label><Input type="number" step="0.5" value={dailyWorkHours} onChange={(e) => setDailyWorkHours(e.target.value)} min="1" max="24" /></div>
           <div className="sm:col-span-2 space-y-3 rounded-lg border border-border p-3">
