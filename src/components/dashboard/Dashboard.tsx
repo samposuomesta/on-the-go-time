@@ -55,28 +55,6 @@ export function Dashboard() {
   const [expenseMode, setExpenseMode] = useState<'kilometers' | 'parking' | 'receipt' | null>(null);
   const [showAbsenceDialog, setShowAbsenceDialog] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [overlapEntries, setOverlapEntries] = useState<OverlapEntry[]>([]);
-  const [showOverlapDialog, setShowOverlapDialog] = useState(false);
-
-  const isAdminOrManager = currentUser?.role === 'admin' || currentUser?.role === 'manager';
-
-  const [overlapSource, setOverlapSource] = useState<'start'>('start');
-
-  const handleStartWork = async () => {
-    const result = await startWork();
-    if (result?.overlaps) {
-      setOverlapEntries(result.overlaps);
-      setOverlapSource('start');
-      setShowOverlapDialog(true);
-    }
-  };
-
-  const handleReplaceOverlap = async () => {
-    setShowOverlapDialog(false);
-    const ids = overlapEntries.map(e => e.id);
-    await startWork(ids);
-    setOverlapEntries([]);
-  };
 
   const markAbsence = async (type: 'sick' | 'absence') => {
     // If clocked in, stop work first and record sick/absence for rest of day
