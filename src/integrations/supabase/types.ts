@@ -160,6 +160,50 @@ export type Database = {
         }
         Relationships: []
       }
+      login_sessions: {
+        Row: {
+          created_at: string
+          id: string
+          login_at: string
+          login_lat: number | null
+          login_lng: number | null
+          logout_at: string | null
+          logout_lat: number | null
+          logout_lng: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          login_at?: string
+          login_lat?: number | null
+          login_lng?: number | null
+          logout_at?: string | null
+          logout_lat?: number | null
+          logout_lng?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          login_at?: string
+          login_lat?: number | null
+          login_lng?: number | null
+          logout_at?: string | null
+          logout_lat?: number | null
+          logout_lng?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "login_sessions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notification_log: {
         Row: {
           id: string
