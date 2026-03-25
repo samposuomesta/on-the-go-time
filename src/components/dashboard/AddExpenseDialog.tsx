@@ -140,10 +140,16 @@ export function AddExpenseDialog({ open, onOpenChange, mode }: Props) {
             <Input type="date" value={date} onChange={e => setDate(e.target.value)} />
           </div>
           {mode === 'kilometers' && (
-            <div>
-              <Label>{t('expense.kilometers')} *</Label>
-              <Input type="number" step="0.1" min="0" value={kilometers} onChange={e => setKilometers(e.target.value)} placeholder="0" />
-            </div>
+            <>
+              <div>
+                <Label>{t('expense.kilometers')} *</Label>
+                <Input type="text" inputMode="decimal" value={kilometers} onChange={e => setKilometers(e.target.value)} placeholder="0" />
+              </div>
+              <div>
+                <Label>{t('expense.route')}</Label>
+                <Input value={route} onChange={e => setRoute(e.target.value)} placeholder={t('expense.routePlaceholder')} />
+              </div>
+            </>
           )}
           {mode === 'parking' && (
             <div>
