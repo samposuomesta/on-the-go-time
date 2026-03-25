@@ -468,7 +468,7 @@ function StatisticsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: s
               <div className="rounded-lg bg-success/10 p-2.5"><CalendarDays className="h-5 w-5 text-success" /></div>
               <div>
                 <p className="text-2xl font-bold">{totalVacationDays}</p>
-                <p className="text-xs text-muted-foreground">Vacation Days Used</p>
+                <p className="text-xs text-muted-foreground">{t('admin.vacationDaysUsed')}</p>
               </div>
             </div>
           </CardContent>
