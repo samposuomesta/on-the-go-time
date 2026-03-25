@@ -1,8 +1,29 @@
+import { useState, useEffect } from 'react';
 import { Clock, Timer, CheckCircle2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { ActiveEntry } from '@/hooks/useTimeTracking';
-import { formatDistanceToNow } from 'date-fns';
+import { format } from 'date-fns';
 import { useTranslation } from '@/lib/i18n';
+
+function useElapsedTime(startTime: string | null) {
+  const [elapsed, setElapsed] = useState('00:00:00');
+
+  useEffect(() => {
+    if (!startTime) return;
+    const update = () => {
+      const diff = Math.max(0, Math.floor((Date.now() - new Date(startTime).getTime()) / 1000));
+      const h = String(Math.floor(diff / 3600)).padStart(2, '0');
+      const m = String(Math.floor((diff % 3600) / 60)).padStart(2, '0');
+      const s = String(diff % 60).padStart(2, '0');
+      setElapsed(`${h}:${m}:${s}`);
+    };
+    update();
+    const id = setInterval(update, 1000);
+    return () => clearInterval(id);
+  }, [startTime]);
+
+  return elapsed;
+}
 
 interface StatusCardProps {
   activeEntry: ActiveEntry | null;
@@ -13,6 +34,7 @@ interface StatusCardProps {
 
 export function StatusCard({ activeEntry, loading, bankBalance, todayCompleted }: StatusCardProps) {
   const { t } = useTranslation();
+  const elapsed = useElapsedTime(activeEntry?.start_time ?? null);
 
   if (loading) {
     return (
@@ -48,11 +70,11 @@ export function StatusCard({ activeEntry, loading, bankBalance, todayCompleted }
           </div>
           <div>
             <p className="text-sm font-medium text-muted-foreground">
-              {status === 'active' ? t('dashboard.workingSince') : status === 'completed' ? t('dashboard.workDayMarked') : t('dashboard.notClockedIn')}
+              {status === 'active' ? `${t('dashboard.workingSince')} ${format(new Date(activeEntry!.start_time), 'HH:mm')}` : status === 'completed' ? t('dashboard.workDayMarked') : t('dashboard.notClockedIn')}
             </p>
-            <p className="text-lg font-display font-semibold">
+            <p className="text-lg font-display font-semibold tabular-nums">
               {status === 'active'
-                ? formatDistanceToNow(new Date(activeEntry!.start_time), { addSuffix: false })
+                ? elapsed
                 : status === 'completed'
                 ? t('dashboard.workDayCompleted')
                 : t('dashboard.startYourDay')}
