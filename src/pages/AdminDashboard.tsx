@@ -47,6 +47,7 @@ const navItemDefs = [
   { key: 'companies', labelKey: 'admin.companies', icon: Building2, descKey: 'admin.companiesDesc' },
   { key: 'reports', labelKey: 'admin.reports', icon: Download, descKey: 'admin.reportsDesc' },
   { key: 'audit', labelKey: 'admin.audit', icon: FileText, descKey: 'admin.auditDesc' },
+  { key: 'api-keys', labelKey: 'apiKeys.navLabel', icon: Key, descKey: 'apiKeys.navDesc' },
 ] as const;
 
 function StatusBadge({ status }: { status: string }) {
