@@ -250,7 +250,7 @@ const translations = {
     'admin.remindersDesc': 'Notification rules',
     'admin.employeesDesc': 'Manage team members',
     'admin.companiesDesc': 'Company settings',
-    'admin.auditDesc': 'Change history',
+    'admin.auditDesc': 'Audit trail & API logs',
     'admin.statisticsOverview': 'Statistics Overview',
     'admin.companyMetrics': 'Company-wide metrics and per-employee breakdown',
     'admin.totalWorkHours': 'Total Work Hours',
