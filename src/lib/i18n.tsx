@@ -232,6 +232,8 @@ const translations = {
     'reports.colStatus': 'Status',
     'reports.filterType': 'Data Type',
     'reports.filterAll': 'All',
+    'reports.filterEmployee': 'Employee',
+    'reports.allEmployees': 'All employees',
     'reports.typeLogin': 'Login',
     'reports.typeWorkHours': 'Working Hours',
     'reports.typeProjectHours': 'Project Hours',
