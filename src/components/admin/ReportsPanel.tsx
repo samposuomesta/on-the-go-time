@@ -76,6 +76,7 @@ export function ReportsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (i
   const [visibleCols, setVisibleCols] = useState<Set<ColumnKey>>(new Set(DEFAULT_COLUMNS));
   const [showColPicker, setShowColPicker] = useState(false);
   const [dataFilter, setDataFilter] = useState<string>('all');
+  const [employeeFilter, setEmployeeFilter] = useState<string>('all');
 
   const employees = (admin.employees.data ?? []).filter((e: any) => canSeeUser(e.id));
   const companies = admin.companies?.data ?? [];
