@@ -209,6 +209,31 @@ export function useAdminData() {
     },
   });
 
+  const apiLogs = useQuery({
+    queryKey: ['admin-api-logs'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('api_logs')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(500);
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const apiKeysList = useQuery({
+    queryKey: ['admin-api-keys-list'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('api_keys')
+        .select('id, label')
+        .eq('company_id', companyId);
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const loginSessions = useQuery({
     queryKey: ['admin-login-sessions'],
     queryFn: async () => {
@@ -526,7 +551,7 @@ export function useAdminData() {
   });
 
   return {
-    employees, projects, companies, reminderRules, userManagers, absenceReasons, auditLog, loginSessions,
+    employees, projects, companies, reminderRules, userManagers, absenceReasons, auditLog, loginSessions, apiLogs, apiKeysList,
     pendingTravel, pendingHours, pendingTimeEntries, absences, vacationRequests,
     allTimeEntries, allWorkBank, allTravel, allHours, allTimeEntriesWithNames,
     allTravelExpenses: allTravel, projectHours: allHours,
