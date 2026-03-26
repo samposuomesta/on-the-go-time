@@ -209,6 +209,31 @@ export function useAdminData() {
     },
   });
 
+  const apiLogs = useQuery({
+    queryKey: ['admin-api-logs'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('api_logs')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(500);
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const apiKeysList = useQuery({
+    queryKey: ['admin-api-keys-list'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('api_keys')
+        .select('id, label')
+        .eq('company_id', companyId);
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const loginSessions = useQuery({
     queryKey: ['admin-login-sessions'],
     queryFn: async () => {
