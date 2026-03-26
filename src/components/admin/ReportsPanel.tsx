@@ -203,7 +203,7 @@ export function ReportsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (i
     // Sort by date descending
     result.sort((a, b) => b.sortKey.localeCompare(a.sortKey));
     return result;
-  }, [admin, fromStr, toStr, nameMap, employeeCompanyMap, projectMap, dataFilter, t]);
+  }, [admin, fromStr, toStr, nameMap, employeeCompanyMap, projectMap, dataFilter, employeeFilter, t]);
 
   const toggleCol = (key: ColumnKey) => {
     setVisibleCols(prev => {
