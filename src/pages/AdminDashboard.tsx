@@ -2890,10 +2890,7 @@ function AuditLogTab({ admin }: { admin: any }) {
 
   return (
     <div className="space-y-6">
-      <div>
-         <h2 className="text-xl font-display font-bold">{t('admin.auditTrail')}</h2>
-         <p className="text-sm text-muted-foreground">{t('admin.trackChanges')}</p>
-      </div>
+      <div />
 
       <div className="flex flex-wrap gap-3 items-end">
         <Select value={tableFilter} onValueChange={setTableFilter}>
