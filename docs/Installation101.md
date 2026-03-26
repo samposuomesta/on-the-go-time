@@ -13,19 +13,23 @@
 3. [Install Docker & Docker Compose](#3-install-docker--docker-compose)
 4. [Clone Supabase Self-Hosted](#4-clone-supabase-self-hosted)
 5. [Configure Supabase Environment](#5-configure-supabase-environment)
-6. [Start Supabase Services](#6-start-supabase-services)
-7. [Database Migration](#7-database-migration)
-8. [Deploy Edge Functions](#8-deploy-edge-functions)
-9. [Build & Deploy the Frontend](#9-build--deploy-the-frontend)
-10. [Nginx Reverse Proxy & SSL](#10-nginx-reverse-proxy--ssl)
-11. [Migration from Supabase Cloud](#11-migration-from-supabase-cloud)
-12. [Code Changes Required](#12-code-changes-required)
-13. [Secrets & Environment Variables](#13-secrets--environment-variables)
-14. [Cron Jobs](#14-cron-jobs)
-15. [Storage (Receipts Bucket)](#15-storage-receipts-bucket)
-16. [Push Notifications (VAPID)](#16-push-notifications-vapid)
-17. [Backup & Maintenance](#17-backup--maintenance)
-18. [Troubleshooting](#18-troubleshooting)
+6. [Persistent Volumes](#6-persistent-volumes)
+7. [Start Supabase Services](#7-start-supabase-services)
+8. [Database Migration](#8-database-migration)
+9. [Deploy Edge Functions](#9-deploy-edge-functions)
+10. [Build & Deploy the Frontend](#10-build--deploy-the-frontend)
+11. [Nginx Reverse Proxy & SSL](#11-nginx-reverse-proxy--ssl)
+12. [Security Hardening](#12-security-hardening)
+13. [Migration from Supabase Cloud](#13-migration-from-supabase-cloud)
+14. [Code Changes Required](#14-code-changes-required)
+15. [Secrets & Environment Variables](#15-secrets--environment-variables)
+16. [Cron Jobs](#16-cron-jobs)
+17. [Storage (Receipts Bucket)](#17-storage-receipts-bucket)
+18. [Push Notifications (VAPID)](#18-push-notifications-vapid)
+19. [Health Checks & Monitoring](#19-health-checks--monitoring)
+20. [Backup & Maintenance](#20-backup--maintenance)
+21. [Troubleshooting](#21-troubleshooting)
+22. [Optional: S3-Compatible Storage (MinIO)](#22-optional-s3-compatible-storage-minio)
 
 ---
 
@@ -62,7 +66,7 @@ sudo ufw enable
 # Create a dedicated user (optional but recommended)
 sudo adduser timetrack
 sudo usermod -aG sudo timetrack
-sudo usermod -aG docker timetrack
+# NOTE: Docker group is added AFTER Docker installation (see section 3)
 su - timetrack
 ```
 
@@ -95,32 +99,58 @@ sudo apt install -y docker-ce docker-ce-cli containerd.io \
 docker --version
 docker compose version
 
-# Allow non-root usage
+# NOW add user to docker group (after Docker is installed)
+sudo usermod -aG docker timetrack
 sudo usermod -aG docker $USER
 newgrp docker
+```
+
+### Configure Docker log rotation
+
+Prevent disk from filling up by configuring log rotation globally:
+
+```bash
+sudo tee /etc/docker/daemon.json > /dev/null << 'EOF'
+{
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "10m",
+    "max-file": "3"
+  }
+}
+EOF
+
+sudo systemctl restart docker
 ```
 
 ---
 
 ## 4. Clone Supabase Self-Hosted
 
+We use the community-maintained `supabase-docker` repository which is purpose-built for self-hosting and easier to maintain than extracting from the main Supabase repo.
+
 ```bash
 # Create project directory
-mkdir -p /opt/timetrack && cd /opt/timetrack
+sudo mkdir -p /opt/timetrack && sudo chown timetrack:timetrack /opt/timetrack
+cd /opt/timetrack
 
-# Clone the official Supabase Docker setup
-git clone --depth 1 https://github.com/supabase/supabase.git supabase-docker
-cd supabase-docker/docker
+# Clone the community Supabase Docker setup (pinned tag for stability)
+git clone --depth 1 --branch v1.50.0 \
+  https://github.com/supabase-community/supabase-docker.git supabase-docker
+cd supabase-docker
 
 # Copy the example env file
 cp .env.example .env
 ```
 
+> **Why `supabase-community/supabase-docker`?**  
+> The main `supabase/supabase` repo is the full platform monorepo. The community docker repo provides a clean, minimal `docker-compose.yml` specifically for self-hosting, with proper volume mounts, image pinning, and Edge Function support out of the box.
+
 ---
 
 ## 5. Configure Supabase Environment
 
-Edit `/opt/timetrack/supabase-docker/docker/.env`:
+Edit `/opt/timetrack/supabase-docker/.env`:
 
 ```bash
 nano .env
@@ -186,10 +216,73 @@ supabase gen keys --jwt-secret "<YOUR_JWT_SECRET>"
 
 ---
 
-## 6. Start Supabase Services
+## 6. Persistent Volumes
+
+**Critical:** Ensure Postgres data and Storage objects survive container restarts and upgrades.
+
+Create host directories:
 
 ```bash
-cd /opt/timetrack/supabase-docker/docker
+sudo mkdir -p /opt/timetrack/data/postgres
+sudo mkdir -p /opt/timetrack/data/storage
+sudo chown -R 1000:1000 /opt/timetrack/data
+```
+
+### Pin Docker image versions
+
+Edit `docker-compose.yml` and pin every image to a specific tag. **Never use `:latest` in production.**
+
+Example pinned versions (check for current stable versions at time of deployment):
+
+```yaml
+services:
+  db:
+    image: supabase/postgres:15.6.1.145
+    volumes:
+      - /opt/timetrack/data/postgres:/var/lib/postgresql/data
+    # ...
+
+  storage:
+    image: supabase/storage-api:1.11.13
+    volumes:
+      - /opt/timetrack/data/storage:/var/lib/storage
+    # ...
+
+  auth:
+    image: supabase/gotrue:2.164.0
+    # ...
+
+  rest:
+    image: postgrest/postgrest:12.2.3
+    # ...
+
+  realtime:
+    image: supabase/realtime:2.33.58
+    # ...
+
+  kong:
+    image: kong:3.8.1
+    # ...
+
+  meta:
+    image: supabase/postgres-meta:0.84.2
+    # ...
+
+  edge-functions:
+    image: supabase/edge-runtime:1.65.3
+    volumes:
+      - /opt/timetrack/supabase-docker/volumes/functions:/home/deno/functions
+    # ...
+```
+
+> **Important:** After editing `docker-compose.yml`, verify the volume mount paths are correct for your chosen image versions. The `supabase-community/supabase-docker` repo usually has sensible defaults — you primarily need to add/confirm the host-path mounts and pin the image tags.
+
+---
+
+## 7. Start Supabase Services
+
+```bash
+cd /opt/timetrack/supabase-docker
 
 # Pull images and start
 docker compose pull
@@ -222,7 +315,7 @@ curl -s http://localhost:8000/rest/v1/ \
 
 ---
 
-## 7. Database Migration
+## 8. Database Migration
 
 You need to apply all migrations from the TimeTrack project to your self-hosted database.
 
@@ -298,7 +391,7 @@ psql "$SUPABASE_DB_URL" -c "
 
 ---
 
-## 8. Deploy Edge Functions
+## 9. Deploy Edge Functions
 
 The application uses 3 Edge Functions:
 
@@ -308,30 +401,35 @@ The application uses 3 Edge Functions:
 | `data-api` | External REST API with API key auth |
 | `process-reminders` | Cron-triggered push notification reminders |
 
-### Deploy to self-hosted Supabase
+### Option A: Mount via volume (recommended for `supabase-docker`)
+
+The `supabase-community/supabase-docker` setup mounts a `volumes/functions` directory into the Edge Runtime container automatically.
 
 ```bash
 cd /opt/timetrack/app
 
-# Copy functions to the Supabase Docker edge functions volume
-# The path depends on your docker-compose configuration
-FUNCTIONS_DIR="/opt/timetrack/supabase-docker/docker/volumes/functions"
+# Copy functions into the mounted volume
+FUNCTIONS_DIR="/opt/timetrack/supabase-docker/volumes/functions"
 mkdir -p "$FUNCTIONS_DIR"
 
 cp -r supabase/functions/create-auth-user "$FUNCTIONS_DIR/"
 cp -r supabase/functions/data-api "$FUNCTIONS_DIR/"
 cp -r supabase/functions/process-reminders "$FUNCTIONS_DIR/"
+
+# Restart edge-functions container to pick up changes
+cd /opt/timetrack/supabase-docker
+docker compose restart supabase-edge-functions
 ```
 
-### Alternative: Use Supabase CLI to serve functions
+### Option B: Use Supabase CLI
 
 ```bash
 cd /opt/timetrack/app
 
-# Serve functions locally (for testing)
-supabase functions serve --env-file .env.local
+# Set the database URL for CLI
+export SUPABASE_DB_URL="postgresql://postgres:<POSTGRES_PASSWORD>@localhost:5432/postgres"
 
-# Or deploy to the self-hosted instance
+# Deploy functions
 supabase functions deploy create-auth-user --project-ref local
 supabase functions deploy data-api --project-ref local
 supabase functions deploy process-reminders --project-ref local
@@ -339,7 +437,7 @@ supabase functions deploy process-reminders --project-ref local
 
 ### Set Edge Function secrets
 
-These secrets must be available to the edge functions runtime:
+These secrets must be available to the edge functions runtime. Add them to the edge function environment in `docker-compose.yml` or via a `.env` file mounted into the edge-runtime container:
 
 ```bash
 # In the docker .env or edge function environment:
@@ -353,7 +451,7 @@ VAPID_PRIVATE_KEY=<YOUR_VAPID_PRIVATE_KEY>
 
 ---
 
-## 9. Build & Deploy the Frontend
+## 10. Build & Deploy the Frontend
 
 ### Clone and configure
 
@@ -380,13 +478,13 @@ npm run build
 ls -la dist/
 ```
 
-### Serve with Nginx (see section 10)
+### Serve with Nginx (see section 11)
 
 The built `dist/` folder contains static files served by Nginx.
 
 ---
 
-## 10. Nginx Reverse Proxy & SSL
+## 11. Nginx Reverse Proxy & SSL
 
 ### Install Nginx & Certbot
 
@@ -399,6 +497,10 @@ sudo apt install -y nginx certbot python3-certbot-nginx
 Create `/etc/nginx/sites-available/timetrack`:
 
 ```nginx
+# --- Rate limiting zone (shared across all workers) ---
+limit_req_zone $binary_remote_addr zone=api_limit:10m rate=10r/s;
+limit_req_zone $binary_remote_addr zone=frontend_limit:10m rate=30r/s;
+
 # Frontend
 server {
     listen 80;
@@ -406,6 +508,9 @@ server {
 
     root /opt/timetrack/app/dist;
     index index.html;
+
+    # Rate limit for frontend
+    limit_req zone=frontend_limit burst=60 nodelay;
 
     # SPA routing — all paths serve index.html
     location / {
@@ -430,6 +535,25 @@ server {
     listen 80;
     server_name api.timetrack.yourdomain.com;
 
+    # --- Rate limiting for API ---
+    limit_req zone=api_limit burst=20 nodelay;
+    limit_req_status 429;
+
+    # --- Block public access to process-reminders ---
+    # Only allow localhost (cron) to call this endpoint
+    location /functions/v1/process-reminders {
+        allow 127.0.0.1;
+        allow ::1;
+        deny all;
+
+        proxy_pass http://localhost:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # All other API requests
     location / {
         proxy_pass http://localhost:8000;
         proxy_set_header Host $host;
@@ -449,6 +573,7 @@ server {
 
 ```bash
 sudo ln -s /etc/nginx/sites-available/timetrack /etc/nginx/sites-enabled/
+sudo rm -f /etc/nginx/sites-enabled/default
 sudo nginx -t
 sudo systemctl reload nginx
 ```
@@ -465,11 +590,103 @@ sudo certbot renew --dry-run
 
 ---
 
-## 11. Migration from Supabase Cloud
+## 12. Security Hardening
+
+### 12.1 Install and configure fail2ban
+
+Protect SSH and Nginx from brute-force attacks:
+
+```bash
+sudo apt install -y fail2ban
+
+# Create local config (survives package upgrades)
+sudo tee /etc/fail2ban/jail.local > /dev/null << 'EOF'
+[DEFAULT]
+bantime  = 1h
+findtime = 10m
+maxretry = 5
+ignoreip = 127.0.0.1/8 ::1
+
+[sshd]
+enabled = true
+port    = ssh
+filter  = sshd
+logpath = /var/log/auth.log
+maxretry = 3
+
+[nginx-http-auth]
+enabled = true
+
+[nginx-limit-req]
+enabled  = true
+filter   = nginx-limit-req
+logpath  = /var/log/nginx/error.log
+maxretry = 10
+findtime = 1m
+bantime  = 10m
+
+[nginx-botsearch]
+enabled  = true
+filter   = nginx-botsearch
+logpath  = /var/log/nginx/access.log
+maxretry = 2
+EOF
+
+sudo systemctl enable fail2ban
+sudo systemctl restart fail2ban
+
+# Verify status
+sudo fail2ban-client status
+```
+
+### 12.2 Docker log rotation (already configured in section 3)
+
+The global `/etc/docker/daemon.json` limits each container log to **3 files × 10 MB = 30 MB max per container**. This prevents any single container from filling the disk.
+
+### 12.3 Restrict Supabase Studio (Dashboard)
+
+The Supabase Studio runs on port 3000 by default. **Do not expose it publicly.** Access it only via SSH tunnel:
+
+```bash
+# From your local machine:
+ssh -L 3000:localhost:3000 timetrack@your-server-ip
+
+# Then open http://localhost:3000 in your local browser
+```
+
+Alternatively, restrict it in `docker-compose.yml`:
+
+```yaml
+studio:
+  ports:
+    - "127.0.0.1:3000:3000"   # Only accessible from localhost
+```
+
+### 12.4 SSH hardening (optional but recommended)
+
+```bash
+# Disable root login and password auth
+sudo sed -i 's/#PermitRootLogin yes/PermitRootLogin no/' /etc/ssh/sshd_config
+sudo sed -i 's/#PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
+sudo systemctl restart sshd
+```
+
+> **Warning:** Ensure you have SSH key access before disabling password authentication!
+
+### 12.5 Automatic security updates
+
+```bash
+sudo apt install -y unattended-upgrades
+sudo dpkg-reconfigure -plow unattended-upgrades
+```
+
+---
+
+## 13. Migration from Supabase Cloud
 
 When moving from Supabase Cloud to self-hosted, these are the key steps:
 
-### 11.1 Export database
+### 13.1 Export database
 
 ```bash
 # From Supabase Cloud (using their CLI or dashboard)
@@ -485,7 +702,7 @@ supabase db dump --project-ref <CLOUD_PROJECT_REF> -f schema_dump.sql
 supabase db dump --project-ref <CLOUD_PROJECT_REF> --data-only -f data_dump.sql
 ```
 
-### 11.2 Import to self-hosted
+### 13.2 Import to self-hosted
 
 ```bash
 # Restore schema + data
@@ -497,7 +714,7 @@ psql "$SUPABASE_DB_URL" -f schema_dump.sql
 psql "$SUPABASE_DB_URL" -f data_dump.sql
 ```
 
-### 11.3 Migrate auth users
+### 13.3 Migrate auth users
 
 ```bash
 # Export auth users from Cloud
@@ -511,7 +728,7 @@ pg_dump "postgresql://postgres:<CLOUD_DB_PASSWORD>@db.<PROJECT_REF>.supabase.co:
 psql "$SUPABASE_DB_URL" -f auth_users.sql
 ```
 
-### 11.4 Migrate storage objects
+### 13.4 Migrate storage objects
 
 ```bash
 # Download all receipts from Cloud storage bucket
@@ -529,9 +746,9 @@ curl -s "https://<PROJECT_REF>.supabase.co/storage/v1/object/list/receipts" \
 
 ---
 
-## 12. Code Changes Required
+## 14. Code Changes Required
 
-### 12.1 Environment variables (`.env.production`)
+### 14.1 Environment variables (`.env.production`)
 
 | Variable | Cloud Value | Self-Hosted Value |
 |----------|------------|-------------------|
@@ -539,7 +756,7 @@ curl -s "https://<PROJECT_REF>.supabase.co/storage/v1/object/list/receipts" \
 | `VITE_SUPABASE_PUBLISHABLE_KEY` | Cloud anon key | Your generated anon key |
 | `VITE_SUPABASE_PROJECT_ID` | `pqmdsvdcbyefdngdmuud` | `local` (or any identifier) |
 
-### 12.2 Supabase client (`src/integrations/supabase/client.ts`)
+### 14.2 Supabase client (`src/integrations/supabase/client.ts`)
 
 **No code changes needed!** The client reads from environment variables:
 
@@ -550,7 +767,7 @@ const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
 Just ensure your `.env.production` has the correct values before building.
 
-### 12.3 Edge Function URLs
+### 14.3 Edge Function URLs
 
 Edge functions are called via the Supabase URL. Since `VITE_SUPABASE_URL` changes, all edge function calls automatically point to the new host. No code changes needed if you use the standard pattern:
 
@@ -559,15 +776,15 @@ Edge functions are called via the Supabase URL. Since `VITE_SUPABASE_URL` change
 const { data } = await supabase.functions.invoke('create-auth-user', { body: {...} });
 ```
 
-### 12.4 Service Worker (`public/sw.js`)
+### 14.4 Service Worker (`public/sw.js`)
 
 Check if there are any hardcoded Supabase URLs in `sw.js`. If so, replace them with your domain.
 
-### 12.5 PWA Manifest (`public/manifest.json`)
+### 14.5 PWA Manifest (`public/manifest.json`)
 
 Update `start_url` and `scope` if they reference the cloud domain.
 
-### 12.6 Remove `lovable-tagger` (optional)
+### 14.6 Remove `lovable-tagger` (optional)
 
 The `lovable-tagger` dev dependency is Lovable-specific. You can remove it for self-hosted:
 
@@ -587,7 +804,7 @@ plugins: [react()],
 
 ---
 
-## 13. Secrets & Environment Variables
+## 15. Secrets & Environment Variables
 
 ### Edge Function secrets mapping
 
@@ -614,22 +831,26 @@ npx web-push generate-vapid-keys
 
 ---
 
-## 14. Cron Jobs
+## 16. Cron Jobs
 
 The `process-reminders` edge function must be triggered periodically (every 5 minutes recommended).
 
-### Option A: System cron
+> **Important:** The Nginx config (section 11) blocks external access to `/functions/v1/process-reminders`. The cron job runs on localhost and is allowed through.
+
+### Option A: System cron (recommended)
 
 ```bash
 crontab -e
 
-# Add:
+# Add (uses localhost to bypass Nginx external block):
 */5 * * * * curl -s -X POST \
-  "https://api.timetrack.yourdomain.com/functions/v1/process-reminders" \
+  "http://localhost:8000/functions/v1/process-reminders" \
   -H "x-cron-secret: <YOUR_CRON_SECRET>" \
   -H "Content-Type: application/json" \
   >> /var/log/timetrack-reminders.log 2>&1
 ```
+
+> **Note:** We call `localhost:8000` (Kong) directly instead of the public domain. This avoids the Nginx restriction and keeps the request internal.
 
 ### Option B: pg_cron (if enabled in your Supabase setup)
 
@@ -652,7 +873,7 @@ SELECT cron.schedule(
 
 ---
 
-## 15. Storage (Receipts Bucket)
+## 17. Storage (Receipts Bucket)
 
 Create the `receipts` storage bucket in self-hosted Supabase:
 
@@ -662,7 +883,7 @@ INSERT INTO storage.buckets (id, name, public)
 VALUES ('receipts', 'receipts', true);
 ```
 
-Or via the Supabase Studio dashboard at `http://localhost:8000` → Storage → Create Bucket.
+Or via the Supabase Studio dashboard at `http://localhost:3000` → Storage → Create Bucket.
 
 ### Storage policies
 
@@ -670,17 +891,135 @@ Ensure the same RLS policies from Cloud are applied. Check your migration files 
 
 ---
 
-## 16. Push Notifications (VAPID)
+## 18. Push Notifications (VAPID)
 
 The `process-reminders` function sends Web Push notifications. For this to work on-premise:
 
-1. VAPID keys must be set as edge function secrets (see section 13)
+1. VAPID keys must be set as edge function secrets (see section 15)
 2. The frontend `sw.js` must be served over HTTPS
 3. The push subscription endpoint URLs are third-party services (Google FCM, Mozilla autopush) — your server needs outbound HTTPS access
 
 ---
 
-## 17. Backup & Maintenance
+## 19. Health Checks & Monitoring
+
+### 19.1 Health check script
+
+Create `/opt/timetrack/healthcheck.sh`:
+
+```bash
+cat > /opt/timetrack/healthcheck.sh << 'SCRIPT'
+#!/bin/bash
+# TimeTrack Health Check Script
+
+ANON_KEY="<YOUR_ANON_KEY>"
+FAILURES=0
+
+echo "=== TimeTrack Health Check: $(date) ==="
+
+# 1. PostgREST
+HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+  http://localhost:8000/rest/v1/ \
+  -H "apikey: $ANON_KEY")
+if [ "$HTTP_CODE" = "200" ]; then
+  echo "✅ PostgREST: OK ($HTTP_CODE)"
+else
+  echo "❌ PostgREST: FAIL ($HTTP_CODE)"
+  FAILURES=$((FAILURES + 1))
+fi
+
+# 2. Auth (GoTrue)
+HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+  http://localhost:8000/auth/v1/health)
+if [ "$HTTP_CODE" = "200" ]; then
+  echo "✅ Auth: OK ($HTTP_CODE)"
+else
+  echo "❌ Auth: FAIL ($HTTP_CODE)"
+  FAILURES=$((FAILURES + 1))
+fi
+
+# 3. Storage
+HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+  http://localhost:8000/storage/v1/health)
+if [ "$HTTP_CODE" = "200" ]; then
+  echo "✅ Storage: OK ($HTTP_CODE)"
+else
+  echo "❌ Storage: FAIL ($HTTP_CODE)"
+  FAILURES=$((FAILURES + 1))
+fi
+
+# 4. Docker container status
+STOPPED=$(cd /opt/timetrack/supabase-docker && docker compose ps --format json 2>/dev/null | \
+  python3 -c "import sys,json; [print(c.get('Name','?')) for line in sys.stdin for c in [json.loads(line)] if c.get('State')!='running']" 2>/dev/null)
+if [ -z "$STOPPED" ]; then
+  echo "✅ All Docker containers: running"
+else
+  echo "❌ Stopped containers: $STOPPED"
+  FAILURES=$((FAILURES + 1))
+fi
+
+# 5. Disk usage warning
+DISK_PCT=$(df /opt/timetrack --output=pcent | tail -1 | tr -d '% ')
+if [ "$DISK_PCT" -lt 85 ]; then
+  echo "✅ Disk usage: ${DISK_PCT}%"
+else
+  echo "⚠️  Disk usage: ${DISK_PCT}% (threshold: 85%)"
+  FAILURES=$((FAILURES + 1))
+fi
+
+echo "=== Result: $FAILURES failure(s) ==="
+exit $FAILURES
+SCRIPT
+
+chmod +x /opt/timetrack/healthcheck.sh
+```
+
+### 19.2 Automated health checks via cron
+
+```bash
+crontab -e
+
+# Run health check every 10 minutes, log failures
+*/10 * * * * /opt/timetrack/healthcheck.sh >> /var/log/timetrack-health.log 2>&1
+```
+
+### 19.3 Docker Compose health checks
+
+Add health checks to `docker-compose.yml` for automatic restart on failure:
+
+```yaml
+services:
+  db:
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  rest:
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    depends_on:
+      db:
+        condition: service_healthy
+
+  auth:
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9999/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    depends_on:
+      db:
+        condition: service_healthy
+```
+
+---
+
+## 20. Backup & Maintenance
 
 ### Database backup (daily cron)
 
@@ -714,16 +1053,26 @@ git pull
 npm install
 npm run build
 # Nginx serves from dist/ — no restart needed
+
+# Re-deploy edge functions if changed
+cp -r supabase/functions/* /opt/timetrack/supabase-docker/volumes/functions/
+cd /opt/timetrack/supabase-docker
+docker compose restart supabase-edge-functions
 ```
 
 ### Update Supabase
 
 ```bash
-cd /opt/timetrack/supabase-docker/docker
-git pull
+cd /opt/timetrack/supabase-docker
+
+# Check release notes BEFORE upgrading!
+# Update pinned image versions in docker-compose.yml
+# Then:
 docker compose pull
 docker compose up -d
 ```
+
+> **Warning:** Never blindly `git pull` + `docker compose pull` on the Supabase repo. Always check the changelog for breaking changes and update image tags deliberately.
 
 ### Monitor
 
@@ -739,11 +1088,15 @@ docker compose logs -f supabase-edge-functions
 # Check disk usage
 df -h
 docker system df
+
+# Check fail2ban status
+sudo fail2ban-client status sshd
+sudo fail2ban-client status nginx-limit-req
 ```
 
 ---
 
-## 18. Troubleshooting
+## 21. Troubleshooting
 
 ### Common issues
 
@@ -757,30 +1110,77 @@ docker system df
 | **Storage upload fails** | Verify `receipts` bucket exists and has correct policies |
 | **JWT errors** | Regenerate keys with same `JWT_SECRET` |
 | **PostgREST 401** | Ensure RLS policies and `auth_user_*` functions exist |
+| **429 Too Many Requests** | Adjust `rate` and `burst` in Nginx `limit_req` config |
+| **fail2ban banning legit IPs** | Check `sudo fail2ban-client status nginx-limit-req`, unban with `sudo fail2ban-client set nginx-limit-req unbanip <IP>` |
+| **Disk full** | Check Docker logs (`docker system df`), prune unused images (`docker image prune -a`) |
 
 ### Reset everything
 
 ```bash
-cd /opt/timetrack/supabase-docker/docker
+cd /opt/timetrack/supabase-docker
 docker compose down -v  # WARNING: This deletes all data!
 docker compose up -d
 # Then re-run migrations
 ```
 
-### Health check
+---
+
+## 22. Optional: S3-Compatible Storage (MinIO)
+
+For production deployments that need scalable, redundant storage, you can replace the default Supabase storage with MinIO (S3-compatible object storage).
+
+### 22.1 Deploy MinIO
+
+Add to `docker-compose.yml` or run separately:
+
+```yaml
+minio:
+  image: minio/minio:RELEASE.2024-12-18T13-15-44Z
+  command: server /data --console-address ":9001"
+  ports:
+    - "127.0.0.1:9000:9000"    # S3 API
+    - "127.0.0.1:9001:9001"    # MinIO Console
+  environment:
+    MINIO_ROOT_USER: minioadmin
+    MINIO_ROOT_PASSWORD: <STRONG_PASSWORD>
+  volumes:
+    - /opt/timetrack/data/minio:/data
+  healthcheck:
+    test: ["CMD", "mc", "ready", "local"]
+    interval: 30s
+    timeout: 10s
+    retries: 3
+  restart: unless-stopped
+```
+
+### 22.2 Configure Supabase Storage to use MinIO
+
+In the Supabase `.env`, set the storage backend:
+
+```env
+STORAGE_BACKEND=s3
+GLOBAL_S3_BUCKET=supabase-storage
+GLOBAL_S3_ENDPOINT=http://minio:9000
+GLOBAL_S3_FORCE_PATH_STYLE=true
+AWS_ACCESS_KEY_ID=minioadmin
+AWS_SECRET_ACCESS_KEY=<STRONG_PASSWORD>
+AWS_DEFAULT_REGION=us-east-1
+```
+
+### 22.3 Create the bucket in MinIO
 
 ```bash
-# API health
-curl -s http://localhost:8000/rest/v1/ \
-  -H "apikey: <ANON_KEY>"
+# Install MinIO client
+wget -q https://dl.min.io/client/mc/release/linux-amd64/mc -O /usr/local/bin/mc
+chmod +x /usr/local/bin/mc
 
-# Auth health
-curl -s http://localhost:8000/auth/v1/health
-
-# Edge function test
-curl -s http://localhost:8000/functions/v1/data-api \
-  -H "x-api-key: <YOUR_API_KEY>"
+# Configure and create bucket
+mc alias set local http://localhost:9000 minioadmin <STRONG_PASSWORD>
+mc mb local/supabase-storage
+mc anonymous set download local/supabase-storage/receipts
 ```
+
+> **Note:** This is a next-phase improvement. The default local storage works fine for small-to-medium deployments. Consider MinIO when you need backup replication, multi-node storage, or >100 GB of files.
 
 ---
 
@@ -788,23 +1188,27 @@ curl -s http://localhost:8000/functions/v1/data-api \
 
 ```
 /opt/timetrack/
-├── supabase-docker/          # Supabase self-hosted
-│   └── docker/
-│       ├── .env              # Supabase config
-│       ├── docker-compose.yml
-│       └── volumes/
-│           └── functions/    # Edge functions
-│               ├── create-auth-user/
-│               ├── data-api/
-│               └── process-reminders/
-├── app/                      # TimeTrack frontend
-│   ├── .env.production       # Frontend env vars
-│   ├── dist/                 # Built static files
+├── supabase-docker/              # supabase-community/supabase-docker
+│   ├── .env                      # Supabase config
+│   ├── docker-compose.yml        # Pinned image versions + volumes
+│   └── volumes/
+│       └── functions/            # Edge functions (mounted volume)
+│           ├── create-auth-user/
+│           ├── data-api/
+│           └── process-reminders/
+├── app/                          # TimeTrack frontend
+│   ├── .env.production           # Frontend env vars
+│   ├── dist/                     # Built static files
 │   ├── src/
 │   └── supabase/
-│       └── migrations/       # SQL migrations
-├── backups/                  # Database backups
-└── backup.sh                 # Backup script
+│       └── migrations/           # SQL migrations
+├── data/                         # Persistent data (host-mounted)
+│   ├── postgres/                 # PostgreSQL data
+│   ├── storage/                  # Supabase Storage files
+│   └── minio/                    # (optional) MinIO data
+├── backups/                      # Database backups
+├── backup.sh                     # Backup script
+└── healthcheck.sh                # Health check script
 ```
 
 ---
