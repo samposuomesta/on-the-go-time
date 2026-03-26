@@ -204,7 +204,7 @@ const translations = {
     'admin.reminders': 'Reminders',
     'admin.employees': 'Employees',
     'admin.companies': 'Companies',
-    'admin.audit': 'Audit Trail',
+    'admin.audit': 'Logs',
     'admin.reports': 'Reports',
     'admin.reportsDesc': 'Export data as CSV or PDF',
     'admin.loginSessions': 'Login Sessions',
