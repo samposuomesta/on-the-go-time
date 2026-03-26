@@ -122,6 +122,7 @@ export function ReportsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (i
     if (dataFilter === 'all' || dataFilter === 'login') {
       (admin.loginSessions?.data ?? []).forEach((ls: any) => {
         if (!canSeeUser(ls.user_id)) return;
+        if (employeeFilter !== 'all' && ls.user_id !== employeeFilter) return;
         const d = ls.login_at?.slice(0, 10) ?? '';
         if (d < fromStr || d > toStr) return;
         result.push({
