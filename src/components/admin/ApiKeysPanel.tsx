@@ -287,3 +287,97 @@ export function ApiKeysPanel() {
     </div>
   );
 }
+
+const GET_ENDPOINTS = [
+  '/time-entries', '/absences', '/travel-expenses', '/vacation-requests',
+  '/project-hours', '/projects', '/absence-reasons', '/changes',
+];
+const POST_ENDPOINTS = ['/time-entries', '/project-hours'];
+
+function ApiQuickReference({ t, copyToClipboard }: { t: (k: string) => string; copyToClipboard: (s: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const baseUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/data-api`;
+  const curlExample = `curl -H "X-API-Key: itk_YOUR_KEY" \\
+  "${baseUrl}/time-entries?from=2026-01-01&to=2026-01-31&limit=100"`;
+
+  return (
+    <Card>
+      <Collapsible open={open} onOpenChange={setOpen}>
+        <CardHeader className="cursor-pointer" onClick={() => setOpen(!open)}>
+          <CollapsibleTrigger asChild>
+            <div className="flex items-center justify-between w-full">
+              <div>
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <BookOpen className="h-5 w-5" />
+                  {t('apiKeys.quickRef')}
+                </CardTitle>
+                <CardDescription>{t('apiKeys.quickRefDesc')}</CardDescription>
+              </div>
+              <ChevronDown className={`h-5 w-5 text-muted-foreground transition-transform ${open ? 'rotate-180' : ''}`} />
+            </div>
+          </CollapsibleTrigger>
+        </CardHeader>
+        <CollapsibleContent>
+          <CardContent className="space-y-5 text-sm">
+            {/* Base URL */}
+            <div>
+              <h4 className="font-semibold mb-1">{t('apiKeys.baseUrl')}</h4>
+              <code className="block bg-muted px-3 py-2 rounded text-xs font-mono break-all">{baseUrl}</code>
+            </div>
+
+            {/* Auth */}
+            <div>
+              <h4 className="font-semibold mb-1">{t('apiKeys.auth')}</h4>
+              <p className="text-muted-foreground text-xs mb-1">{t('apiKeys.authDesc')}</p>
+              <code className="block bg-muted px-3 py-2 rounded text-xs font-mono">X-API-Key: itk_...</code>
+            </div>
+
+            {/* GET endpoints */}
+            <div>
+              <h4 className="font-semibold mb-1">{t('apiKeys.getEndpoints')}</h4>
+              <div className="flex flex-wrap gap-1.5">
+                {GET_ENDPOINTS.map(ep => (
+                  <Badge key={ep} variant="outline" className="font-mono text-[11px]">GET {ep}</Badge>
+                ))}
+              </div>
+            </div>
+
+            {/* POST endpoints */}
+            <div>
+              <h4 className="font-semibold mb-1">{t('apiKeys.postEndpoints')}</h4>
+              <p className="text-muted-foreground text-xs mb-1">{t('apiKeys.postEndpointsDesc')}</p>
+              <div className="flex flex-wrap gap-1.5">
+                {POST_ENDPOINTS.map(ep => (
+                  <Badge key={ep} variant="outline" className="font-mono text-[11px]">POST {ep}</Badge>
+                ))}
+              </div>
+            </div>
+
+            {/* Pagination */}
+            <div>
+              <h4 className="font-semibold mb-1">{t('apiKeys.pagination')}</h4>
+              <p className="text-muted-foreground text-xs">{t('apiKeys.paginationDesc')}</p>
+            </div>
+
+            {/* Error format */}
+            <div>
+              <h4 className="font-semibold mb-1">{t('apiKeys.errorFormat')}</h4>
+              <code className="block bg-muted px-3 py-2 rounded text-xs font-mono whitespace-pre">{'{ "error": { "code": "...", "message": "..." } }'}</code>
+            </div>
+
+            {/* Curl example */}
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <h4 className="font-semibold">{t('apiKeys.exampleCurl')}</h4>
+                <Button size="sm" variant="ghost" className="h-6 px-2 text-xs gap-1" onClick={() => copyToClipboard(curlExample)}>
+                  <Copy className="h-3 w-3" /> {t('apiKeys.copied').split(' ')[0]}
+                </Button>
+              </div>
+              <pre className="bg-muted px-3 py-2 rounded text-xs font-mono overflow-x-auto whitespace-pre-wrap">{curlExample}</pre>
+            </div>
+          </CardContent>
+        </CollapsibleContent>
+      </Collapsible>
+    </Card>
+  );
+}
