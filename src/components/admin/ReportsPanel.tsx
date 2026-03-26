@@ -179,6 +179,7 @@ export function ReportsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (i
     if (dataFilter === 'all' || dataFilter === 'project') {
       (admin.projectHours?.data ?? []).forEach((ph: any) => {
         if (!canSeeUser(ph.user_id)) return;
+        if (employeeFilter !== 'all' && ph.user_id !== employeeFilter) return;
         if (ph.date < fromStr || ph.date > toStr) return;
         result.push({
           type: t('reports.typeProjectHours' as any),
