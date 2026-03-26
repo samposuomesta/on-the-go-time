@@ -76,6 +76,7 @@ export function ReportsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (i
   const [visibleCols, setVisibleCols] = useState<Set<ColumnKey>>(new Set(DEFAULT_COLUMNS));
   const [showColPicker, setShowColPicker] = useState(false);
   const [dataFilter, setDataFilter] = useState<string>('all');
+  const [employeeFilter, setEmployeeFilter] = useState<string>('all');
 
   const employees = (admin.employees.data ?? []).filter((e: any) => canSeeUser(e.id));
   const companies = admin.companies?.data ?? [];
@@ -121,6 +122,7 @@ export function ReportsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (i
     if (dataFilter === 'all' || dataFilter === 'login') {
       (admin.loginSessions?.data ?? []).forEach((ls: any) => {
         if (!canSeeUser(ls.user_id)) return;
+        if (employeeFilter !== 'all' && ls.user_id !== employeeFilter) return;
         const d = ls.login_at?.slice(0, 10) ?? '';
         if (d < fromStr || d > toStr) return;
         result.push({
@@ -147,6 +149,7 @@ export function ReportsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (i
     if (dataFilter === 'all' || dataFilter === 'working') {
       (admin.allTimeEntries?.data ?? []).forEach((te: any) => {
         if (!canSeeUser(te.user_id)) return;
+        if (employeeFilter !== 'all' && te.user_id !== employeeFilter) return;
         const d = format(new Date(te.start_time), 'yyyy-MM-dd');
         if (d < fromStr || d > toStr) return;
         const start = new Date(te.start_time);
@@ -176,6 +179,7 @@ export function ReportsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (i
     if (dataFilter === 'all' || dataFilter === 'project') {
       (admin.projectHours?.data ?? []).forEach((ph: any) => {
         if (!canSeeUser(ph.user_id)) return;
+        if (employeeFilter !== 'all' && ph.user_id !== employeeFilter) return;
         if (ph.date < fromStr || ph.date > toStr) return;
         result.push({
           type: t('reports.typeProjectHours' as any),
@@ -199,7 +203,7 @@ export function ReportsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (i
     // Sort by date descending
     result.sort((a, b) => b.sortKey.localeCompare(a.sortKey));
     return result;
-  }, [admin, fromStr, toStr, nameMap, employeeCompanyMap, projectMap, dataFilter, t]);
+  }, [admin, fromStr, toStr, nameMap, employeeCompanyMap, projectMap, dataFilter, employeeFilter, t]);
 
   const toggleCol = (key: ColumnKey) => {
     setVisibleCols(prev => {
@@ -332,6 +336,21 @@ export function ReportsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (i
               <SelectItem value="login">{t('reports.typeLogin' as any)}</SelectItem>
               <SelectItem value="working">{t('reports.typeWorkHours' as any)}</SelectItem>
               <SelectItem value="project">{t('reports.typeProjectHours' as any)}</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <Label className="text-xs text-muted-foreground">{t('reports.filterEmployee' as any)}</Label>
+          <Select value={employeeFilter} onValueChange={setEmployeeFilter}>
+            <SelectTrigger className="w-[200px] h-9 text-sm">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{t('reports.allEmployees' as any)}</SelectItem>
+              {[...employees].sort((a: any, b: any) => (a.name ?? '').localeCompare(b.name ?? '')).map((emp: any) => (
+                <SelectItem key={emp.id} value={emp.id}>{emp.name}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
