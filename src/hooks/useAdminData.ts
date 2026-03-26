@@ -551,7 +551,7 @@ export function useAdminData() {
   });
 
   return {
-    employees, projects, companies, reminderRules, userManagers, absenceReasons, auditLog, loginSessions,
+    employees, projects, companies, reminderRules, userManagers, absenceReasons, auditLog, loginSessions, apiLogs, apiKeysList,
     pendingTravel, pendingHours, pendingTimeEntries, absences, vacationRequests,
     allTimeEntries, allWorkBank, allTravel, allHours, allTimeEntriesWithNames,
     allTravelExpenses: allTravel, projectHours: allHours,
