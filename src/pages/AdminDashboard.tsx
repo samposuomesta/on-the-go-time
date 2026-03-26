@@ -281,6 +281,7 @@ function AdminContent({ activeTab, admin, canSeeUser, isManager }: { activeTab: 
     case 'reminders': return <RemindersPanel admin={admin} />;
     case 'reports': return <ReportsPanel admin={admin} canSeeUser={canSeeUser} />;
     case 'audit': return isManager ? null : <AuditTrailPanel admin={admin} />;
+    case 'api-keys': return isManager ? null : <ApiKeysPanel />;
     default: return null;
   }
 }
