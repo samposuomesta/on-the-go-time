@@ -793,7 +793,7 @@ const translations = {
     'admin.reminders': 'Muistutukset',
     'admin.employees': 'Työntekijät',
     'admin.companies': 'Yritykset',
-    'admin.audit': 'Muutosloki',
+    'admin.audit': 'Loki',
     'admin.reports': 'Raportit',
     'admin.reportsDesc': 'Vie tiedot CSV- tai PDF-tiedostona',
     'admin.loginSessions': 'Kirjautumissessiot',
