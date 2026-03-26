@@ -340,6 +340,21 @@ export function ReportsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (i
           </Select>
         </div>
 
+        <div className="flex flex-col gap-1">
+          <Label className="text-xs text-muted-foreground">{t('reports.filterEmployee' as any)}</Label>
+          <Select value={employeeFilter} onValueChange={setEmployeeFilter}>
+            <SelectTrigger className="w-[200px] h-9 text-sm">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{t('reports.allEmployees' as any)}</SelectItem>
+              {[...employees].sort((a: any, b: any) => (a.name ?? '').localeCompare(b.name ?? '')).map((emp: any) => (
+                <SelectItem key={emp.id} value={emp.id}>{emp.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
         {/* Column picker */}
         <Popover open={showColPicker} onOpenChange={setShowColPicker}>
           <PopoverTrigger asChild>

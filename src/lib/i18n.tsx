@@ -823,6 +823,8 @@ const translations = {
     'reports.colStatus': 'Tila',
     'reports.filterType': 'Tietotyyppi',
     'reports.filterAll': 'Kaikki',
+    'reports.filterEmployee': 'Työntekijä',
+    'reports.allEmployees': 'Kaikki työntekijät',
     'reports.typeLogin': 'Kirjautuminen',
     'reports.typeWorkHours': 'Työtunnit',
     'reports.typeProjectHours': 'Projektitunnit',
