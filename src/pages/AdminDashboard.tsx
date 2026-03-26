@@ -2735,6 +2735,98 @@ function EditReminderDialog({ reminder, onSave }: { reminder: any; onSave: (data
 
 function AuditTrailPanel({ admin }: { admin: any }) {
   const { t } = useTranslation();
+  const [logTab, setLogTab] = useState<'audit' | 'api'>('audit');
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-xl font-display font-bold">{t('admin.logs')}</h2>
+        <p className="text-sm text-muted-foreground">{t('admin.logsDesc')}</p>
+      </div>
+
+      <div className="flex gap-1 bg-muted rounded-lg p-1 w-fit">
+        <button
+          onClick={() => setLogTab('audit')}
+          className={cn(
+            "px-3 py-1.5 text-sm font-medium rounded-md transition-colors",
+            logTab === 'audit' ? "bg-card shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
+          )}
+        >
+          {t('admin.auditTrail')}
+        </button>
+        <button
+          onClick={() => setLogTab('api')}
+          className={cn(
+            "px-3 py-1.5 text-sm font-medium rounded-md transition-colors",
+            logTab === 'api' ? "bg-card shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
+          )}
+        >
+          {t('admin.apiLogs')}
+        </button>
+      </div>
+
+      {logTab === 'audit' ? <AuditLogTab admin={admin} /> : <ApiLogTab admin={admin} />}
+    </div>
+  );
+}
+
+function ApiLogTab({ admin }: { admin: any }) {
+  const { t } = useTranslation();
+  const apiLogs = admin.apiLogs?.data ?? [];
+  const apiKeys = admin.apiKeysList?.data ?? [];
+
+  const keyLabelMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    apiKeys.forEach((k: any) => { map[k.id] = k.label || k.id.slice(0, 8); });
+    return map;
+  }, [apiKeys]);
+
+  const statusColor = (code: number) => {
+    if (code < 300) return 'bg-success/15 text-success border-success/30';
+    if (code < 500) return 'bg-warning/15 text-warning border-warning/30';
+    return 'bg-destructive/15 text-destructive border-destructive/30';
+  };
+
+  return (
+    <Card>
+      <CardContent className="p-0">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>{t('admin.auditTime')}</TableHead>
+              <TableHead>{t('admin.apiEndpoint')}</TableHead>
+              <TableHead>{t('admin.apiStatus')}</TableHead>
+              <TableHead>{t('admin.apiResponseTime')}</TableHead>
+              <TableHead>{t('admin.apiKeyLabel')}</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {apiLogs.length === 0 ? (
+              <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">{t('admin.noApiLogs')}</TableCell></TableRow>
+            ) : apiLogs.slice(0, 200).map((log: any) => (
+              <TableRow key={log.id}>
+                <TableCell className="text-xs whitespace-nowrap text-muted-foreground">
+                  {format(parseISO(log.created_at), 'dd.MM.yyyy HH:mm:ss')}
+                </TableCell>
+                <TableCell className="text-xs font-mono">{log.endpoint}</TableCell>
+                <TableCell>
+                  <Badge variant="outline" className={cn("text-[10px]", statusColor(log.status_code))}>
+                    {log.status_code}
+                  </Badge>
+                </TableCell>
+                <TableCell className="text-xs text-muted-foreground">{log.response_time_ms != null ? `${log.response_time_ms} ms` : '—'}</TableCell>
+                <TableCell className="text-xs text-muted-foreground">{keyLabelMap[log.api_key_id] ?? '—'}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </CardContent>
+    </Card>
+  );
+}
+
+function AuditLogTab({ admin }: { admin: any }) {
+  const { t } = useTranslation();
   const [tableFilter, setTableFilter] = useState('all');
   const [actionFilter, setActionFilter] = useState('all');
   const [dateFrom, setDateFrom] = useState('');
