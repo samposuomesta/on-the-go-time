@@ -210,6 +210,9 @@ export function ApiKeysPanel() {
         </CardContent>
       </Card>
 
+      {/* API Quick Reference */}
+      <ApiQuickReference t={t} copyToClipboard={copyToClipboard} />
+
       {/* Create Dialog */}
       <Dialog open={createOpen} onOpenChange={(open) => !open && handleCloseCreate()}>
         <DialogContent className="max-w-lg">
