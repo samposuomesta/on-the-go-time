@@ -839,7 +839,7 @@ const translations = {
     'admin.remindersDesc': 'Ilmoitussäännöt',
     'admin.employeesDesc': 'Hallinnoi tiimin jäseniä',
     'admin.companiesDesc': 'Yrityksen asetukset',
-    'admin.auditDesc': 'Muutoshistoria',
+    'admin.auditDesc': 'Muutosloki ja API-lokit',
     'admin.statisticsOverview': 'Tilastokatsaus',
     'admin.companyMetrics': 'Yrityksen mittarit ja työntekijäkohtainen erittely',
     'admin.totalWorkHours': 'Työtunnit yhteensä',
