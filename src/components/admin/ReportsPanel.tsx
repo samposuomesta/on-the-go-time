@@ -149,6 +149,7 @@ export function ReportsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (i
     if (dataFilter === 'all' || dataFilter === 'working') {
       (admin.allTimeEntries?.data ?? []).forEach((te: any) => {
         if (!canSeeUser(te.user_id)) return;
+        if (employeeFilter !== 'all' && te.user_id !== employeeFilter) return;
         const d = format(new Date(te.start_time), 'yyyy-MM-dd');
         if (d < fromStr || d > toStr) return;
         const start = new Date(te.start_time);
