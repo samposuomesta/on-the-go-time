@@ -4,7 +4,7 @@ import { format, parseISO, differenceInBusinessDays, differenceInHours, differen
 import { useDateLocale } from '@/lib/date-locale';
 import {
   ArrowLeft, Users, Briefcase, Car, Clock, CalendarOff,
-  CalendarDays, Plus, Pencil, Bell, Building2, Trash2, CheckCircle2, XCircle, X, BarChart3, CalendarIcon, FileText, Download, Upload, Mail
+  CalendarDays, Plus, Pencil, Bell, Building2, Trash2, CheckCircle2, XCircle, X, BarChart3, CalendarIcon, FileText, Download, Upload, Mail, Key
 } from 'lucide-react';
 import { Link, Navigate } from 'react-router-dom';
 import { useAdminData } from '@/hooks/useAdminData';
@@ -12,6 +12,7 @@ import { exportAdminWorkingHoursCSV, exportAdminTravelExpensesCSV, exportAdminPr
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useTranslation, getLocalizedField } from '@/lib/i18n';
 import { VacationTimeline } from '@/components/admin/VacationTimeline';
+import { ApiKeysPanel } from '@/components/admin/ApiKeysPanel';
 import { ReportsPanel } from '@/components/admin/ReportsPanel';
 import { getFinnishHolidaySet } from '@/lib/finnish-holidays';
 import { Button } from '@/components/ui/button';
@@ -46,6 +47,7 @@ const navItemDefs = [
   { key: 'companies', labelKey: 'admin.companies', icon: Building2, descKey: 'admin.companiesDesc' },
   { key: 'reports', labelKey: 'admin.reports', icon: Download, descKey: 'admin.reportsDesc' },
   { key: 'audit', labelKey: 'admin.audit', icon: FileText, descKey: 'admin.auditDesc' },
+  { key: 'api-keys', labelKey: 'apiKeys.navLabel', icon: Key, descKey: 'apiKeys.navDesc' },
 ] as const;
 
 function StatusBadge({ status }: { status: string }) {
@@ -279,6 +281,7 @@ function AdminContent({ activeTab, admin, canSeeUser, isManager }: { activeTab: 
     case 'reminders': return <RemindersPanel admin={admin} />;
     case 'reports': return <ReportsPanel admin={admin} canSeeUser={canSeeUser} />;
     case 'audit': return isManager ? null : <AuditTrailPanel admin={admin} />;
+    case 'api-keys': return isManager ? null : <ApiKeysPanel />;
     default: return null;
   }
 }

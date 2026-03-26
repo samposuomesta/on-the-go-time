@@ -53,30 +53,39 @@ export type Database = {
         Row: {
           created_at: string
           end_date: string
+          external_id: string | null
           id: string
           reason_id: string | null
           start_date: string
           status: Database["public"]["Enums"]["request_status"]
+          sync_status: string | null
+          synced_at: string | null
           type: Database["public"]["Enums"]["absence_type"]
           user_id: string
         }
         Insert: {
           created_at?: string
           end_date?: string
+          external_id?: string | null
           id?: string
           reason_id?: string | null
           start_date?: string
           status?: Database["public"]["Enums"]["request_status"]
+          sync_status?: string | null
+          synced_at?: string | null
           type: Database["public"]["Enums"]["absence_type"]
           user_id: string
         }
         Update: {
           created_at?: string
           end_date?: string
+          external_id?: string | null
           id?: string
           reason_id?: string | null
           start_date?: string
           status?: Database["public"]["Enums"]["request_status"]
+          sync_status?: string | null
+          synced_at?: string | null
           type?: Database["public"]["Enums"]["absence_type"]
           user_id?: string
         }
@@ -93,6 +102,114 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      api_keys: {
+        Row: {
+          active: boolean
+          company_id: string
+          created_at: string
+          id: string
+          key_hash: string
+          label: string | null
+          last_used_at: string | null
+          permissions: Json
+          rate_limit: number
+        }
+        Insert: {
+          active?: boolean
+          company_id: string
+          created_at?: string
+          id?: string
+          key_hash: string
+          label?: string | null
+          last_used_at?: string | null
+          permissions?: Json
+          rate_limit?: number
+        }
+        Update: {
+          active?: boolean
+          company_id?: string
+          created_at?: string
+          id?: string
+          key_hash?: string
+          label?: string | null
+          last_used_at?: string | null
+          permissions?: Json
+          rate_limit?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "api_keys_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      api_logs: {
+        Row: {
+          api_key_id: string
+          created_at: string
+          endpoint: string
+          id: string
+          response_time_ms: number | null
+          status_code: number
+        }
+        Insert: {
+          api_key_id: string
+          created_at?: string
+          endpoint: string
+          id?: string
+          response_time_ms?: number | null
+          status_code: number
+        }
+        Update: {
+          api_key_id?: string
+          created_at?: string
+          endpoint?: string
+          id?: string
+          response_time_ms?: number | null
+          status_code?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "api_logs_api_key_id_fkey"
+            columns: ["api_key_id"]
+            isOneToOne: false
+            referencedRelation: "api_keys"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      api_rate_limits: {
+        Row: {
+          api_key_id: string
+          id: string
+          request_count: number
+          window_start: string
+        }
+        Insert: {
+          api_key_id: string
+          id?: string
+          request_count?: number
+          window_start: string
+        }
+        Update: {
+          api_key_id?: string
+          id?: string
+          request_count?: number
+          window_start?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "api_rate_limits_api_key_id_fkey"
+            columns: ["api_key_id"]
+            isOneToOne: false
+            referencedRelation: "api_keys"
             referencedColumns: ["id"]
           },
         ]
@@ -162,6 +279,41 @@ export type Database = {
           name?: string
         }
         Relationships: []
+      }
+      idempotency_keys: {
+        Row: {
+          api_key_id: string
+          created_at: string
+          id: string
+          idempotency_key: string
+          response_body: Json | null
+          response_status: number | null
+        }
+        Insert: {
+          api_key_id: string
+          created_at?: string
+          id?: string
+          idempotency_key: string
+          response_body?: Json | null
+          response_status?: number | null
+        }
+        Update: {
+          api_key_id?: string
+          created_at?: string
+          id?: string
+          idempotency_key?: string
+          response_body?: Json | null
+          response_status?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "idempotency_keys_api_key_id_fkey"
+            columns: ["api_key_id"]
+            isOneToOne: false
+            referencedRelation: "api_keys"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       login_sessions: {
         Row: {
@@ -244,30 +396,39 @@ export type Database = {
           created_at: string
           date: string
           description: string | null
+          external_id: string | null
           hours: number
           id: string
           project_id: string
           status: Database["public"]["Enums"]["request_status"]
+          sync_status: string | null
+          synced_at: string | null
           user_id: string
         }
         Insert: {
           created_at?: string
           date?: string
           description?: string | null
+          external_id?: string | null
           hours: number
           id?: string
           project_id: string
           status?: Database["public"]["Enums"]["request_status"]
+          sync_status?: string | null
+          synced_at?: string | null
           user_id: string
         }
         Update: {
           created_at?: string
           date?: string
           description?: string | null
+          external_id?: string | null
           hours?: number
           id?: string
           project_id?: string
           status?: Database["public"]["Enums"]["request_status"]
+          sync_status?: string | null
+          synced_at?: string | null
           user_id?: string
         }
         Relationships: [
@@ -414,6 +575,7 @@ export type Database = {
           end_lat: number | null
           end_lng: number | null
           end_time: string | null
+          external_id: string | null
           gps_accuracy: number | null
           id: string
           project_id: string | null
@@ -421,6 +583,8 @@ export type Database = {
           start_lng: number | null
           start_time: string
           status: Database["public"]["Enums"]["request_status"]
+          sync_status: string | null
+          synced_at: string | null
           timezone: string | null
           user_id: string
         }
@@ -430,6 +594,7 @@ export type Database = {
           end_lat?: number | null
           end_lng?: number | null
           end_time?: string | null
+          external_id?: string | null
           gps_accuracy?: number | null
           id?: string
           project_id?: string | null
@@ -437,6 +602,8 @@ export type Database = {
           start_lng?: number | null
           start_time?: string
           status?: Database["public"]["Enums"]["request_status"]
+          sync_status?: string | null
+          synced_at?: string | null
           timezone?: string | null
           user_id: string
         }
@@ -446,6 +613,7 @@ export type Database = {
           end_lat?: number | null
           end_lng?: number | null
           end_time?: string | null
+          external_id?: string | null
           gps_accuracy?: number | null
           id?: string
           project_id?: string | null
@@ -453,6 +621,8 @@ export type Database = {
           start_lng?: number | null
           start_time?: string
           status?: Database["public"]["Enums"]["request_status"]
+          sync_status?: string | null
+          synced_at?: string | null
           timezone?: string | null
           user_id?: string
         }
@@ -479,6 +649,7 @@ export type Database = {
           customer_name: string | null
           date: string
           description: string | null
+          external_id: string | null
           id: string
           kilometers: number | null
           parking_cost: number | null
@@ -486,6 +657,8 @@ export type Database = {
           receipt_image: string | null
           route: string | null
           status: Database["public"]["Enums"]["request_status"]
+          sync_status: string | null
+          synced_at: string | null
           user_id: string
         }
         Insert: {
@@ -493,6 +666,7 @@ export type Database = {
           customer_name?: string | null
           date?: string
           description?: string | null
+          external_id?: string | null
           id?: string
           kilometers?: number | null
           parking_cost?: number | null
@@ -500,6 +674,8 @@ export type Database = {
           receipt_image?: string | null
           route?: string | null
           status?: Database["public"]["Enums"]["request_status"]
+          sync_status?: string | null
+          synced_at?: string | null
           user_id: string
         }
         Update: {
@@ -507,6 +683,7 @@ export type Database = {
           customer_name?: string | null
           date?: string
           description?: string | null
+          external_id?: string | null
           id?: string
           kilometers?: number | null
           parking_cost?: number | null
@@ -514,6 +691,8 @@ export type Database = {
           receipt_image?: string | null
           route?: string | null
           status?: Database["public"]["Enums"]["request_status"]
+          sync_status?: string | null
+          synced_at?: string | null
           user_id?: string
         }
         Relationships: [
@@ -675,27 +854,36 @@ export type Database = {
           comment: string | null
           created_at: string
           end_date: string
+          external_id: string | null
           id: string
           start_date: string
           status: Database["public"]["Enums"]["request_status"]
+          sync_status: string | null
+          synced_at: string | null
           user_id: string
         }
         Insert: {
           comment?: string | null
           created_at?: string
           end_date: string
+          external_id?: string | null
           id?: string
           start_date: string
           status?: Database["public"]["Enums"]["request_status"]
+          sync_status?: string | null
+          synced_at?: string | null
           user_id: string
         }
         Update: {
           comment?: string | null
           created_at?: string
           end_date?: string
+          external_id?: string | null
           id?: string
           start_date?: string
           status?: Database["public"]["Enums"]["request_status"]
+          sync_status?: string | null
+          synced_at?: string | null
           user_id?: string
         }
         Relationships: [
