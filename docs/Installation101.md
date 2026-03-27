@@ -173,7 +173,7 @@ docker compose version
 ```
 **Expected output:**
 ```
-Docker Compose version v2.40.3
+Docker Compose version v5.1.1
 ```
 
 ```bash
