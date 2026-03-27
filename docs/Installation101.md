@@ -512,6 +512,13 @@ eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS...
 
 Copy both keys into your `.env` file as `ANON_KEY=...` and `SERVICE_ROLE_KEY=...`.
 
+> **⚠️ Important: `POSTGRES_PASSWORD` is only applied on first database initialization.**
+> When you run `docker compose up` for the first time, the password is written into the PostgreSQL data volume. Changing `POSTGRES_PASSWORD` in `.env` afterwards does **not** update the existing database — it only changes what other services *expect* the password to be. This mismatch causes services like `supabase-analytics` to fail with `password authentication failed for user "supabase_admin"`.
+>
+> **Do not** try to fix this with `ALTER USER supabase_admin ...` — that role is reserved and the command will be rejected with `"supabase_admin" is a reserved role, only superusers can modify it`.
+>
+> See [Troubleshooting → Password mismatch after first boot](#password-mismatch-after-first-boot) for recovery steps.
+
 > **Note:** Newer Supabase versions also support asymmetric ES256 keys (`SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`, `JWT_KEYS`, `JWT_JWKS`). Use `sh ./utils/add-new-auth-keys.sh` to generate these. See the [official docs](https://supabase.com/docs/guides/self-hosting/self-hosted-auth-keys).
 
 **Option B – npx Supabase CLI** (requires Node.js — installed in step 4):
