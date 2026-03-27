@@ -1,28 +1,31 @@
 
 
-# Raportit: Lisää työntekijäsuodatin
+## Update Prerequisites to Actual Latest Stable Versions
 
-## Muutos
+The previously proposed versions were outdated. Here are the corrected updates for `docs/Installation101.md`:
 
-Lisätään Raportit-paneeliin uusi Select-pudotusvalikko, jolla voi suodattaa rivit yksittäisen työntekijän mukaan. Oletuksena "Kaikki työntekijät".
+### Changes
 
-## Toteutus
+**1. Prerequisites table** — update to current latest stable versions:
 
-### 1. `src/components/admin/ReportsPanel.tsx`
-- Lisätään uusi tila: `const [employeeFilter, setEmployeeFilter] = useState<string>('all')`
-- Lisätään suodatinriville (rivi ~324-337, data filter -selectin viereen) uusi Select-komponentti:
-  - Arvo `all` = kaikki työntekijät
-  - Listataan `employees`-taulukosta kaikki näkyvät työntekijät (nimi + id)
-  - Järjestetään aakkosjärjestykseen
-- Muokataan `rows`-useMemon sisällä jokainen osio (login, working, project) lisäämällä ehto: `if (employeeFilter !== 'all' && ls.user_id !== employeeFilter) return;`
+| Component | Old value | New value |
+|-----------|-----------|-----------|
+| Docker | 24+ | **29+** |
+| Docker Compose | v2.20+ | **v2.40+** |
+| Node.js | 20 LTS | **24 LTS** |
 
-### 2. `src/lib/i18n.tsx`
-- Lisätään käännösavaimet:
-  - `reports.filterEmployee` → "Työntekijä" / "Employee"
-  - `reports.allEmployees` → "Kaikki työntekijät" / "All employees"
+**2. Stack header** (line 4): Change `Node.js 20+` / `Node.js 22+` to `Node.js 24+`
 
-## Vaikutus
-- Vain `ReportsPanel.tsx` ja `i18n.tsx` muuttuvat
-- CSV/PDF-vienti kunnioittaa suodatinta automaattisesti (perustuu `rows`-dataan)
-- Ei tietokantamuutoksia
+**3. Node.js section**: Update install command to `setup_24.x`, mention codename "Krypton", supported until April 2028. Note that Node 22 is in maintenance mode and Node 18/20 are EOL.
+
+**4. Docker install notes**: Mention Docker 29.x as the current stable release line with Compose v2.40 bundled.
+
+**5. Update last-updated date** to `2026-03-27`.
+
+### Technical Details
+- Docker Engine 29.3.0 released 2026-03-05
+- Docker Compose v2.40.3 available in Ubuntu 24.04 repos
+- Node.js 24 entered LTS ("Krypton") on 2025-10-28, supported until April 2028
+- Node.js 22 is in maintenance (ends October 2026)
+- Node.js 18 and 20 are EOL
 
