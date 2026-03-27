@@ -40,7 +40,7 @@
 |-----------|---------|----------------|
 | Ubuntu | 24.04 LTS | All |
 | Docker | 29+ (current stable: 29.3.0) | Step 3 |
-| Docker Compose | v2.40+ (bundled with Docker 29) | Step 3 |
+| Docker Compose | v5.1+ (bundled with Docker 29+) | Step 3 |
 | Node.js | 24 LTS "Krypton" (supported until April 2028) | Step 4 |
 | Git | 2.x | Step 2 |
 | postgresql-client | 16+ | Step 9 |
@@ -173,7 +173,7 @@ docker compose version
 ```
 **Expected output:**
 ```
-Docker Compose version v2.40.3
+Docker Compose version v5.1.1
 ```
 
 ```bash
