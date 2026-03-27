@@ -988,7 +988,7 @@ docker compose restart supabase-edge-functions
 cd /opt/timetrack/app
 
 # Set the database URL for CLI
-export SUPABASE_DB_URL="postgresql://postgres:<POSTGRES_PASSWORD>@localhost:5432/postgres"
+export SUPABASE_DB_URL="postgresql://postgres:<POSTGRES_PASSWORD>@localhost:5433/postgres"
 
 # Deploy functions
 supabase functions deploy create-auth-user --project-ref local
