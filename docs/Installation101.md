@@ -301,7 +301,7 @@ services:
 ## 7. Start Supabase Services
 
 ```bash
-cd /opt/timetrack/supabase-docker
+cd /opt/timetrack/supabase-docker/docker
 
 # Pull images and start
 docker compose pull
