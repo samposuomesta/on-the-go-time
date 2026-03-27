@@ -402,7 +402,7 @@ The application uses 3 Edge Functions:
 
 ### Option A: Mount via volume (recommended for `supabase-docker`)
 
-The `supabase-community/supabase-docker` setup mounts a `volumes/functions` directory into the Edge Runtime container automatically.
+The official `supabase/supabase/docker` setup mounts a `volumes/functions` directory into the Edge Runtime container automatically.
 
 ```bash
 cd /opt/timetrack/app
