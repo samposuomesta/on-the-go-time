@@ -168,10 +168,22 @@ POSTGRES_PASSWORD=<STRONG_RANDOM_PASSWORD>
 # Generate JWT secret (min 32 chars): openssl rand -base64 48
 JWT_SECRET=<YOUR_JWT_SECRET>
 
-# Generate anon key using jwt.io or supabase CLI:
-#   supabase gen keys --jwt-secret <JWT_SECRET>
+# Generate anon key and service role key (see "Generate JWT keys" below)
 ANON_KEY=<GENERATED_ANON_KEY>
 SERVICE_ROLE_KEY=<GENERATED_SERVICE_ROLE_KEY>
+
+# Required by Realtime and Supavisor: openssl rand -base64 48
+SECRET_KEY_BASE=<RANDOM_BASE64_VALUE>
+
+# Required by Supavisor: openssl rand -base64 24 | head -c 32
+VAULT_ENC_KEY=<32_CHAR_ENCRYPTION_KEY>
+
+# Required by Studio (postgres-meta): openssl rand -base64 24 | head -c 32
+PG_META_CRYPTO_KEY=<32_CHAR_ENCRYPTION_KEY>
+
+# Analytics tokens: openssl rand -base64 32 (one for each)
+LOGFLARE_PUBLIC_ACCESS_TOKEN=<RANDOM_TOKEN>
+LOGFLARE_PRIVATE_ACCESS_TOKEN=<RANDOM_TOKEN>
 
 # Dashboard credentials
 DASHBOARD_USERNAME=admin
@@ -200,6 +212,13 @@ SMTP_SENDER_NAME=TimeTrack
 POSTGRES_HOST=db
 POSTGRES_DB=postgres
 POSTGRES_PORT=5432
+
+############
+# SUPAVISOR (connection pooler, included by default)
+############
+POOLER_TENANT_ID=<UNIQUE_TENANT_ID>
+POOLER_DEFAULT_POOL_SIZE=20
+POOLER_MAX_CLIENT_CONN=100
 ```
 
 ### Generate JWT keys
