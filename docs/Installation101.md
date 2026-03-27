@@ -1957,6 +1957,8 @@ sudo fail2ban-client status nginx-limit-req
 | **Auth not working** | `SITE_URL` doesn't match frontend domain | Fix in `.env`, restart `supabase-auth` |
 | **Edge functions 502** | Function crashed or missing secrets | Check logs: `docker compose logs supabase-edge-functions` |
 | **Database connection refused** | Wrong password or port not exposed | Verify `POSTGRES_PASSWORD` in `.env` and use port **5433** (not 5432) |
+| **`password authentication failed for user "supabase_admin"`** | `POSTGRES_PASSWORD` changed in `.env` after first boot | See [Password mismatch after first boot](#password-mismatch-after-first-boot) below |
+| **`"supabase_admin" is a reserved role`** | Attempted manual `ALTER USER` on reserved role | Do **not** modify reserved roles manually — see recovery steps below |
 | **"Tenant or user not found"** | Connecting to Supavisor (port 5432) instead of PostgreSQL | Use port **5433** for direct `psql` access, or use `docker exec -i supabase-db psql -U postgres -d postgres` |
 | **Push notifications fail** | Missing VAPID keys or no outbound HTTPS | Set VAPID keys (step 16), check firewall allows outbound 443 |
 | **Storage upload fails** | Missing `receipts` bucket | Create it (step 18) |
