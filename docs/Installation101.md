@@ -127,24 +127,23 @@ sudo systemctl restart docker
 
 ## 4. Clone Supabase Self-Hosted
 
-We use the community-maintained `supabase-docker` repository which is purpose-built for self-hosting and easier to maintain than extracting from the main Supabase repo.
+We use the official `docker/` directory from the main Supabase repository, which is the recommended way to self-host Supabase.
 
 ```bash
 # Create project directory
 sudo mkdir -p /opt/timetrack && sudo chown timetrack:timetrack /opt/timetrack
 cd /opt/timetrack
 
-# Clone the community Supabase Docker setup (pinned tag for stability)
-git clone --depth 1 --branch v1.50.0 \
-  https://github.com/supabase-community/supabase-docker.git supabase-docker
+# Clone the Supabase repo (sparse checkout for docker/ only)
+git clone --depth 1 --filter=blob:none --sparse \
+  https://github.com/supabase/supabase.git supabase-docker
 cd supabase-docker
-
-# Copy the example env file
-cp .env.example .env
+git sparse-checkout set docker
+cp docker/.env.example docker/.env
+cd docker
 ```
 
-> **Why `supabase-community/supabase-docker`?**  
-> The main `supabase/supabase` repo is the full platform monorepo. The community docker repo provides a clean, minimal `docker-compose.yml` specifically for self-hosting, with proper volume mounts, image pinning, and Edge Function support out of the box.
+> **Note:** The official self-hosted Docker setup lives at [`supabase/supabase/docker`](https://github.com/supabase/supabase/tree/master/docker). It provides a complete `docker-compose.yml` with proper volume mounts, image pinning, and Edge Function support.
 
 ---
 
@@ -275,7 +274,7 @@ services:
     # ...
 ```
 
-> **Important:** After editing `docker-compose.yml`, verify the volume mount paths are correct for your chosen image versions. The `supabase-community/supabase-docker` repo usually has sensible defaults — you primarily need to add/confirm the host-path mounts and pin the image tags.
+> **Important:** After editing `docker-compose.yml`, verify the volume mount paths are correct for your chosen image versions. The official `supabase/supabase/docker` setup usually has sensible defaults — you primarily need to add/confirm the host-path mounts and pin the image tags.
 
 ---
 
@@ -403,7 +402,7 @@ The application uses 3 Edge Functions:
 
 ### Option A: Mount via volume (recommended for `supabase-docker`)
 
-The `supabase-community/supabase-docker` setup mounts a `volumes/functions` directory into the Edge Runtime container automatically.
+The official `supabase/supabase/docker` setup mounts a `volumes/functions` directory into the Edge Runtime container automatically.
 
 ```bash
 cd /opt/timetrack/app
@@ -1188,7 +1187,7 @@ mc anonymous set download local/supabase-storage/receipts
 
 ```
 /opt/timetrack/
-├── supabase-docker/              # supabase-community/supabase-docker
+├── supabase-docker/              # supabase/supabase/docker
 │   ├── .env                      # Supabase config
 │   ├── docker-compose.yml        # Pinned image versions + volumes
 │   └── volumes/
