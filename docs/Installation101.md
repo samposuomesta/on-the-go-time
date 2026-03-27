@@ -447,6 +447,10 @@ POOLER_DEFAULT_POOL_SIZE=20                      # DEFAULT OK
 # Max client connections Supavisor will accept.
 # If exceeded, new connections queue or are rejected.
 POOLER_MAX_CLIENT_CONN=100                       # DEFAULT OK
+
+# NOTE: Supavisor listens on the host's port 5432.
+# For direct psql access (migrations, backups), use port 5433 instead,
+# which maps directly to the PostgreSQL container.
 ```
 
 ### Quick secret generation script
