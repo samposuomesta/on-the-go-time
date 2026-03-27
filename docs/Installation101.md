@@ -1082,7 +1082,7 @@ docker compose restart supabase-edge-functions
 ### Update Supabase
 
 ```bash
-cd /opt/timetrack/supabase-docker
+cd /opt/timetrack/supabase-docker/docker
 
 # Check release notes BEFORE upgrading!
 # Update pinned image versions in docker-compose.yml
