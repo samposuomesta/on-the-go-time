@@ -447,6 +447,10 @@ POOLER_DEFAULT_POOL_SIZE=20                      # DEFAULT OK
 # Max client connections Supavisor will accept.
 # If exceeded, new connections queue or are rejected.
 POOLER_MAX_CLIENT_CONN=100                       # DEFAULT OK
+
+# NOTE: Supavisor listens on the host's port 5432.
+# For direct psql access (migrations, backups), use port 5433 instead,
+# which maps directly to the PostgreSQL container.
 ```
 
 ### Quick secret generation script
@@ -706,7 +710,7 @@ docker compose ps
 **Expected output (all should show "Up" or "running"):**
 ```
 NAME                        STATUS          PORTS
-supabase-db                 Up (healthy)    0.0.0.0:5432->5432/tcp
+supabase-db                 Up (healthy)    0.0.0.0:5432->5432/tcp, 0.0.0.0:5433->5432/tcp
 supabase-auth               Up (healthy)    9999/tcp
 supabase-rest               Up (healthy)    3000/tcp
 supabase-realtime            Up              4000/tcp
@@ -773,11 +777,20 @@ cd app
 ```bash
 # Set the connection string (used by psql throughout this section)
 # Replace <POSTGRES_PASSWORD> with the value from your .env file
-export SUPABASE_DB_URL="postgresql://postgres:<POSTGRES_PASSWORD>@localhost:5432/postgres"
+#
+# IMPORTANT: Use port 5433, NOT 5432!
+# Port 5432 = Supavisor (connection pooler) — requires tenant-aware strings
+# Port 5433 = Direct PostgreSQL access — works with standard psql
+export SUPABASE_DB_URL="postgresql://postgres:<POSTGRES_PASSWORD>@localhost:5433/postgres"
 
 # Verify connection works
 psql "$SUPABASE_DB_URL" -c "SELECT version();"
 ```
+
+> **💡 Alternative:** If port 5433 is not exposed, connect directly via Docker:
+> ```bash
+> docker exec -i supabase-db psql -U postgres -d postgres -c "SELECT version();"
+> ```
 
 **Expected output:**
 ```
@@ -975,7 +988,7 @@ docker compose restart supabase-edge-functions
 cd /opt/timetrack/app
 
 # Set the database URL for CLI
-export SUPABASE_DB_URL="postgresql://postgres:<POSTGRES_PASSWORD>@localhost:5432/postgres"
+export SUPABASE_DB_URL="postgresql://postgres:<POSTGRES_PASSWORD>@localhost:5433/postgres"
 
 # Deploy functions
 supabase functions deploy create-auth-user --project-ref local
@@ -1391,7 +1404,7 @@ supabase db dump --project-ref <CLOUD_PROJECT_REF> --data-only -f data_dump.sql
 
 ```bash
 # Restore schema + data
-pg_restore -h localhost -p 5432 -U postgres -d postgres \
+pg_restore -h localhost -p 5433 -U postgres -d postgres \
   --no-owner --no-privileges timetrack_backup.dump
 
 # Or with SQL dumps:
@@ -1777,7 +1790,7 @@ BACKUP_DIR="/opt/timetrack/backups"
 mkdir -p "$BACKUP_DIR"
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 
-pg_dump "postgresql://postgres:<POSTGRES_PASSWORD>@localhost:5432/postgres" \
+pg_dump "postgresql://postgres:<POSTGRES_PASSWORD>@localhost:5433/postgres" \
   -F c -f "$BACKUP_DIR/timetrack_$TIMESTAMP.dump"
 
 # Keep last 30 days
@@ -1865,7 +1878,8 @@ sudo fail2ban-client status nginx-limit-req
 | **CORS errors** | `API_EXTERNAL_URL` doesn't match your domain | Fix the URL in `.env`, restart services |
 | **Auth not working** | `SITE_URL` doesn't match frontend domain | Fix in `.env`, restart `supabase-auth` |
 | **Edge functions 502** | Function crashed or missing secrets | Check logs: `docker compose logs supabase-edge-functions` |
-| **Database connection refused** | Wrong password or port not exposed | Verify `POSTGRES_PASSWORD` in `.env` and port 5432 |
+| **Database connection refused** | Wrong password or port not exposed | Verify `POSTGRES_PASSWORD` in `.env` and use port **5433** (not 5432) |
+| **"Tenant or user not found"** | Connecting to Supavisor (port 5432) instead of PostgreSQL | Use port **5433** for direct `psql` access, or use `docker exec -i supabase-db psql -U postgres -d postgres` |
 | **Push notifications fail** | Missing VAPID keys or no outbound HTTPS | Set VAPID keys (step 16), check firewall allows outbound 443 |
 | **Storage upload fails** | Missing `receipts` bucket | Create it (step 18) |
 | **JWT errors** | Mismatched `JWT_SECRET` and keys | Regenerate ANON/SERVICE keys with same JWT_SECRET |
