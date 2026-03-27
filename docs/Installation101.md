@@ -204,14 +204,34 @@ POSTGRES_PORT=5432
 
 ### Generate JWT keys
 
-```bash
-# Install Supabase CLI
-npm install -g supabase
+**Option A – Supabase CLI (npx, no global install needed):**
 
-# Generate keys from your JWT secret
-supabase gen keys --jwt-secret "<YOUR_JWT_SECRET>"
+```bash
+npx supabase gen keys --jwt-secret "<YOUR_JWT_SECRET>"
 # This outputs ANON_KEY and SERVICE_ROLE_KEY — paste them into .env
 ```
+
+**Option B – Without Supabase CLI (using jwt.io or a script):**
+
+```bash
+# Install jwt-cli helper or use this one-liner with Node.js:
+node -e "
+const crypto = require('crypto');
+const header = Buffer.from(JSON.stringify({alg:'HS256',typ:'JWT'})).toString('base64url');
+const now = Math.floor(Date.now()/1000);
+const anon = Buffer.from(JSON.stringify({iss:'supabase',ref:'your-project-ref',role:'anon',iat:now,exp:now+10*365*24*3600})).toString('base64url');
+const service = Buffer.from(JSON.stringify({iss:'supabase',ref:'your-project-ref',role:'service_role',iat:now,exp:now+10*365*24*3600})).toString('base64url');
+function sign(input,secret){return crypto.createHmac('sha256',secret).update(input).digest('base64url');}
+const secret = process.argv[1];
+console.log('ANON_KEY=' + header+'.'+anon+'.'+sign(header+'.'+anon,secret));
+console.log('SERVICE_ROLE_KEY=' + header+'.'+service+'.'+sign(header+'.'+service,secret));
+" "<YOUR_JWT_SECRET>"
+```
+
+**Option C – Use [jwt.io](https://jwt.io):** Create tokens manually with the payloads below and sign with your `JWT_SECRET` (HS256):
+
+- **ANON_KEY payload:** `{"iss":"supabase","ref":"your-project-ref","role":"anon","iat":<unix_now>,"exp":<unix_10y>}`
+- **SERVICE_ROLE_KEY payload:** `{"iss":"supabase","ref":"your-project-ref","role":"service_role","iat":<unix_now>,"exp":<unix_10y>}`
 
 ---
 
