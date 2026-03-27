@@ -968,7 +968,7 @@ else
 fi
 
 # 4. Docker container status
-STOPPED=$(cd /opt/timetrack/supabase-docker && docker compose ps --format json 2>/dev/null | \
+STOPPED=$(cd /opt/timetrack/supabase-docker/docker && docker compose ps --format json 2>/dev/null | \
   python3 -c "import sys,json; [print(c.get('Name','?')) for line in sys.stdin for c in [json.loads(line)] if c.get('State')!='running']" 2>/dev/null)
 if [ -z "$STOPPED" ]; then
   echo "✅ All Docker containers: running"
