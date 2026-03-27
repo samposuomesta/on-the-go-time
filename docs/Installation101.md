@@ -1207,14 +1207,15 @@ mc anonymous set download local/supabase-storage/receipts
 
 ```
 /opt/timetrack/
-├── supabase-docker/              # supabase/supabase/docker
-│   ├── .env                      # Supabase config
-│   ├── docker-compose.yml        # Pinned image versions + volumes
-│   └── volumes/
-│       └── functions/            # Edge functions (mounted volume)
-│           ├── create-auth-user/
-│           ├── data-api/
-│           └── process-reminders/
+├── supabase-docker/              # supabase/supabase (sparse checkout)
+│   └── docker/                   # Docker setup directory
+│       ├── .env                  # Supabase config
+│       ├── docker-compose.yml    # Pinned image versions + volumes
+│       └── volumes/
+│           └── functions/        # Edge functions (mounted volume)
+│               ├── create-auth-user/
+│               ├── data-api/
+│               └── process-reminders/
 ├── app/                          # TimeTrack frontend
 │   ├── .env.production           # Frontend env vars
 │   ├── dist/                     # Built static files
