@@ -641,6 +641,11 @@ docker compose images
 
 **3. Edit `docker-compose.yml`**
 
+```bash
+cd /opt/timetrack/supabase-docker/docker
+nano docker-compose.yml
+```
+
 For each service, replace any `:latest` or untagged image with the specific version:
 
 ```yaml
