@@ -1,41 +1,63 @@
 
+Goal: update the self-hosting guidance so this error is handled correctly without telling users to run a command that PostgreSQL rejects.
 
-## Fix Database Connection Instructions in Installation101.md
+What I found
+- The current docs already explain that `.env` password mismatches can break startup, especially analytics.
+- Earlier guidance suggested `ALTER USER supabase_admin ...`, but your error confirms that is not a valid recovery path in this environment.
+- The install guide currently has:
+  - secret generation and `generate-keys.sh` instructions
+  - startup checks and generic troubleshooting
+  - no dedicated “changed POSTGRES_PASSWORD after first boot” recovery section
 
-### Root Cause
-In Supabase's self-hosted Docker setup, port **5432** is mapped to **Supavisor** (connection pooler), not directly to PostgreSQL. Supavisor expects a tenant-aware connection string. Raw `psql` connections to `localhost:5432` fail with "Tenant or user not found" because Supavisor doesn't recognize the connection as belonging to any tenant.
+Recommended implementation
+1. Remove the bad recovery advice
+- Replace any instruction that tells users to modify `supabase_admin` directly.
+- Avoid telling users to change reserved roles manually.
 
-### Solution
-Update all `psql` connection strings throughout the document to use one of two approaches:
+2. Add a clear warning where passwords are generated
+- In the secret generation / `.env` section, add a short note:
+  - `POSTGRES_PASSWORD` is only applied on first database initialization.
+  - Changing it later in `.env` does not update the existing database volume.
+  - If changed afterwards, services like analytics may fail with `invalid_password` / `supabase_admin`.
 
-**Option A (Recommended): Connect directly to the PostgreSQL container on port 5433**
-Most Supabase Docker setups expose the raw PostgreSQL port as 5433 on the host. Update the connection string:
-```bash
-export SUPABASE_DB_URL="postgresql://postgres:<POSTGRES_PASSWORD>@localhost:5433/postgres"
+3. Add the safe recovery path in troubleshooting
+- Add a dedicated subsection under troubleshooting for:
+  - `password authentication failed for user "supabase_admin"`
+  - `"supabase_admin" is a reserved role, only superusers can modify it`
+- Document two supported recovery options:
+  - Option A: revert `.env` `POSTGRES_PASSWORD` to the original value used when the DB volume was first created, then restart containers
+  - Option B: if the user intentionally wants a new DB password, use the official self-hosted password rotation script from the Docker bundle (instead of raw `ALTER ROLE` commands), then restart
+
+4. Add exact verification steps
+- After recovery, check:
+  - `docker compose ps`
+  - `docker compose logs supabase-analytics --tail=50`
+- Expected result: analytics becomes healthy and no longer reports `invalid_password`.
+
+Proposed doc changes
+- `docs/Installation101.md`
+  - near secret generation / `generate-keys.sh`: add the persistence warning
+  - in troubleshooting: add a new row or subsection for this specific failure
+  - optionally add a short “Password changes after first boot” note in the startup section
+
+Suggested wording to add
+```text
+Important: changing POSTGRES_PASSWORD in .env after the database has already been initialized does not change the password inside the existing database volume. This can cause services such as analytics to fail with “password authentication failed for user supabase_admin”.
+
+Do not try to fix this by running ALTER USER supabase_admin ... manually. In this environment that role is reserved and direct modification may be blocked.
+
+Recovery:
+1. Restore POSTGRES_PASSWORD in .env to the original value used on first startup, then run:
+   docker compose down
+   docker compose up -d
+
+If you intentionally need to rotate the database password, use the official password rotation script provided in the self-hosted Docker bundle, then restart the stack.
 ```
 
-**Option B: Connect via `docker exec`**
-```bash
-docker exec -i supabase-db psql -U postgres -d postgres
-```
+Technical notes
+- This is a documentation-only fix.
+- No app code or backend schema changes are needed.
+- The plan aligns with the current self-hosted architecture already documented in `docs/Installation101.md`.
 
-### Changes to `docs/Installation101.md`
-
-1. **Step 8 – Docker status table** (~line 709): Verify/add that `supabase-db` exposes port `5433` on the host alongside the Supavisor port on `5432`. Add a note clarifying which port is which.
-
-2. **Step 9 – Database Migration** (~lines 774-776): Change the connection string from port `5432` to `5433`. Add an explanatory note:
-   > Port 5432 is used by Supavisor (connection pooler). For direct `psql` access, use port **5433** which connects directly to PostgreSQL.
-
-3. **All other `SUPABASE_DB_URL` references** (~lines 978, 1363, 1394, 1780, etc.): Update port from `5432` to `5433` for local database connections. Cloud connection strings (e.g., `db.<PROJECT_REF>.supabase.co:5432`) stay unchanged since those use Supabase Cloud's own routing.
-
-4. **Step 9 – Add a `docker exec` alternative**: Provide a fallback method using `docker exec` in case port 5433 is not exposed.
-
-5. **Troubleshooting table** (~line 1868): Update the "Database connection refused" row to mention port 5433 vs 5432 distinction and the "Tenant or user not found" error specifically.
-
-6. **Supavisor section in .env** (~lines 434-450): Add a comment clarifying that port 5432 is Supavisor's port and direct DB access is on 5433.
-
-### Affected lines (approximate)
-- Lines 709, 774-780, 978, 1394, 1780, 1868 — port changes
-- Lines 434-450 — add clarifying comment
-- New content: `docker exec` alternative in Step 9
-
+Open point
+- If you want, I can next turn this into a precise doc-edit plan with the exact sections/line ranges to update in `Installation101.md`.
