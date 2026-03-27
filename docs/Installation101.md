@@ -611,7 +611,37 @@ drwxr-xr-x 2 1000 1000 4096 ... storage
 
 Edit `docker-compose.yml` and pin every image to a specific tag. **Never use `:latest` in production.**
 
-Example pinned versions — **these are illustrative only!** Always check the current versions in the official [`docker-compose.yml`](https://github.com/supabase/supabase/blob/master/docker/docker-compose.yml) at time of deployment:
+#### Why pin versions?
+
+- **Reproducibility** — rebuilding the stack always produces the same result
+- **Stability** — an upstream `:latest` push won't break your running system
+- **Rollback** — you know exactly which version to revert to
+- **Audit trail** — your `docker-compose.yml` documents the exact deployed versions
+
+#### Step-by-step: How to pin
+
+**1. Find current versions from the official repo**
+
+Open the official docker-compose.yml and note every `image:` tag:
+
+```bash
+# Browse in browser:
+# https://github.com/supabase/supabase/blob/master/docker/docker-compose.yml
+
+# Or fetch directly:
+curl -s https://raw.githubusercontent.com/supabase/supabase/master/docker/docker-compose.yml \
+  | grep 'image:' | sort
+```
+
+**2. Check your currently running versions (if already deployed)**
+
+```bash
+docker compose images --format "table {{.Repository}}\t{{.Tag}}"
+```
+
+**3. Edit `docker-compose.yml`**
+
+For each service, replace any `:latest` or untagged image with the specific version:
 
 ```yaml
 services:
@@ -652,6 +682,49 @@ services:
     volumes:
       - /opt/timetrack/supabase-docker/docker/volumes/functions:/home/deno/functions
     # ...
+```
+
+> ⚠️ **These version numbers are illustrative!** Always use the versions from the official `docker-compose.yml` at the time of your deployment.
+
+**4. Verify no untagged or `:latest` images remain**
+
+```bash
+grep 'image:' docker-compose.yml | grep -E '(:latest|[^:0-9]+$)'
+# Should return nothing — if it does, pin those images too
+```
+
+**5. Pull the pinned images and restart**
+
+```bash
+docker compose pull
+docker compose up -d
+```
+
+**6. Confirm running versions**
+
+```bash
+docker compose images --format "table {{.Repository}}\t{{.Tag}}"
+```
+
+#### Recording your versions
+
+Keep a version log so you can track upgrades. Create a simple file:
+
+```bash
+cat > /opt/timetrack/IMAGE_VERSIONS.md << 'EOF'
+# Pinned Docker Image Versions
+
+| Service        | Image                          | Pinned On    |
+|----------------|--------------------------------|--------------|
+| db             | supabase/postgres:15.6.1.145   | 2025-06-XX   |
+| auth           | supabase/gotrue:2.164.0        | 2025-06-XX   |
+| rest           | postgrest/postgrest:12.2.3     | 2025-06-XX   |
+| realtime       | supabase/realtime:2.33.58      | 2025-06-XX   |
+| storage        | supabase/storage-api:1.11.13   | 2025-06-XX   |
+| kong           | kong:3.8.1                     | 2025-06-XX   |
+| meta           | supabase/postgres-meta:0.84.2  | 2025-06-XX   |
+| edge-functions | supabase/edge-runtime:1.65.3   | 2025-06-XX   |
+EOF
 ```
 
 > **Important:** After editing `docker-compose.yml`, verify the volume mount paths are correct for your chosen image versions. The official `supabase/supabase/docker` setup usually has sensible defaults — you primarily need to add/confirm the host-path mounts and pin the image tags.
