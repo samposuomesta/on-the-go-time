@@ -1404,7 +1404,7 @@ supabase db dump --project-ref <CLOUD_PROJECT_REF> --data-only -f data_dump.sql
 
 ```bash
 # Restore schema + data
-pg_restore -h localhost -p 5432 -U postgres -d postgres \
+pg_restore -h localhost -p 5433 -U postgres -d postgres \
   --no-owner --no-privileges timetrack_backup.dump
 
 # Or with SQL dumps:
