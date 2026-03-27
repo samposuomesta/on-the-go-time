@@ -1,31 +1,41 @@
 
 
-## Update Prerequisites to Actual Latest Stable Versions
+## Fix Database Connection Instructions in Installation101.md
 
-The previously proposed versions were outdated. Here are the corrected updates for `docs/Installation101.md`:
+### Root Cause
+In Supabase's self-hosted Docker setup, port **5432** is mapped to **Supavisor** (connection pooler), not directly to PostgreSQL. Supavisor expects a tenant-aware connection string. Raw `psql` connections to `localhost:5432` fail with "Tenant or user not found" because Supavisor doesn't recognize the connection as belonging to any tenant.
 
-### Changes
+### Solution
+Update all `psql` connection strings throughout the document to use one of two approaches:
 
-**1. Prerequisites table** — update to current latest stable versions:
+**Option A (Recommended): Connect directly to the PostgreSQL container on port 5433**
+Most Supabase Docker setups expose the raw PostgreSQL port as 5433 on the host. Update the connection string:
+```bash
+export SUPABASE_DB_URL="postgresql://postgres:<POSTGRES_PASSWORD>@localhost:5433/postgres"
+```
 
-| Component | Old value | New value |
-|-----------|-----------|-----------|
-| Docker | 24+ | **29+** |
-| Docker Compose | v2.20+ | **v2.40+** |
-| Node.js | 20 LTS | **24 LTS** |
+**Option B: Connect via `docker exec`**
+```bash
+docker exec -i supabase-db psql -U postgres -d postgres
+```
 
-**2. Stack header** (line 4): Change `Node.js 20+` / `Node.js 22+` to `Node.js 24+`
+### Changes to `docs/Installation101.md`
 
-**3. Node.js section**: Update install command to `setup_24.x`, mention codename "Krypton", supported until April 2028. Note that Node 22 is in maintenance mode and Node 18/20 are EOL.
+1. **Step 8 – Docker status table** (~line 709): Verify/add that `supabase-db` exposes port `5433` on the host alongside the Supavisor port on `5432`. Add a note clarifying which port is which.
 
-**4. Docker install notes**: Mention Docker 29.x as the current stable release line with Compose v2.40 bundled.
+2. **Step 9 – Database Migration** (~lines 774-776): Change the connection string from port `5432` to `5433`. Add an explanatory note:
+   > Port 5432 is used by Supavisor (connection pooler). For direct `psql` access, use port **5433** which connects directly to PostgreSQL.
 
-**5. Update last-updated date** to `2026-03-27`.
+3. **All other `SUPABASE_DB_URL` references** (~lines 978, 1363, 1394, 1780, etc.): Update port from `5432` to `5433` for local database connections. Cloud connection strings (e.g., `db.<PROJECT_REF>.supabase.co:5432`) stay unchanged since those use Supabase Cloud's own routing.
 
-### Technical Details
-- Docker Engine 29.3.0 released 2026-03-05
-- Docker Compose v2.40.3 available in Ubuntu 24.04 repos
-- Node.js 24 entered LTS ("Krypton") on 2025-10-28, supported until April 2028
-- Node.js 22 is in maintenance (ends October 2026)
-- Node.js 18 and 20 are EOL
+4. **Step 9 – Add a `docker exec` alternative**: Provide a fallback method using `docker exec` in case port 5433 is not exposed.
+
+5. **Troubleshooting table** (~line 1868): Update the "Database connection refused" row to mention port 5433 vs 5432 distinction and the "Tenant or user not found" error specifically.
+
+6. **Supavisor section in .env** (~lines 434-450): Add a comment clarifying that port 5432 is Supavisor's port and direct DB access is on 5433.
+
+### Affected lines (approximate)
+- Lines 709, 774-780, 978, 1394, 1780, 1868 — port changes
+- Lines 434-450 — add clarifying comment
+- New content: `docker exec` alternative in Step 9
 
