@@ -428,7 +428,7 @@ The official `supabase/supabase/docker` setup mounts a `volumes/functions` direc
 cd /opt/timetrack/app
 
 # Copy functions into the mounted volume
-FUNCTIONS_DIR="/opt/timetrack/supabase-docker/volumes/functions"
+FUNCTIONS_DIR="/opt/timetrack/supabase-docker/docker/volumes/functions"
 mkdir -p "$FUNCTIONS_DIR"
 
 cp -r supabase/functions/create-auth-user "$FUNCTIONS_DIR/"
