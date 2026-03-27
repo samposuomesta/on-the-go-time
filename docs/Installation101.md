@@ -168,10 +168,22 @@ POSTGRES_PASSWORD=<STRONG_RANDOM_PASSWORD>
 # Generate JWT secret (min 32 chars): openssl rand -base64 48
 JWT_SECRET=<YOUR_JWT_SECRET>
 
-# Generate anon key using jwt.io or supabase CLI:
-#   supabase gen keys --jwt-secret <JWT_SECRET>
+# Generate anon key and service role key (see "Generate JWT keys" below)
 ANON_KEY=<GENERATED_ANON_KEY>
 SERVICE_ROLE_KEY=<GENERATED_SERVICE_ROLE_KEY>
+
+# Required by Realtime and Supavisor: openssl rand -base64 48
+SECRET_KEY_BASE=<RANDOM_BASE64_VALUE>
+
+# Required by Supavisor: openssl rand -base64 24 | head -c 32
+VAULT_ENC_KEY=<32_CHAR_ENCRYPTION_KEY>
+
+# Required by Studio (postgres-meta): openssl rand -base64 24 | head -c 32
+PG_META_CRYPTO_KEY=<32_CHAR_ENCRYPTION_KEY>
+
+# Analytics tokens: openssl rand -base64 32 (one for each)
+LOGFLARE_PUBLIC_ACCESS_TOKEN=<RANDOM_TOKEN>
+LOGFLARE_PRIVATE_ACCESS_TOKEN=<RANDOM_TOKEN>
 
 # Dashboard credentials
 DASHBOARD_USERNAME=admin
@@ -200,21 +212,39 @@ SMTP_SENDER_NAME=TimeTrack
 POSTGRES_HOST=db
 POSTGRES_DB=postgres
 POSTGRES_PORT=5432
+
+############
+# SUPAVISOR (connection pooler, included by default)
+############
+POOLER_TENANT_ID=<UNIQUE_TENANT_ID>
+POOLER_DEFAULT_POOL_SIZE=20
+POOLER_MAX_CLIENT_CONN=100
 ```
 
 ### Generate JWT keys
 
-**Option A – Supabase CLI (npx, no global install needed):**
+**Option A – Official generate-keys script (recommended):**
+
+```bash
+cd /opt/timetrack/supabase-docker/docker
+
+# The official repo includes a key generator:
+sh ./utils/generate-keys.sh
+# This outputs ANON_KEY, SERVICE_ROLE_KEY, and asymmetric keys — paste them into .env
+```
+
+> **Note:** Newer Supabase versions also support asymmetric ES256 keys (`SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`, `JWT_KEYS`, `JWT_JWKS`). Use `sh ./utils/add-new-auth-keys.sh` to generate these. See the [official docs](https://supabase.com/docs/guides/self-hosting/self-hosted-auth-keys).
+
+**Option B – npx Supabase CLI:**
 
 ```bash
 npx supabase gen keys --jwt-secret "<YOUR_JWT_SECRET>"
 # This outputs ANON_KEY and SERVICE_ROLE_KEY — paste them into .env
 ```
 
-**Option B – Without Supabase CLI (using jwt.io or a script):**
+**Option C – Manual Node.js script:**
 
 ```bash
-# Install jwt-cli helper or use this one-liner with Node.js:
 node -e "
 const crypto = require('crypto');
 const header = Buffer.from(JSON.stringify({alg:'HS256',typ:'JWT'})).toString('base64url');
@@ -228,10 +258,23 @@ console.log('SERVICE_ROLE_KEY=' + header+'.'+service+'.'+sign(header+'.'+service
 " "<YOUR_JWT_SECRET>"
 ```
 
-**Option C – Use [jwt.io](https://jwt.io):** Create tokens manually with the payloads below and sign with your `JWT_SECRET` (HS256):
+**Option D – Use [jwt.io](https://jwt.io):** Create tokens manually with the payloads below and sign with your `JWT_SECRET` (HS256):
 
 - **ANON_KEY payload:** `{"iss":"supabase","ref":"your-project-ref","role":"anon","iat":<unix_now>,"exp":<unix_10y>}`
 - **SERVICE_ROLE_KEY payload:** `{"iss":"supabase","ref":"your-project-ref","role":"service_role","iat":<unix_now>,"exp":<unix_10y>}`
+
+### Alternative: Official TLS proxy
+
+The official Supabase Docker setup includes optional Caddy/Nginx TLS proxy overlays with automatic Let's Encrypt:
+
+```bash
+# Set PROXY_DOMAIN in .env first, then:
+docker compose -f docker-compose.yml -f docker-compose.caddy.yml up -d
+# or
+docker compose -f docker-compose.yml -f docker-compose.nginx.yml up -d
+```
+
+> This is an alternative to the manual Nginx setup in [section 11](#11-nginx-reverse-proxy--ssl). The manual setup gives you more control (rate limiting, process-reminders blocking, custom caching).
 
 ---
 
@@ -251,7 +294,7 @@ sudo chown -R 1000:1000 /opt/timetrack/data
 
 Edit `docker-compose.yml` and pin every image to a specific tag. **Never use `:latest` in production.**
 
-Example pinned versions (check for current stable versions at time of deployment):
+Example pinned versions — **these are illustrative only!** Always check the current versions in the official [`docker-compose.yml`](https://github.com/supabase/supabase/blob/master/docker/docker-compose.yml) at time of deployment:
 
 ```yaml
 services:
