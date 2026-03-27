@@ -294,7 +294,7 @@ sudo chown -R 1000:1000 /opt/timetrack/data
 
 Edit `docker-compose.yml` and pin every image to a specific tag. **Never use `:latest` in production.**
 
-Example pinned versions (check for current stable versions at time of deployment):
+Example pinned versions — **these are illustrative only!** Always check the current versions in the official [`docker-compose.yml`](https://github.com/supabase/supabase/blob/master/docker/docker-compose.yml) at time of deployment:
 
 ```yaml
 services:
