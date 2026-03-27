@@ -703,7 +703,7 @@ docker compose up -d
 **6. Confirm running versions**
 
 ```bash
-docker compose images --format "table {{.Repository}}\t{{.Tag}}"
+docker compose images
 ```
 
 #### Recording your versions
