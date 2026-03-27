@@ -223,17 +223,28 @@ POOLER_MAX_CLIENT_CONN=100
 
 ### Generate JWT keys
 
-**Option A – Supabase CLI (npx, no global install needed):**
+**Option A – Official generate-keys script (recommended):**
+
+```bash
+cd /opt/timetrack/supabase-docker/docker
+
+# The official repo includes a key generator:
+sh ./utils/generate-keys.sh
+# This outputs ANON_KEY, SERVICE_ROLE_KEY, and asymmetric keys — paste them into .env
+```
+
+> **Note:** Newer Supabase versions also support asymmetric ES256 keys (`SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`, `JWT_KEYS`, `JWT_JWKS`). Use `sh ./utils/add-new-auth-keys.sh` to generate these. See the [official docs](https://supabase.com/docs/guides/self-hosting/self-hosted-auth-keys).
+
+**Option B – npx Supabase CLI:**
 
 ```bash
 npx supabase gen keys --jwt-secret "<YOUR_JWT_SECRET>"
 # This outputs ANON_KEY and SERVICE_ROLE_KEY — paste them into .env
 ```
 
-**Option B – Without Supabase CLI (using jwt.io or a script):**
+**Option C – Manual Node.js script:**
 
 ```bash
-# Install jwt-cli helper or use this one-liner with Node.js:
 node -e "
 const crypto = require('crypto');
 const header = Buffer.from(JSON.stringify({alg:'HS256',typ:'JWT'})).toString('base64url');
@@ -247,10 +258,23 @@ console.log('SERVICE_ROLE_KEY=' + header+'.'+service+'.'+sign(header+'.'+service
 " "<YOUR_JWT_SECRET>"
 ```
 
-**Option C – Use [jwt.io](https://jwt.io):** Create tokens manually with the payloads below and sign with your `JWT_SECRET` (HS256):
+**Option D – Use [jwt.io](https://jwt.io):** Create tokens manually with the payloads below and sign with your `JWT_SECRET` (HS256):
 
 - **ANON_KEY payload:** `{"iss":"supabase","ref":"your-project-ref","role":"anon","iat":<unix_now>,"exp":<unix_10y>}`
 - **SERVICE_ROLE_KEY payload:** `{"iss":"supabase","ref":"your-project-ref","role":"service_role","iat":<unix_now>,"exp":<unix_10y>}`
+
+### Alternative: Official TLS proxy
+
+The official Supabase Docker setup includes optional Caddy/Nginx TLS proxy overlays with automatic Let's Encrypt:
+
+```bash
+# Set PROXY_DOMAIN in .env first, then:
+docker compose -f docker-compose.yml -f docker-compose.caddy.yml up -d
+# or
+docker compose -f docker-compose.yml -f docker-compose.nginx.yml up -d
+```
+
+> This is an alternative to the manual Nginx setup in [section 11](#11-nginx-reverse-proxy--ssl). The manual setup gives you more control (rate limiting, process-reminders blocking, custom caching).
 
 ---
 
