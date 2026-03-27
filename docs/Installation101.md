@@ -274,7 +274,7 @@ services:
     # ...
 ```
 
-> **Important:** After editing `docker-compose.yml`, verify the volume mount paths are correct for your chosen image versions. The `supabase-community/supabase-docker` repo usually has sensible defaults — you primarily need to add/confirm the host-path mounts and pin the image tags.
+> **Important:** After editing `docker-compose.yml`, verify the volume mount paths are correct for your chosen image versions. The official `supabase/supabase/docker` setup usually has sensible defaults — you primarily need to add/confirm the host-path mounts and pin the image tags.
 
 ---
 
