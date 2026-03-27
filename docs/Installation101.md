@@ -436,7 +436,7 @@ cp -r supabase/functions/data-api "$FUNCTIONS_DIR/"
 cp -r supabase/functions/process-reminders "$FUNCTIONS_DIR/"
 
 # Restart edge-functions container to pick up changes
-cd /opt/timetrack/supabase-docker
+cd /opt/timetrack/supabase-docker/docker
 docker compose restart supabase-edge-functions
 ```
 
