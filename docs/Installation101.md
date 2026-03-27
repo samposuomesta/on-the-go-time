@@ -490,27 +490,14 @@ POOLER_TENANT_ID=a1b2c3d4e5f6g7h8
 
 ### Generate JWT keys
 
-After setting `JWT_SECRET` in `.env`, generate the `ANON_KEY` and `SERVICE_ROLE_KEY`:
+After setting `JWT_SECRET` in `.env`, you need to generate two JWT tokens and add them to your `.env` file:
 
-**Option A – Official generate-keys script (recommended):**
+| Variable | Description | Where in `.env` |
+|---|---|---|
+| `ANON_KEY` | Public anonymous access token (role: `anon`) | Replace the `ANON_KEY=` line |
+| `SERVICE_ROLE_KEY` | Admin service token (role: `service_role`) | Replace the `SERVICE_ROLE_KEY=` line |
 
-```bash
-cd /opt/timetrack/supabase-docker/docker
-
-# The official repo includes a key generator:
-sh ./utils/generate-keys.sh
-```
-
-**Expected output:**
-```
-Generated ANON key:
-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS...
-
-Generated SERVICE_ROLE key:
-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS...
-```
-
-Copy both keys into your `.env` file as `ANON_KEY=...` and `SERVICE_ROLE_KEY=...`.
+Both keys are derived from the `JWT_SECRET` you already set in `.env`. Choose one of the methods below to generate them.
 
 > **⚠️ Important: `POSTGRES_PASSWORD` is only applied on first database initialization.**
 > When you run `docker compose up` for the first time, the password is written into the PostgreSQL data volume. Changing `POSTGRES_PASSWORD` in `.env` afterwards does **not** update the existing database — it only changes what other services *expect* the password to be. This mismatch causes services like `supabase-analytics` to fail with `password authentication failed for user "supabase_admin"`.
@@ -519,9 +506,27 @@ Copy both keys into your `.env` file as `ANON_KEY=...` and `SERVICE_ROLE_KEY=...
 >
 > See [Troubleshooting → Password mismatch after first boot](#password-mismatch-after-first-boot) for recovery steps.
 
-> **Note:** Newer Supabase versions also support asymmetric ES256 keys (`SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`, `JWT_KEYS`, `JWT_JWKS`). Use `sh ./utils/add-new-auth-keys.sh` to generate these. See the [official docs](https://supabase.com/docs/guides/self-hosting/self-hosted-auth-keys).
+---
 
-**Option B – npx Supabase CLI** (requires Node.js — installed in step 4):
+**Option A – Official generate-keys script** ⚡ Writes directly to `.env`
+
+This script reads `JWT_SECRET` from your `.env` and **writes `ANON_KEY` and `SERVICE_ROLE_KEY` directly into the `.env` file**, overwriting any existing values for those two keys. Other `.env` values (like `POSTGRES_PASSWORD`) are not modified.
+
+```bash
+cd /opt/timetrack/supabase-docker/docker
+sh ./utils/generate-keys.sh
+```
+
+After running, verify the keys were written:
+```bash
+grep -E 'ANON_KEY|SERVICE_ROLE_KEY' .env
+```
+
+---
+
+**Option B – npx Supabase CLI** 📋 Prints to stdout — copy manually
+
+Prints keys to the terminal. You must copy the output values into `.env` manually at the correct lines.
 
 ```bash
 npx supabase gen keys --jwt-secret "<YOUR_JWT_SECRET>"
@@ -533,7 +538,14 @@ anon key: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 service_role key: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
-**Option C – Manual Node.js script** (requires Node.js — installed in step 4):
+Copy `anon key` value → `.env` `ANON_KEY=`
+Copy `service_role key` value → `.env` `SERVICE_ROLE_KEY=`
+
+---
+
+**Option C – Manual Node.js script** 📋 Prints to stdout — copy manually
+
+Prints keys in `KEY=value` format. Copy both lines into `.env` at the matching variable names.
 
 ```bash
 node -e "
@@ -555,10 +567,20 @@ ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSI...
 SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSI...
 ```
 
-**Option D – Use [jwt.io](https://jwt.io):** Create tokens manually with the payloads below and sign with your `JWT_SECRET` (HS256):
+Copy both lines into `.env`, replacing the existing `ANON_KEY=` and `SERVICE_ROLE_KEY=` values.
+
+---
+
+**Option D – Use [jwt.io](https://jwt.io)** 📋 Manual browser generation — copy manually
+
+Create tokens manually in the browser and paste the resulting signed JWTs into `.env`. Use HS256 with your `JWT_SECRET` as the signing key.
 
 - **ANON_KEY payload:** `{"iss":"supabase","ref":"your-project-ref","role":"anon","iat":<unix_now>,"exp":<unix_10y>}`
 - **SERVICE_ROLE_KEY payload:** `{"iss":"supabase","ref":"your-project-ref","role":"service_role","iat":<unix_now>,"exp":<unix_10y>}`
+
+---
+
+> **Note:** Newer Supabase versions also support asymmetric ES256 keys (`SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`, `JWT_KEYS`, `JWT_JWKS`). Use `sh ./utils/add-new-auth-keys.sh` to generate these. See the [official docs](https://supabase.com/docs/guides/self-hosting/self-hosted-auth-keys).
 
 ### Verify your .env file
 
