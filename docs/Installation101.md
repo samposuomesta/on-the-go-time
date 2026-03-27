@@ -512,6 +512,13 @@ eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS...
 
 Copy both keys into your `.env` file as `ANON_KEY=...` and `SERVICE_ROLE_KEY=...`.
 
+> **⚠️ Important: `POSTGRES_PASSWORD` is only applied on first database initialization.**
+> When you run `docker compose up` for the first time, the password is written into the PostgreSQL data volume. Changing `POSTGRES_PASSWORD` in `.env` afterwards does **not** update the existing database — it only changes what other services *expect* the password to be. This mismatch causes services like `supabase-analytics` to fail with `password authentication failed for user "supabase_admin"`.
+>
+> **Do not** try to fix this with `ALTER USER supabase_admin ...` — that role is reserved and the command will be rejected with `"supabase_admin" is a reserved role, only superusers can modify it`.
+>
+> See [Troubleshooting → Password mismatch after first boot](#password-mismatch-after-first-boot) for recovery steps.
+
 > **Note:** Newer Supabase versions also support asymmetric ES256 keys (`SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`, `JWT_KEYS`, `JWT_JWKS`). Use `sh ./utils/add-new-auth-keys.sh` to generate these. See the [official docs](https://supabase.com/docs/guides/self-hosting/self-hosted-auth-keys).
 
 **Option B – npx Supabase CLI** (requires Node.js — installed in step 4):
@@ -1957,6 +1964,8 @@ sudo fail2ban-client status nginx-limit-req
 | **Auth not working** | `SITE_URL` doesn't match frontend domain | Fix in `.env`, restart `supabase-auth` |
 | **Edge functions 502** | Function crashed or missing secrets | Check logs: `docker compose logs supabase-edge-functions` |
 | **Database connection refused** | Wrong password or port not exposed | Verify `POSTGRES_PASSWORD` in `.env` and use port **5433** (not 5432) |
+| **`password authentication failed for user "supabase_admin"`** | `POSTGRES_PASSWORD` changed in `.env` after first boot | See [Password mismatch after first boot](#password-mismatch-after-first-boot) below |
+| **`"supabase_admin" is a reserved role`** | Attempted manual `ALTER USER` on reserved role | Do **not** modify reserved roles manually — see recovery steps below |
 | **"Tenant or user not found"** | Connecting to Supavisor (port 5432) instead of PostgreSQL | Use port **5433** for direct `psql` access, or use `docker exec -i supabase-db psql -U postgres -d postgres` |
 | **Push notifications fail** | Missing VAPID keys or no outbound HTTPS | Set VAPID keys (step 16), check firewall allows outbound 443 |
 | **Storage upload fails** | Missing `receipts` bucket | Create it (step 18) |
@@ -1967,6 +1976,49 @@ sudo fail2ban-client status nginx-limit-req
 | **Disk full** | Docker logs or old images | `docker system df`, `docker image prune -a`, check log rotation |
 | **`psql: command not found`** | postgresql-client not installed | `sudo apt install -y postgresql-client` |
 | **`npm: command not found`** | Node.js not installed | Follow step 4 to install Node.js 24 |
+
+### Password mismatch after first boot
+
+**Symptoms:**
+- `supabase-analytics` container keeps restarting
+- Logs show: `password authentication failed for user "supabase_admin"`
+- Attempting `ALTER USER supabase_admin ...` fails with: `"supabase_admin" is a reserved role, only superusers can modify it`
+
+**Root cause:** `POSTGRES_PASSWORD` was changed in `.env` after the database volume was already initialized. The database still has the original password, but other services now try to connect with the new one.
+
+**Recovery Option A — Revert the password (recommended):**
+
+Restore `POSTGRES_PASSWORD` in `.env` to the original value that was used when the database volume was first created, then restart:
+
+```bash
+cd /opt/timetrack/supabase-docker/docker
+# Edit .env and restore the original POSTGRES_PASSWORD
+nano .env
+docker compose down
+docker compose up -d
+```
+
+**Recovery Option B — Rotate with the official script:**
+
+If you intentionally need a new database password, use the official password rotation script provided in the Supabase self-hosted Docker bundle (if available), rather than running raw `ALTER ROLE` commands. Then restart the stack.
+
+**Recovery Option C — Full reset (destroys all data):**
+
+If neither option works and you're OK losing data:
+
+```bash
+cd /opt/timetrack/supabase-docker/docker
+docker compose down -v  # ⚠️ WARNING: This deletes ALL data including the DB volume!
+docker compose up -d
+# Then re-run migrations (step 9)
+```
+
+**Verification after recovery:**
+
+```bash
+docker compose ps                                    # All containers should be "Up" / healthy
+docker compose logs supabase-analytics --tail=50     # No more "invalid_password" errors
+```
 
 ### Reset everything
 
