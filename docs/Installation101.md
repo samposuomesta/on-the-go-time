@@ -1878,7 +1878,8 @@ sudo fail2ban-client status nginx-limit-req
 | **CORS errors** | `API_EXTERNAL_URL` doesn't match your domain | Fix the URL in `.env`, restart services |
 | **Auth not working** | `SITE_URL` doesn't match frontend domain | Fix in `.env`, restart `supabase-auth` |
 | **Edge functions 502** | Function crashed or missing secrets | Check logs: `docker compose logs supabase-edge-functions` |
-| **Database connection refused** | Wrong password or port not exposed | Verify `POSTGRES_PASSWORD` in `.env` and port 5432 |
+| **Database connection refused** | Wrong password or port not exposed | Verify `POSTGRES_PASSWORD` in `.env` and use port **5433** (not 5432) |
+| **"Tenant or user not found"** | Connecting to Supavisor (port 5432) instead of PostgreSQL | Use port **5433** for direct `psql` access, or use `docker exec -i supabase-db psql -U postgres -d postgres` |
 | **Push notifications fail** | Missing VAPID keys or no outbound HTTPS | Set VAPID keys (step 16), check firewall allows outbound 443 |
 | **Storage upload fails** | Missing `receipts` bucket | Create it (step 18) |
 | **JWT errors** | Mismatched `JWT_SECRET` and keys | Regenerate ANON/SERVICE keys with same JWT_SECRET |
