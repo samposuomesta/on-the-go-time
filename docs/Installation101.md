@@ -636,7 +636,7 @@ curl -s https://raw.githubusercontent.com/supabase/supabase/master/docker/docker
 **2. Check your currently running versions (if already deployed)**
 
 ```bash
-docker compose images --format "table {{.Repository}}\t{{.Tag}}"
+docker compose images
 ```
 
 **3. Edit `docker-compose.yml`**
