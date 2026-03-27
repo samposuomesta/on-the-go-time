@@ -1136,7 +1136,7 @@ sudo fail2ban-client status nginx-limit-req
 ### Reset everything
 
 ```bash
-cd /opt/timetrack/supabase-docker
+cd /opt/timetrack/supabase-docker/docker
 docker compose down -v  # WARNING: This deletes all data!
 docker compose up -d
 # Then re-run migrations
