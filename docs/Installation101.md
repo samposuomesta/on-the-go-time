@@ -1790,7 +1790,7 @@ BACKUP_DIR="/opt/timetrack/backups"
 mkdir -p "$BACKUP_DIR"
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 
-pg_dump "postgresql://postgres:<POSTGRES_PASSWORD>@localhost:5432/postgres" \
+pg_dump "postgresql://postgres:<POSTGRES_PASSWORD>@localhost:5433/postgres" \
   -F c -f "$BACKUP_DIR/timetrack_$TIMESTAMP.dump"
 
 # Keep last 30 days
