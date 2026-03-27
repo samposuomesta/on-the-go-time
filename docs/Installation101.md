@@ -290,7 +290,7 @@ services:
   edge-functions:
     image: supabase/edge-runtime:1.65.3
     volumes:
-      - /opt/timetrack/supabase-docker/volumes/functions:/home/deno/functions
+      - /opt/timetrack/supabase-docker/docker/volumes/functions:/home/deno/functions
     # ...
 ```
 
