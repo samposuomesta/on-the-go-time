@@ -710,7 +710,7 @@ docker compose ps
 **Expected output (all should show "Up" or "running"):**
 ```
 NAME                        STATUS          PORTS
-supabase-db                 Up (healthy)    0.0.0.0:5432->5432/tcp
+supabase-db                 Up (healthy)    0.0.0.0:5432->5432/tcp, 0.0.0.0:5433->5432/tcp
 supabase-auth               Up (healthy)    9999/tcp
 supabase-rest               Up (healthy)    3000/tcp
 supabase-realtime            Up              4000/tcp
