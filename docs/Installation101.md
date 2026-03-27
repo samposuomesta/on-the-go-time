@@ -149,7 +149,7 @@ cd docker
 
 ## 5. Configure Supabase Environment
 
-Edit `/opt/timetrack/supabase-docker/.env`:
+Edit `/opt/timetrack/supabase-docker/docker/.env`:
 
 ```bash
 nano .env
