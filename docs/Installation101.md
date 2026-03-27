@@ -1187,7 +1187,7 @@ mc anonymous set download local/supabase-storage/receipts
 
 ```
 /opt/timetrack/
-├── supabase-docker/              # supabase-community/supabase-docker
+├── supabase-docker/              # supabase/supabase/docker
 │   ├── .env                      # Supabase config
 │   ├── docker-compose.yml        # Pinned image versions + volumes
 │   └── volumes/
