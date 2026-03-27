@@ -38,13 +38,22 @@
 | Component | Version |
 |-----------|---------|
 | Ubuntu | 24.04 LTS |
-| Docker | 24+ |
-| Docker Compose | v2.20+ |
-| Node.js | 20 LTS |
+| Docker | 29+ (current stable: 29.3.0) |
+| Docker Compose | v2.40+ (bundled with Docker 29) |
+| Node.js | 24 LTS "Krypton" (supported until April 2028) |
 | Git | 2.x |
 | Domain name | Required for SSL |
 | Min RAM | 4 GB (8 GB recommended) |
 | Min Disk | 40 GB SSD |
+
+> **Node.js version note:** Node.js 18 and 20 are **end-of-life (EOL)**. Node.js 22 is in **maintenance mode** (ends October 2026). Use **Node.js 24 LTS** ("Krypton") for active long-term support until April 2028.
+>
+> ```bash
+> # Install Node.js 24 LTS via NodeSource
+> curl -fsSL https://deb.nodesource.com/setup_24.x | sudo -E bash -
+> sudo apt-get install -y nodejs
+> node --version  # should output v24.x.x
+> ```
 
 ---
 
