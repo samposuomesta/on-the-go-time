@@ -290,7 +290,7 @@ services:
   edge-functions:
     image: supabase/edge-runtime:1.65.3
     volumes:
-      - /opt/timetrack/supabase-docker/volumes/functions:/home/deno/functions
+      - /opt/timetrack/supabase-docker/docker/volumes/functions:/home/deno/functions
     # ...
 ```
 
@@ -301,7 +301,7 @@ services:
 ## 7. Start Supabase Services
 
 ```bash
-cd /opt/timetrack/supabase-docker
+cd /opt/timetrack/supabase-docker/docker
 
 # Pull images and start
 docker compose pull
@@ -428,7 +428,7 @@ The official `supabase/supabase/docker` setup mounts a `volumes/functions` direc
 cd /opt/timetrack/app
 
 # Copy functions into the mounted volume
-FUNCTIONS_DIR="/opt/timetrack/supabase-docker/volumes/functions"
+FUNCTIONS_DIR="/opt/timetrack/supabase-docker/docker/volumes/functions"
 mkdir -p "$FUNCTIONS_DIR"
 
 cp -r supabase/functions/create-auth-user "$FUNCTIONS_DIR/"
@@ -436,7 +436,7 @@ cp -r supabase/functions/data-api "$FUNCTIONS_DIR/"
 cp -r supabase/functions/process-reminders "$FUNCTIONS_DIR/"
 
 # Restart edge-functions container to pick up changes
-cd /opt/timetrack/supabase-docker
+cd /opt/timetrack/supabase-docker/docker
 docker compose restart supabase-edge-functions
 ```
 
@@ -968,7 +968,7 @@ else
 fi
 
 # 4. Docker container status
-STOPPED=$(cd /opt/timetrack/supabase-docker && docker compose ps --format json 2>/dev/null | \
+STOPPED=$(cd /opt/timetrack/supabase-docker/docker && docker compose ps --format json 2>/dev/null | \
   python3 -c "import sys,json; [print(c.get('Name','?')) for line in sys.stdin for c in [json.loads(line)] if c.get('State')!='running']" 2>/dev/null)
 if [ -z "$STOPPED" ]; then
   echo "✅ All Docker containers: running"
@@ -1074,15 +1074,15 @@ npm run build
 # Nginx serves from dist/ — no restart needed
 
 # Re-deploy edge functions if changed
-cp -r supabase/functions/* /opt/timetrack/supabase-docker/volumes/functions/
-cd /opt/timetrack/supabase-docker
+cp -r supabase/functions/* /opt/timetrack/supabase-docker/docker/volumes/functions/
+cd /opt/timetrack/supabase-docker/docker
 docker compose restart supabase-edge-functions
 ```
 
 ### Update Supabase
 
 ```bash
-cd /opt/timetrack/supabase-docker
+cd /opt/timetrack/supabase-docker/docker
 
 # Check release notes BEFORE upgrading!
 # Update pinned image versions in docker-compose.yml
@@ -1136,7 +1136,7 @@ sudo fail2ban-client status nginx-limit-req
 ### Reset everything
 
 ```bash
-cd /opt/timetrack/supabase-docker
+cd /opt/timetrack/supabase-docker/docker
 docker compose down -v  # WARNING: This deletes all data!
 docker compose up -d
 # Then re-run migrations
@@ -1207,14 +1207,15 @@ mc anonymous set download local/supabase-storage/receipts
 
 ```
 /opt/timetrack/
-├── supabase-docker/              # supabase/supabase/docker
-│   ├── .env                      # Supabase config
-│   ├── docker-compose.yml        # Pinned image versions + volumes
-│   └── volumes/
-│       └── functions/            # Edge functions (mounted volume)
-│           ├── create-auth-user/
-│           ├── data-api/
-│           └── process-reminders/
+├── supabase-docker/              # supabase/supabase (sparse checkout)
+│   └── docker/                   # Docker setup directory
+│       ├── .env                  # Supabase config
+│       ├── docker-compose.yml    # Pinned image versions + volumes
+│       └── volumes/
+│           └── functions/        # Edge functions (mounted volume)
+│               ├── create-auth-user/
+│               ├── data-api/
+│               └── process-reminders/
 ├── app/                          # TimeTrack frontend
 │   ├── .env.production           # Frontend env vars
 │   ├── dist/                     # Built static files
