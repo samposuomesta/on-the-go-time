@@ -209,9 +209,10 @@ Deno.serve(async (req) => {
       statusCode = err.status;
       responseBody = { error: { code: err.code, message: err.message } };
     } else {
+      console.error("Data API internal error:", err);
       statusCode = 500;
       responseBody = {
-        error: { code: "INTERNAL_ERROR", message: err.message || "Internal error" },
+        error: { code: "INTERNAL_ERROR", message: "Internal server error" },
       };
     }
   }
