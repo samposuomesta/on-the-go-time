@@ -123,7 +123,18 @@ export default function TravelExpenses() {
               </div>
               {ex.description && <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{ex.description}</p>}
               {ex.receipt_image && (
-                <a href={ex.receipt_image} target="_blank" rel="noopener noreferrer" className="text-xs text-info underline mt-1 inline-block">{t('travel.viewReceipt')}</a>
+                <button
+                  onClick={async () => {
+                    // If it's an old public URL, open directly; otherwise generate signed URL
+                    if (ex.receipt_image!.startsWith('http')) {
+                      window.open(ex.receipt_image!, '_blank');
+                    } else {
+                      const { data } = await supabase.storage.from('receipts').createSignedUrl(ex.receipt_image!, 300);
+                      if (data?.signedUrl) window.open(data.signedUrl, '_blank');
+                    }
+                  }}
+                  className="text-xs text-info underline mt-1 inline-block"
+                >{t('travel.viewReceipt')}</button>
               )}
             </div>
           ))

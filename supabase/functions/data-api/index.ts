@@ -209,9 +209,10 @@ Deno.serve(async (req) => {
       statusCode = err.status;
       responseBody = { error: { code: err.code, message: err.message } };
     } else {
+      console.error("Data API internal error:", err);
       statusCode = 500;
       responseBody = {
-        error: { code: "INTERNAL_ERROR", message: err.message || "Internal error" },
+        error: { code: "INTERNAL_ERROR", message: "Internal server error" },
       };
     }
   }
@@ -360,7 +361,7 @@ async function queryWithCompanyUsers(
   query = query.order("created_at", { ascending: true }).order("id", { ascending: true }).limit(limit);
 
   const { data, error } = await query;
-  if (error) throw { status: 500, code: "INTERNAL_ERROR", message: error.message };
+  if (error) { console.error("Query error:", error); throw { status: 500, code: "INTERNAL_ERROR", message: "Internal server error" }; }
 
   const nextCursor =
     data && data.length === limit
@@ -395,7 +396,7 @@ async function queryDirectCompany(
   query = query.order("created_at", { ascending: true }).order("id", { ascending: true }).limit(limit);
 
   const { data, error } = await query;
-  if (error) throw { status: 500, code: "INTERNAL_ERROR", message: error.message };
+  if (error) { console.error("Query error:", error); throw { status: 500, code: "INTERNAL_ERROR", message: "Internal server error" }; }
 
   const nextCursor =
     data && data.length === limit
@@ -435,7 +436,7 @@ async function queryChanges(
   query = query.order("created_at", { ascending: true }).order("id", { ascending: true }).limit(limit);
 
   const { data, error } = await query;
-  if (error) throw { status: 500, code: "INTERNAL_ERROR", message: error.message };
+  if (error) { console.error("Query error:", error); throw { status: 500, code: "INTERNAL_ERROR", message: "Internal server error" }; }
 
   const mapped = (data || []).map((row: any) => ({
     table: row.table_name,
