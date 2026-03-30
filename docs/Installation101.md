@@ -877,7 +877,15 @@ curl: (7) Failed to connect to localhost port 8000
 
 ## 9. Database Migration
 
-> **Prerequisites:** `psql` (installed in step 2), Supabase services running (step 8).
+> **Prerequisites:**
+> - `psql` (installed in step 2)
+> - Supabase services **must be running** (step 8) — run `docker compose up -d` first
+> - Port 5433 must be mapped to the DB container (see `docker-compose.override.yml`)
+>
+> ⚠️ **Common error:** If you see `Connection refused` on port 5433, verify:
+> 1. The stack is running: `cd /opt/timetrack/supabase-docker/docker && docker compose ps` — DB should show **(healthy)**
+> 2. Port 5433 is mapped: your `docker-compose.override.yml` must include `ports: ["5433:5432"]` under the `db` service
+> 3. Restart after changes: `docker compose down && docker compose up -d`
 
 You need to apply all migrations from the TimeTrack project to your self-hosted database.
 
