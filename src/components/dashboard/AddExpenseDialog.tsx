@@ -71,8 +71,8 @@ export function AddExpenseDialog({ open, onOpenChange, mode }: Props) {
       toast.error(t('expense.failedToSave'));
       return null;
     }
-    const { data: urlData } = supabase.storage.from('receipts').getPublicUrl(path);
-    return urlData.publicUrl;
+    // Store the path for later signed URL generation
+    return path;
   };
 
   const handleSave = async () => {
