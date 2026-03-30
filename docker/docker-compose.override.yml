@@ -1,0 +1,69 @@
+services:
+  # --- Kong API gateway (behind Traefik only) ---
+  kong:
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.kong.rule=Host(`${SITE_DOMAIN}`)"
+      - "traefik.http.routers.kong.entrypoints=websecure"
+      - "traefik.http.routers.kong.tls.certresolver=letsencrypt"
+      - "traefik.http.services.kong.loadbalancer.server.port=8000"
+      - "traefik.docker.network=traefik"
+    networks:
+      - traefik
+
+  # --- Studio dashboard (behind Traefik only) ---
+  studio:
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.studio.rule=Host(`studio.${SITE_DOMAIN}`)"
+      - "traefik.http.routers.studio.entrypoints=websecure"
+      - "traefik.http.routers.studio.tls.certresolver=letsencrypt"
+      - "traefik.http.services.studio.loadbalancer.server.port=3000"
+      - "traefik.docker.network=traefik"
+    networks:
+      - traefik
+
+  # --- Core services reliability ---
+  db:
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  rest:
+    restart: unless-stopped
+
+  # --- Traefik reverse proxy with HTTPS ---
+  traefik:
+    image: traefik:v3.3
+    restart: unless-stopped
+    command:
+      - "--api.dashboard=false"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.network=traefik"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      - "--certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL}"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - traefik-certs:/letsencrypt
+    networks:
+      - traefik
+
+networks:
+  traefik:
+
+volumes:
+  traefik-certs:
