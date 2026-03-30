@@ -396,7 +396,7 @@ async function queryDirectCompany(
   query = query.order("created_at", { ascending: true }).order("id", { ascending: true }).limit(limit);
 
   const { data, error } = await query;
-  if (error) throw { status: 500, code: "INTERNAL_ERROR", message: error.message };
+  if (error) { console.error("Query error:", error); throw { status: 500, code: "INTERNAL_ERROR", message: "Internal server error" }; }
 
   const nextCursor =
     data && data.length === limit
