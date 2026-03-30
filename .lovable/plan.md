@@ -1,21 +1,24 @@
 
 
-## Plan: Clarify JWT key generation workflow in Installation101.md
+## Plan: Add DNS prerequisite to Traefik/TLS section
 
-**Problem:** The docs are unclear about whether `generate-keys.sh` writes directly to `.env` or just prints keys to stdout. Users don't know upfront which keys are needed and where they go.
+**Change:** In `docs/Installation101.md`, add a prerequisite warning box just before the TLS proxy section (before line 600) telling users to configure their domain's DNS A record to point to their server's public IP before starting Docker with Traefik.
 
-**Changes to `docs/Installation101.md` (lines 491-556):**
+**Content to insert after line 599:**
 
-1. **Add a "Keys needed" summary before the options** listing exactly which `.env` variables the JWT generation step produces:
-   - `ANON_KEY` — paste into `.env` at the `ANON_KEY=` line
-   - `SERVICE_ROLE_KEY` — paste into `.env` at the `SERVICE_ROLE_KEY=` line
-   - Both are derived from `JWT_SECRET` (which must already be set in `.env`)
+```markdown
+> **Prerequisites for HTTPS (Traefik / TLS proxy):**
+>
+> Before starting Docker with Traefik or any TLS proxy, your domain must already resolve to your server:
+>
+> 1. Add an **A record** for your domain (e.g. `timetrack.example.com`) pointing to your server's public IP
+> 2. If using Studio subdomain, add an **A record** for `studio.timetrack.example.com` as well
+> 3. Wait for DNS propagation — verify with:
+>    ```bash
+>    dig +short yourdomain.com
+>    ```
+>    The output must show your server IP. Let's Encrypt HTTP challenge will fail if DNS is not ready.
+```
 
-2. **Clarify each option's behavior:**
-   - **Option A (`generate-keys.sh`):** State clearly whether it **writes directly to `.env`** (auto-updates the file) or **prints to stdout** (requires manual copy). Add a note: "This script writes keys directly to `.env`. It will overwrite existing `ANON_KEY` and `SERVICE_ROLE_KEY` values. Other `.env` values (like `POSTGRES_PASSWORD`) are not modified."
-   - **Option B (`npx`):** "Prints keys to stdout. Copy the output values into `.env` manually."
-   - **Option C (Node.js script):** "Prints keys to stdout in `KEY=value` format. Copy both lines into `.env`."
-   - **Option D (jwt.io):** "Manual browser-based generation. Copy resulting tokens into `.env`."
-
-3. **Remove the backup/diff workflow** from the previous iteration — replace with the simple, direct guidance above.
+This goes right before the "Alternative: Official TLS proxy" heading so it applies to both the override file (Traefik) approach and the official Caddy/Nginx overlays.
 
