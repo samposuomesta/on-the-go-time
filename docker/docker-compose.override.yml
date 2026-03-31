@@ -29,8 +29,12 @@ services:
   meta:
     restart: unless-stopped
     networks:
-      - default
-      - traefik
+      default:
+        aliases:
+          - meta
+      traefik:
+        aliases:
+          - meta
 
   # --- Core services reliability ---
   db:
