@@ -790,7 +790,7 @@ git clone <YOUR_TIMETRACK_REPO_URL> app
 
 ### Copy the override file
 
-The TimeTrack app includes a `docker-compose.override.yml` that adds the DB port mapping (5433→5432), Traefik labels, health checks, restart policies, and **critically, connects the `meta` service to the Traefik network so Studio can reach it**. **You must copy it before starting services:**
+The TimeTrack app includes a `docker-compose.override.yml` that adds the DB port mapping (5433→5432), Traefik labels, health checks, restart policies, and **critically, connects the `meta` service to the Traefik network with a `meta` alias so Studio can resolve `http://meta:8080`**. **You must copy it before starting services:**
 
 ```bash
 cp /opt/timetrack/app/docker/docker-compose.override.yml /opt/timetrack/supabase-docker/docker/docker-compose.override.yml
@@ -805,11 +805,11 @@ cp /opt/timetrack/app/docker/docker-compose.override.yml /opt/timetrack/supabase
 
 > **⚠️ Important:** Without this file, port 5433 will not be exposed and database migrations (step 9) will fail with `Connection refused`.
 
-> **⚠️ Studio ↔ Meta networking:** The override file also connects the `meta` service to the `traefik` network. Without this, Studio and meta are on separate Docker networks (`supabase_traefik` vs `supabase_default`) and Studio cannot reach meta's API at `http://meta:8080`. This causes **500 errors ("Failed to retrieve tables")** in Studio when browsing tables, with Kong logs showing `upstream prematurely closed connection`. If you see this after deployment, verify with:
+> **⚠️ Studio ↔ Meta networking:** The override file also connects the `meta` service to the `traefik` network and pins alias `meta` on both `default` and `traefik`. Without this, Studio and meta can be isolated (`supabase_traefik` vs `supabase_default`) or DNS resolution to `meta` can fail. This causes **500 errors ("Failed to retrieve tables")** in Studio when browsing tables, with Kong logs showing `upstream prematurely closed connection`. If you see this after deployment, verify with:
 > ```bash
-> docker inspect supabase-meta --format '{{range $k,$v := .NetworkSettings.Networks}}{{$k}}{{end}}'
+> docker inspect supabase-meta --format '{{range $k,$v := .NetworkSettings.Networks}}{{$k}} aliases={{$v.Aliases}}{{println}}{{end}}'
 > ```
-> The output should include both `supabase_default` and `supabase_traefik`. If `supabase_traefik` is missing, re-copy the override file and restart: `docker compose down && docker compose up -d`.
+> The output should include both `supabase_default` and `supabase_traefik`, and both should list alias `meta`. If not, re-copy the override file and recreate containers: `docker compose down && docker compose up -d --force-recreate`.
 
 ### Pull and start
 
@@ -2025,7 +2025,7 @@ sudo fail2ban-client status nginx-limit-req
 | **JWT errors** | Mismatched `JWT_SECRET` and keys | Regenerate ANON/SERVICE keys with same JWT_SECRET |
 | **PostgREST 401** | Missing RLS policies or functions | Re-run migrations (step 9) |
 | **429 Too Many Requests** | Nginx rate limit hit | Adjust `rate` and `burst` in Nginx config |
-| **Studio 500 "Failed to retrieve tables"** | `meta` service not on the `traefik` Docker network | Re-copy `docker-compose.override.yml` and restart — see [Step 8 networking note](#copy-the-override-file). Quick fix: `docker network connect --alias meta supabase_traefik supabase-meta && docker compose restart studio` |
+| **Studio 500 "Failed to retrieve tables"** | `meta` service missing on `traefik` and/or missing alias `meta` | Re-copy `docker-compose.override.yml` and recreate containers — see [Step 8 networking note](#copy-the-override-file). Quick fix: `docker network connect --alias meta supabase_traefik supabase-meta && docker network connect --alias meta supabase_default supabase-meta && docker compose restart studio` |
 | **Kong logs: "upstream prematurely closed connection" for pg-meta** | Studio cannot reach meta (network isolation) | Same as above — meta must be on both `supabase_default` and `supabase_traefik` networks |
 | **fail2ban banning legit IPs** | Rate limit too aggressive | Check `sudo fail2ban-client status nginx-limit-req`, unban: `sudo fail2ban-client set nginx-limit-req unbanip <IP>` |
 | **Disk full** | Docker logs or old images | `docker system df`, `docker image prune -a`, check log rotation |
