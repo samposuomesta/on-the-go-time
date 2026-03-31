@@ -905,20 +905,6 @@ export SUPABASE_DB_URL="postgresql://postgres:<POSTGRES_PASSWORD>@localhost:5433
 psql "$SUPABASE_DB_URL" -c "SELECT version();"
 ```
 
-### Set the database connection string
-
-```bash
-# Set the connection string (used by psql throughout this section)
-# Replace <POSTGRES_PASSWORD> with the value from your .env file
-#
-# IMPORTANT: Use port 5433, NOT 5432!
-# Port 5432 = Supavisor (connection pooler) — requires tenant-aware strings
-# Port 5433 = Direct PostgreSQL access — works with standard psql
-export SUPABASE_DB_URL="postgresql://postgres:<POSTGRES_PASSWORD>@localhost:5433/postgres"
-
-# Verify connection works
-psql "$SUPABASE_DB_URL" -c "SELECT version();"
-```
 
 > **💡 Alternative:** If port 5433 is not exposed, connect directly via Docker:
 > ```bash
@@ -935,7 +921,11 @@ psql "$SUPABASE_DB_URL" -c "SELECT version();"
 
 ### Apply all migrations
 
+> **⚠️ Important:** Run this from the **app directory**, not the Supabase docker directory.
+
 ```bash
+cd /opt/timetrack/app
+
 # Apply all migrations in filename order
 for f in supabase/migrations/*.sql; do
   echo "Applying $f ..."
