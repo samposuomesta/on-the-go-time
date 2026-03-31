@@ -25,6 +25,13 @@ services:
     networks:
       - traefik
 
+  # --- Postgres Meta (must share traefik network so Studio can reach it) ---
+  meta:
+    restart: unless-stopped
+    networks:
+      - default
+      - traefik
+
   # --- Core services reliability ---
   db:
     restart: unless-stopped
