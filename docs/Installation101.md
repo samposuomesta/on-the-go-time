@@ -796,6 +796,13 @@ The TimeTrack app includes a `docker-compose.override.yml` that adds the DB port
 cp /opt/timetrack/app/docker/docker-compose.override.yml /opt/timetrack/supabase-docker/docker/docker-compose.override.yml
 ```
 
+> **📝 Note on `SITE_DOMAIN` and `ACME_EMAIL` warnings:** The override file includes Traefik configuration for production HTTPS. If you see warnings like `The "SITE_DOMAIN" variable is not set`, these are harmless on localhost. For production, set them in your Supabase `.env` file:
+> ```bash
+> echo 'SITE_DOMAIN=yourdomain.com' >> /opt/timetrack/supabase-docker/docker/.env
+> echo 'ACME_EMAIL=you@example.com' >> /opt/timetrack/supabase-docker/docker/.env
+> ```
+> On localhost, you can safely ignore these warnings — Traefik won't start without valid values but all other services work fine.
+
 > **⚠️ Important:** Without this file, port 5433 will not be exposed and database migrations (step 9) will fail with `Connection refused`.
 
 ### Pull and start
@@ -1095,8 +1102,10 @@ drwxr-xr-x 2 timetrack timetrack 4096 ... process-reminders
 
 ```bash
 # Restart edge-functions container to pick up the new functions
+# NOTE: The Docker Compose service name is "functions", not "supabase-edge-functions"
+# (supabase-edge-functions is the container name)
 cd /opt/timetrack/supabase-docker/docker
-docker compose restart supabase-edge-functions
+docker compose restart functions
 ```
 
 **Expected output:**
@@ -1953,7 +1962,7 @@ npm run build
 # Re-deploy edge functions if changed
 cp -r supabase/functions/* /opt/timetrack/supabase-docker/docker/volumes/functions/
 cd /opt/timetrack/supabase-docker/docker
-docker compose restart supabase-edge-functions
+docker compose restart functions
 ```
 
 ### Update Supabase
@@ -1979,7 +1988,7 @@ docker compose ps
 # View logs for a specific service
 docker compose logs -f supabase-auth
 docker compose logs -f supabase-rest
-docker compose logs -f supabase-edge-functions
+docker compose logs -f functions
 
 # Check disk usage
 df -h
@@ -2000,7 +2009,7 @@ sudo fail2ban-client status nginx-limit-req
 |---------|-------------|----------|
 | **CORS errors** | `API_EXTERNAL_URL` doesn't match your domain | Fix the URL in `.env`, restart services |
 | **Auth not working** | `SITE_URL` doesn't match frontend domain | Fix in `.env`, restart `supabase-auth` |
-| **Edge functions 502** | Function crashed or missing secrets | Check logs: `docker compose logs supabase-edge-functions` |
+| **Edge functions 502** | Function crashed or missing secrets | Check logs: `docker compose logs functions` |
 | **Database connection refused** | Wrong password or port not exposed | Verify `POSTGRES_PASSWORD` in `.env` and use port **5433** (not 5432) |
 | **`password authentication failed for user "supabase_admin"`** | `POSTGRES_PASSWORD` changed in `.env` after first boot | See [Password mismatch after first boot](#password-mismatch-after-first-boot) below |
 | **`"supabase_admin" is a reserved role`** | Attempted manual `ALTER USER` on reserved role | Do **not** modify reserved roles manually — see recovery steps below |
