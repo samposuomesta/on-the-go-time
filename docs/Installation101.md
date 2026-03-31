@@ -790,7 +790,7 @@ git clone <YOUR_TIMETRACK_REPO_URL> app
 
 ### Copy the override file
 
-The TimeTrack app includes a `docker-compose.override.yml` that adds the DB port mapping (5433→5432), Traefik labels, health checks, and restart policies. **You must copy it before starting services:**
+The TimeTrack app includes a `docker-compose.override.yml` that adds the DB port mapping (5433→5432), Traefik labels, health checks, restart policies, and **critically, connects the `meta` service to the Traefik network so Studio can reach it**. **You must copy it before starting services:**
 
 ```bash
 cp /opt/timetrack/app/docker/docker-compose.override.yml /opt/timetrack/supabase-docker/docker/docker-compose.override.yml
