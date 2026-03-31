@@ -777,14 +777,22 @@ EOF
 
 ---
 
-## 8. Start Supabase Services
+## 8. Clone the TimeTrack Application & Start Supabase Services
+
+### Clone the application
+
+```bash
+cd /opt/timetrack
+
+# Clone the TimeTrack application
+git clone <YOUR_TIMETRACK_REPO_URL> app
+```
 
 ### Copy the override file
 
 The TimeTrack app includes a `docker-compose.override.yml` that adds the DB port mapping (5433→5432), Traefik labels, health checks, and restart policies. **You must copy it before starting services:**
 
 ```bash
-# Copy override file from the app repo into the Supabase docker directory
 cp /opt/timetrack/app/docker/docker-compose.override.yml /opt/timetrack/supabase-docker/docker/docker-compose.override.yml
 ```
 
@@ -820,7 +828,7 @@ docker compose up -d
 ```
 
 ```bash
-# Verify all services are running
+# Verify all services are running — confirm 5433 is mapped
 docker compose ps
 ```
 
@@ -837,6 +845,8 @@ supabase-edge-functions      Up              8081/tcp
 supabase-studio              Up              3000/tcp
 supabase-kong                Up              0.0.0.0:8000->8000/tcp
 ```
+
+> **⚠️ Verify port 5433:** Look for `0.0.0.0:5433->5432/tcp` in the `supabase-db` row. If it's missing, the override file was not copied correctly — re-run the copy step and restart with `docker compose down && docker compose up -d`.
 
 > **⚠️ If any container shows "Exited" or "Restarting"**, check its logs:
 > ```bash
@@ -877,24 +887,22 @@ curl: (7) Failed to connect to localhost port 8000
 
 > **Prerequisites:**
 > - `psql` (installed in step 2)
-> - Supabase services **must be running** (step 8) — run `docker compose up -d` first
-> - Port 5433 must be mapped to the DB container (see `docker-compose.override.yml`)
->
-> ⚠️ **Common error:** If you see `Connection refused` on port 5433, verify:
-> 1. The stack is running: `cd /opt/timetrack/supabase-docker/docker && docker compose ps` — DB should show **(healthy)**
-> 2. Port 5433 is mapped: your `docker-compose.override.yml` must include `ports: ["5433:5432"]` under the `db` service
-> 3. Restart after changes: `docker compose down && docker compose up -d`
+> - Supabase services **must be running** (step 8)
+> - Port 5433 must be mapped — verify with `docker compose ps` (see step 8)
 
-You need to apply all migrations from the TimeTrack project to your self-hosted database.
-
-### Clone the TimeTrack application
+### Set the database connection string
 
 ```bash
-cd /opt/timetrack
+# Set the connection string (used by psql throughout this section)
+# Replace <POSTGRES_PASSWORD> with the value from your .env file
+#
+# IMPORTANT: Use port 5433, NOT 5432!
+# Port 5432 = Supavisor (connection pooler) — requires tenant-aware strings
+# Port 5433 = Direct PostgreSQL access — works with standard psql
+export SUPABASE_DB_URL="postgresql://postgres:<POSTGRES_PASSWORD>@localhost:5433/postgres"
 
-# Clone the TimeTrack application
-git clone <YOUR_TIMETRACK_REPO_URL> app
-cd app
+# Verify connection works
+psql "$SUPABASE_DB_URL" -c "SELECT version();"
 ```
 
 ### Set the database connection string
