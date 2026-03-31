@@ -805,6 +805,12 @@ cp /opt/timetrack/app/docker/docker-compose.override.yml /opt/timetrack/supabase
 
 > **⚠️ Important:** Without this file, port 5433 will not be exposed and database migrations (step 9) will fail with `Connection refused`.
 
+> **⚠️ Studio ↔ Meta networking:** The override file also connects the `meta` service to the `traefik` network. Without this, Studio and meta are on separate Docker networks (`supabase_traefik` vs `supabase_default`) and Studio cannot reach meta's API at `http://meta:8080`. This causes **500 errors ("Failed to retrieve tables")** in Studio when browsing tables, with Kong logs showing `upstream prematurely closed connection`. If you see this after deployment, verify with:
+> ```bash
+> docker inspect supabase-meta --format '{{range $k,$v := .NetworkSettings.Networks}}{{$k}}{{end}}'
+> ```
+> The output should include both `supabase_default` and `supabase_traefik`. If `supabase_traefik` is missing, re-copy the override file and restart: `docker compose down && docker compose up -d`.
+
 ### Pull and start
 
 ```bash
