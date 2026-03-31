@@ -1988,7 +1988,7 @@ docker compose ps
 # View logs for a specific service
 docker compose logs -f supabase-auth
 docker compose logs -f supabase-rest
-docker compose logs -f supabase-edge-functions
+docker compose logs -f functions
 
 # Check disk usage
 df -h
