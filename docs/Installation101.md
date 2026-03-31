@@ -1962,7 +1962,7 @@ npm run build
 # Re-deploy edge functions if changed
 cp -r supabase/functions/* /opt/timetrack/supabase-docker/docker/volumes/functions/
 cd /opt/timetrack/supabase-docker/docker
-docker compose restart supabase-edge-functions
+docker compose restart functions
 ```
 
 ### Update Supabase
