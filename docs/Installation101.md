@@ -796,6 +796,13 @@ The TimeTrack app includes a `docker-compose.override.yml` that adds the DB port
 cp /opt/timetrack/app/docker/docker-compose.override.yml /opt/timetrack/supabase-docker/docker/docker-compose.override.yml
 ```
 
+> **📝 Note on `SITE_DOMAIN` and `ACME_EMAIL` warnings:** The override file includes Traefik configuration for production HTTPS. If you see warnings like `The "SITE_DOMAIN" variable is not set`, these are harmless on localhost. For production, set them in your Supabase `.env` file:
+> ```bash
+> echo 'SITE_DOMAIN=yourdomain.com' >> /opt/timetrack/supabase-docker/docker/.env
+> echo 'ACME_EMAIL=you@example.com' >> /opt/timetrack/supabase-docker/docker/.env
+> ```
+> On localhost, you can safely ignore these warnings — Traefik won't start without valid values but all other services work fine.
+
 > **⚠️ Important:** Without this file, port 5433 will not be exposed and database migrations (step 9) will fail with `Connection refused`.
 
 ### Pull and start
