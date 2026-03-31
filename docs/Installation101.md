@@ -2025,6 +2025,8 @@ sudo fail2ban-client status nginx-limit-req
 | **JWT errors** | Mismatched `JWT_SECRET` and keys | Regenerate ANON/SERVICE keys with same JWT_SECRET |
 | **PostgREST 401** | Missing RLS policies or functions | Re-run migrations (step 9) |
 | **429 Too Many Requests** | Nginx rate limit hit | Adjust `rate` and `burst` in Nginx config |
+| **Studio 500 "Failed to retrieve tables"** | `meta` service not on the `traefik` Docker network | Re-copy `docker-compose.override.yml` and restart — see [Step 8 networking note](#copy-the-override-file). Quick fix: `docker network connect --alias meta supabase_traefik supabase-meta && docker compose restart studio` |
+| **Kong logs: "upstream prematurely closed connection" for pg-meta** | Studio cannot reach meta (network isolation) | Same as above — meta must be on both `supabase_default` and `supabase_traefik` networks |
 | **fail2ban banning legit IPs** | Rate limit too aggressive | Check `sudo fail2ban-client status nginx-limit-req`, unban: `sudo fail2ban-client set nginx-limit-req unbanip <IP>` |
 | **Disk full** | Docker logs or old images | `docker system df`, `docker image prune -a`, check log rotation |
 | **`psql: command not found`** | postgresql-client not installed | `sudo apt install -y postgresql-client` |
