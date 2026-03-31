@@ -779,26 +779,24 @@ EOF
 
 ## 8. Start Supabase Services
 
+### Copy the override file
+
+The TimeTrack app includes a `docker-compose.override.yml` that adds the DB port mapping (5433→5432), Traefik labels, health checks, and restart policies. **You must copy it before starting services:**
+
+```bash
+# Copy override file from the app repo into the Supabase docker directory
+cp /opt/timetrack/app/docker/docker-compose.override.yml /opt/timetrack/supabase-docker/docker/docker-compose.override.yml
+```
+
+> **⚠️ Important:** Without this file, port 5433 will not be exposed and database migrations (step 9) will fail with `Connection refused`.
+
+### Pull and start
+
 ```bash
 cd /opt/timetrack/supabase-docker/docker
 
 # Pull all container images (this may take 5-10 minutes on first run)
 docker compose pull
-```
-
-**Expected output:**
-```
-[+] Pulling 10/10
- ✔ db Pulled
- ✔ auth Pulled
- ✔ rest Pulled
- ✔ realtime Pulled
- ✔ storage Pulled
- ✔ meta Pulled
- ✔ edge-functions Pulled
- ✔ studio Pulled
- ✔ kong Pulled
- ✔ analytics Pulled
 ```
 
 ```bash
