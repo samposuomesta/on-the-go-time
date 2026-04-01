@@ -1,8 +1,8 @@
 # Installation101 – TimeTrack On-Premise Deployment Guide
 
 > **Target OS:** Ubuntu 24.04 LTS  
-> **Stack:** Docker, Supabase Self-Hosted, Nginx, Node.js 24+  
-> **Last updated:** 2026-03-27
+> **Stack:** Docker, Supabase Self-Hosted, Traefik, Nginx, Node.js 24+  
+> **Last updated:** 2026-04-01
 
 ---
 
