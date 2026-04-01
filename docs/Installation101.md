@@ -1192,6 +1192,8 @@ docker compose restart functions
 
 ### Option B: Use Supabase CLI
 
+📂 **App dir** (`/opt/timetrack/app`)
+
 ```bash
 cd /opt/timetrack/app
 
