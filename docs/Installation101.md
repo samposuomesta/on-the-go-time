@@ -1225,7 +1225,7 @@ curl -s -o /dev/null -w "%{http_code}" \
 
 ---
 
-## 11. Build & Deploy the Frontend
+## 12. Build & Deploy the Frontend
 
 > **Prerequisites:** Node.js installed (step 4), TimeTrack app cloned (step 9).
 
@@ -1297,7 +1297,7 @@ The built `dist/` folder contains static files served by Nginx.
 
 ---
 
-## 12. Nginx Reverse Proxy & SSL
+## 13. Nginx Reverse Proxy & SSL
 
 > **Prerequisites:** Frontend built (step 11), Supabase services running (step 8), DNS configured (your domain must point to this server).
 
@@ -1440,9 +1440,9 @@ Congratulations, all simulated renewals succeeded:
 
 ---
 
-## 13. Security Hardening
+## 14. Security Hardening
 
-### 13.1 Install and configure fail2ban
+### 16.1 Install and configure fail2ban
 
 Protect SSH and Nginx from brute-force attacks:
 
@@ -1497,11 +1497,11 @@ Status
 `- Jail list:   nginx-botsearch, nginx-http-auth, nginx-limit-req, sshd
 ```
 
-### 13.2 Docker log rotation (already configured in step 3)
+### 16.2 Docker log rotation (already configured in step 3)
 
 The global `/etc/docker/daemon.json` limits each container log to **3 files × 10 MB = 30 MB max per container**. This prevents any single container from filling the disk.
 
-### 13.3 Restrict Supabase Studio (Dashboard)
+### 16.3 Restrict Supabase Studio (Dashboard)
 
 The Supabase Studio runs on port 3000 by default. **Do not expose it publicly.** Access it only via SSH tunnel:
 
@@ -1520,7 +1520,7 @@ studio:
     - "127.0.0.1:3000:3000"   # Only accessible from localhost
 ```
 
-### 13.4 SSH hardening (optional but recommended)
+### 16.4 SSH hardening (optional but recommended)
 
 ```bash
 # Disable root login and password auth
@@ -1531,7 +1531,7 @@ sudo systemctl restart sshd
 
 > **⚠️ Warning:** Ensure you have SSH key access configured and tested BEFORE disabling password authentication! Otherwise you will lock yourself out.
 
-### 13.5 Automatic security updates
+### 14.5 Automatic security updates
 
 ```bash
 sudo apt install -y unattended-upgrades
@@ -1540,11 +1540,11 @@ sudo dpkg-reconfigure -plow unattended-upgrades
 
 ---
 
-## 14. Migration from Supabase Cloud
+## 15. Migration from Supabase Cloud
 
 When moving from Supabase Cloud to self-hosted, these are the key steps:
 
-### 14.1 Export database
+### 16.1 Export database
 
 ```bash
 # From Supabase Cloud (using their CLI or dashboard)
@@ -1576,7 +1576,7 @@ supabase db dump --project-ref <CLOUD_PROJECT_REF> -f schema_dump.sql
 supabase db dump --project-ref <CLOUD_PROJECT_REF> --data-only -f data_dump.sql
 ```
 
-### 14.2 Import to self-hosted
+### 16.2 Import to self-hosted
 
 ```bash
 # Restore schema + data
@@ -1593,7 +1593,7 @@ psql "$SUPABASE_DB_URL" -f data_dump.sql
 (warnings about existing objects are normal if you already ran migrations)
 ```
 
-### 14.3 Migrate auth users
+### 16.3 Migrate auth users
 
 ```bash
 # Export auth users from Cloud
@@ -1613,7 +1613,7 @@ INSERT 0 xx
 ```
 (Where xx is the number of users imported.)
 
-### 14.4 Migrate storage objects
+### 16.4 Migrate storage objects
 
 ```bash
 # Download all receipts from Cloud storage bucket
@@ -1631,9 +1631,9 @@ curl -s "https://<PROJECT_REF>.supabase.co/storage/v1/object/list/receipts" \
 
 ---
 
-## 15. Code Changes Required
+## 16. Code Changes Required
 
-### 15.1 Environment variables (`.env.production`)
+### 16.1 Environment variables (`.env.production`)
 
 | Variable | Cloud Value | Self-Hosted Value |
 |----------|------------|-------------------|
@@ -1641,7 +1641,7 @@ curl -s "https://<PROJECT_REF>.supabase.co/storage/v1/object/list/receipts" \
 | `VITE_SUPABASE_PUBLISHABLE_KEY` | Cloud anon key | Your generated anon key |
 | `VITE_SUPABASE_PROJECT_ID` | `pqmdsvdcbyefdngdmuud` | `local` (or any identifier) |
 
-### 15.2 Supabase client (`src/integrations/supabase/client.ts`)
+### 16.2 Supabase client (`src/integrations/supabase/client.ts`)
 
 **No code changes needed!** The client reads from environment variables:
 
@@ -1652,7 +1652,7 @@ const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
 Just ensure your `.env.production` has the correct values before building.
 
-### 15.3 Edge Function URLs
+### 16.3 Edge Function URLs
 
 Edge functions are called via the Supabase URL. Since `VITE_SUPABASE_URL` changes, all edge function calls automatically point to the new host. No code changes needed if you use the standard pattern:
 
@@ -1661,15 +1661,15 @@ Edge functions are called via the Supabase URL. Since `VITE_SUPABASE_URL` change
 const { data } = await supabase.functions.invoke('create-auth-user', { body: {...} });
 ```
 
-### 15.4 Service Worker (`public/sw.js`)
+### 16.4 Service Worker (`public/sw.js`)
 
 Check if there are any hardcoded Supabase URLs in `sw.js`. If so, replace them with your domain.
 
-### 15.5 PWA Manifest (`public/manifest.json`)
+### 16.5 PWA Manifest (`public/manifest.json`)
 
 Update `start_url` and `scope` if they reference the cloud domain.
 
-### 15.6 Remove `lovable-tagger` (optional)
+### 16.6 Remove `lovable-tagger` (optional)
 
 The `lovable-tagger` dev dependency is Lovable-specific. You can remove it for self-hosted:
 
@@ -1689,7 +1689,7 @@ plugins: [react()],
 
 ---
 
-## 16. Secrets & Environment Variables
+## 17. Secrets & Environment Variables
 
 ### Edge Function secrets mapping
 
@@ -1729,7 +1729,7 @@ Copy both keys into your edge function environment variables.
 
 ---
 
-## 17. Cron Jobs
+## 18. Cron Jobs
 
 > **Prerequisites:** Supabase services running (step 8), Edge functions deployed (step 10), `CRON_SECRET` set in edge function environment (step 10).
 
@@ -1782,7 +1782,7 @@ SELECT cron.schedule(
 
 ---
 
-## 18. Storage (Receipts Bucket)
+## 19. Storage (Receipts Bucket)
 
 > **Prerequisites:** Supabase services running (step 8), database migrated (step 9).
 
@@ -1810,7 +1810,7 @@ Ensure the same RLS policies from Cloud are applied. Check your migration files 
 
 ---
 
-## 19. Push Notifications (VAPID)
+## 20. Push Notifications (VAPID)
 
 The `process-reminders` function sends Web Push notifications. For this to work on-premise:
 
@@ -1820,9 +1820,9 @@ The `process-reminders` function sends Web Push notifications. For this to work 
 
 ---
 
-## 20. Health Checks & Monitoring
+## 21. Health Checks & Monitoring
 
-### 20.1 Health check script
+### 21.1 Health check script
 
 Create `/opt/timetrack/healthcheck.sh`:
 
@@ -1909,7 +1909,7 @@ chmod +x /opt/timetrack/healthcheck.sh
 === Result: 0 failure(s) ===
 ```
 
-### 20.2 Automated health checks via cron
+### 21.2 Automated health checks via cron
 
 ```bash
 crontab -e
@@ -1954,7 +1954,7 @@ services:
 
 ---
 
-## 21. Backup & Maintenance
+## 22. Backup & Maintenance
 
 ### Database backup (daily cron)
 
@@ -2045,7 +2045,7 @@ sudo fail2ban-client status nginx-limit-req
 
 ---
 
-## 22. Troubleshooting
+## 23. Troubleshooting
 
 ### Common issues
 
@@ -2124,11 +2124,11 @@ docker compose up -d
 
 ---
 
-## 23. Optional: S3-Compatible Storage (MinIO)
+## 24. Optional: S3-Compatible Storage (MinIO)
 
 For production deployments that need scalable, redundant storage, you can replace the default Supabase storage with MinIO (S3-compatible object storage).
 
-### 23.1 Deploy MinIO
+### 24.1 Deploy MinIO
 
 Add to `docker-compose.yml` or run separately:
 
@@ -2152,7 +2152,7 @@ minio:
   restart: unless-stopped
 ```
 
-### 23.2 Configure Supabase Storage to use MinIO
+### 24.2 Configure Supabase Storage to use MinIO
 
 In the Supabase `.env`, set the storage backend:
 
@@ -2177,7 +2177,7 @@ AWS_SECRET_ACCESS_KEY=<STRONG_PASSWORD>
 AWS_DEFAULT_REGION=us-east-1
 ```
 
-### 23.3 Create the bucket in MinIO
+### 24.3 Create the bucket in MinIO
 
 ```bash
 # Install MinIO client
