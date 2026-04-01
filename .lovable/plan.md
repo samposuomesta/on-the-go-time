@@ -1,24 +1,16 @@
 
 
-## Plan: Add DNS prerequisite to Traefik/TLS section
+## Completed: Single-Domain Architecture + Auto-Seed Admin Script
 
-**Change:** In `docs/Installation101.md`, add a prerequisite warning box just before the TLS proxy section (before line 600) telling users to configure their domain's DNS A record to point to their server's public IP before starting Docker with Traefik.
+### Changes made
 
-**Content to insert after line 599:**
-
-```markdown
-> **Prerequisites for HTTPS (Traefik / TLS proxy):**
->
-> Before starting Docker with Traefik or any TLS proxy, your domain must already resolve to your server:
->
-> 1. Add an **A record** for your domain (e.g. `timetrack.example.com`) pointing to your server's public IP
-> 2. If using Studio subdomain, add an **A record** for `studio.timetrack.example.com` as well
-> 3. Wait for DNS propagation — verify with:
->    ```bash
->    dig +short yourdomain.com
->    ```
->    The output must show your server IP. Let's Encrypt HTTP challenge will fail if DNS is not ready.
-```
-
-This goes right before the "Alternative: Official TLS proxy" heading so it applies to both the override file (Traefik) approach and the official Caddy/Nginx overlays.
-
+1. **`scripts/setup-first-admin.sh`** — Idempotent bash script that seeds default company/admin and provisions auth account via Kong API
+2. **`scripts/seed-defaults.sql`** — SQL seed file with `ON CONFLICT DO NOTHING` for company and admin user
+3. **`docker/docker-compose.override.yml`** — Simplified to single-domain path-based routing (`PathPrefix` for API paths), removed Studio subdomain labels
+4. **`docs/Installation101.md`** — Full single-domain rewrite:
+   - `API_EXTERNAL_URL` and `SUPABASE_PUBLIC_URL` → `https://timetrack.yourdomain.com`
+   - Nginx: merged two server blocks into one with path-based routing
+   - SSL: single certbot command, one domain
+   - Added Step 10: "Create First Admin Account"
+   - Renumbered all sections (10→24)
+   - Updated all cross-references, TOC, checklist, and file structure
