@@ -218,9 +218,9 @@ sudo systemctl restart docker
 
 > **Why Node.js?** You need Node.js + npm to:
 > - Generate JWT keys (step 6, Option B/C)
-> - Install frontend dependencies (`npm install`, step 11)
-> - Build the production frontend (`npm run build`, step 11)
-> - Generate VAPID keys for push notifications (step 16)
+> - Install frontend dependencies (`npm install`, step 13)
+> - Build the production frontend (`npm run build`, step 13)
+> - Generate VAPID keys for push notifications (step 19)
 
 ```bash
 # Install Node.js 24 LTS via NodeSource
@@ -1103,7 +1103,7 @@ bash scripts/setup-first-admin.sh
 
 ### Verify login
 
-After completing SSL setup (step 12), log in at `https://timetrack.yourdomain.com` with:
+After completing SSL setup (step 13), log in at `https://timetrack.yourdomain.com` with:
 - **Email:** `admin@timetrack.local`
 - **Password:** `ChangeMe123!`
 
@@ -1126,7 +1126,7 @@ The application uses 3 Edge Functions:
 |----------|---------|---------|
 | `create-auth-user` | Admin creates auth accounts for employees | Called from Admin UI |
 | `data-api` | External REST API with API key auth | Called by external systems |
-| `process-reminders` | Push notification reminders | Cron job (step 17) |
+| `process-reminders` | Push notification reminders | Cron job (step 19) |
 
 ### Option A: Mount via volume (recommended for `supabase-docker`)
 
@@ -1199,7 +1199,7 @@ SUPABASE_ANON_KEY=<YOUR_ANON_KEY>
 SUPABASE_SERVICE_ROLE_KEY=<YOUR_SERVICE_ROLE_KEY>
 
 # Secret used to authenticate cron-triggered calls to process-reminders.
-# The cron job (step 17) sends this in the x-cron-secret header.
+# The cron job (step 19) sends this in the x-cron-secret header.
 # Generate: openssl rand -base64 32
 CRON_SECRET=<YOUR_CRON_SECRET>
 
@@ -1291,7 +1291,7 @@ ls -la dist/
 drwxr-xr-x 2 timetrack timetrack  xxxx ... assets
 ```
 
-### Serve with Nginx (see step 12)
+### Serve with Nginx (see step 13)
 
 The built `dist/` folder contains static files served by Nginx.
 
@@ -1299,7 +1299,7 @@ The built `dist/` folder contains static files served by Nginx.
 
 ## 13. Nginx Reverse Proxy & SSL
 
-> **Prerequisites:** Frontend built (step 11), Supabase services running (step 8), DNS configured (your domain must point to this server).
+> **Prerequisites:** Frontend built (step 13), Supabase services running (step 8), DNS configured (your domain must point to this server).
 
 ### Install Nginx & Certbot
 
@@ -1338,7 +1338,7 @@ server {
     index index.html;
 
     # Block public access to process-reminders edge function.
-    # This function should only be called by the local cron job (step 17).
+    # This function should only be called by the local cron job (step 19).
     location /functions/v1/process-reminders {
         allow 127.0.0.1;
         allow ::1;
@@ -1731,11 +1731,11 @@ Copy both keys into your edge function environment variables.
 
 ## 18. Cron Jobs
 
-> **Prerequisites:** Supabase services running (step 8), Edge functions deployed (step 10), `CRON_SECRET` set in edge function environment (step 10).
+> **Prerequisites:** Supabase services running (step 8), Edge functions deployed (step 11), `CRON_SECRET` set in edge function environment (step 11).
 
 The `process-reminders` edge function must be triggered periodically (every 5 minutes recommended).
 
-> **Important:** The Nginx config (step 12) blocks external access to `/functions/v1/process-reminders`. The cron job runs on localhost and is allowed through.
+> **Important:** The Nginx config (step 13) blocks external access to `/functions/v1/process-reminders`. The cron job runs on localhost and is allowed through.
 
 ### Option A: System cron (recommended)
 
@@ -1814,8 +1814,8 @@ Ensure the same RLS policies from Cloud are applied. Check your migration files 
 
 The `process-reminders` function sends Web Push notifications. For this to work on-premise:
 
-1. ✅ VAPID keys must be set as edge function secrets (see step 16)
-2. ✅ The frontend `sw.js` must be served over HTTPS (see step 12)
+1. ✅ VAPID keys must be set as edge function secrets (see step 17)
+2. ✅ The frontend `sw.js` must be served over HTTPS (see step 13)
 3. ✅ The push subscription endpoint URLs are third-party services (Google FCM, Mozilla autopush) — your server needs outbound HTTPS access to the internet
 
 ---
@@ -2058,8 +2058,8 @@ sudo fail2ban-client status nginx-limit-req
 | **`password authentication failed for user "supabase_admin"`** | `POSTGRES_PASSWORD` changed in `.env` after first boot | See [Password mismatch after first boot](#password-mismatch-after-first-boot) below |
 | **`"supabase_admin" is a reserved role`** | Attempted manual `ALTER USER` on reserved role | Do **not** modify reserved roles manually — see recovery steps below |
 | **"Tenant or user not found"** | Connecting to Supavisor (port 5432) instead of PostgreSQL | Use port **5433** for direct `psql` access, or use `docker exec -i supabase-db psql -U postgres -d postgres` |
-| **Push notifications fail** | Missing VAPID keys or no outbound HTTPS | Set VAPID keys (step 16), check firewall allows outbound 443 |
-| **Storage upload fails** | Missing `receipts` bucket | Create it (step 18) |
+| **Push notifications fail** | Missing VAPID keys or no outbound HTTPS | Set VAPID keys (step 19), check firewall allows outbound 443 |
+| **Storage upload fails** | Missing `receipts` bucket | Create it (step 19) |
 | **JWT errors** | Mismatched `JWT_SECRET` and keys | Regenerate ANON/SERVICE keys with same JWT_SECRET |
 | **PostgREST 401** | Missing RLS policies or functions | Re-run migrations (step 9) |
 | **429 Too Many Requests** | Nginx rate limit hit | Adjust `rate` and `burst` in Nginx config |
@@ -2224,8 +2224,8 @@ Access permission for `local/supabase-storage/receipts` is set to `download`
 │   ├── storage/                  # Supabase Storage files
 │   └── minio/                    # (optional) MinIO data
 ├── backups/                      # Database backups (daily cron)
-├── backup.sh                     # Backup script (step 21)
-└── healthcheck.sh                # Health check script (step 20)
+├── backup.sh                     # Backup script (step 22)
+└── healthcheck.sh                # Health check script (step 22)
 ```
 
 ---
