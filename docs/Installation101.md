@@ -2014,7 +2014,7 @@ sudo fail2ban-client status nginx-limit-req
 
 | Problem | Likely cause | Solution |
 |---------|-------------|----------|
-| **CORS errors** | `API_EXTERNAL_URL` doesn't match your domain | Fix the URL in `.env`, restart services |
+| **CORS errors** | `API_EXTERNAL_URL` doesn't match your domain, or frontend and API on different origins | With single-domain setup this should not happen. Verify `API_EXTERNAL_URL=https://timetrack.yourdomain.com` in `.env`, restart services |
 | **Auth not working** | `SITE_URL` doesn't match frontend domain | Fix in `.env`, restart `supabase-auth` |
 | **Edge functions 502** | Function crashed or missing secrets | Check logs: `docker compose logs functions` |
 | **Database connection refused** | Wrong password or port not exposed | Verify `POSTGRES_PASSWORD` in `.env` and use port **5433** (not 5432) |
