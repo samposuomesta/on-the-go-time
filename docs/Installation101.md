@@ -830,10 +830,10 @@ cp /opt/timetrack/app/docker/docker-compose.override.yml /opt/timetrack/supabase
 
 ### Pull and start
 
+📂 **Supabase dir** (`/opt/timetrack/supabase-docker/docker`)
+
 ```bash
 cd /opt/timetrack/supabase-docker/docker
-
-# Pull all container images (this may take 5-10 minutes on first run)
 docker compose pull
 ```
 
