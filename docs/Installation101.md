@@ -1151,6 +1151,8 @@ The application uses 3 Edge Functions:
 
 The official `supabase/supabase/docker` setup mounts a `volumes/functions` directory into the Edge Runtime container automatically.
 
+📂 **App dir** (`/opt/timetrack/app`)
+
 ```bash
 cd /opt/timetrack/app
 
