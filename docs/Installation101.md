@@ -2216,6 +2216,9 @@ Access permission for `local/supabase-storage/receipts` is set to `download`
 ├── app/                          # TimeTrack frontend
 │   ├── .env.production           # Frontend env vars (3 variables)
 │   ├── dist/                     # Built static files (served by Nginx)
+│   ├── scripts/
+│   │   ├── setup-first-admin.sh  # First admin provisioning (step 10)
+│   │   └── seed-defaults.sql     # Default company + admin SQL
 │   ├── src/
 │   └── supabase/
 │       └── migrations/           # SQL migrations
