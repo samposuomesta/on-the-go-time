@@ -2375,16 +2375,21 @@ Access permission for `local/supabase-storage/receipts` is set to `download`
 /opt/timetrack/
 ├── supabase-docker/              # supabase/supabase (sparse checkout)
 │   └── docker/                   # Docker setup directory
-│       ├── .env                  # Supabase config (all secrets here)
+│       ├── .env                  # Supabase config (all secrets + SITE_DOMAIN + ACME_EMAIL)
 │       ├── docker-compose.yml    # Pinned image versions + volumes
+│       ├── docker-compose.override.yml  # ← COPIED from app/docker/ (Traefik, ports, meta networking)
 │       └── volumes/
 │           └── functions/        # Edge functions (mounted volume)
 │               ├── create-auth-user/
 │               ├── data-api/
 │               └── process-reminders/
-├── app/                          # TimeTrack frontend
+├── traefik-config/               # Traefik dynamic config (NOT in git — server-only)
+│   └── frontend.yml              # Routes root domain → Nginx on host:3000
+├── app/                          # TimeTrack frontend (git repo)
 │   ├── .env.production           # Frontend env vars (3 variables)
-│   ├── dist/                     # Built static files (served by Nginx)
+│   ├── dist/                     # Built static files (served by Nginx on port 3000)
+│   ├── docker/
+│   │   └── docker-compose.override.yml  # Source override file (copied to supabase-docker)
 │   ├── scripts/
 │   │   ├── setup-first-admin.sh  # First admin provisioning (step 10)
 │   │   └── seed-defaults.sql     # Default company + admin SQL
