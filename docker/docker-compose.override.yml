@@ -42,7 +42,7 @@ services:
 
   # --- Traefik reverse proxy with HTTPS ---
   traefik:
-    image: traefik:v3.3
+    image: traefik:v3.6
     restart: unless-stopped
     environment:
       - DOCKER_API_VERSION=1.45
