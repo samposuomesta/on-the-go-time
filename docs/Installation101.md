@@ -951,7 +951,9 @@ psql "$SUPABASE_DB_URL" -c "SELECT version();"
 
 ### Apply all migrations
 
-> **⚠️ Important:** Run this from the **app directory**, not the Supabase docker directory.
+> **⚠️ Important:** Run this from the **App dir**, not the Supabase docker directory.
+
+📂 **App dir** (`/opt/timetrack/app`)
 
 ```bash
 cd /opt/timetrack/app
