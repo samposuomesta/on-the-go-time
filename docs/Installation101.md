@@ -1345,14 +1345,20 @@ The built `dist/` folder contains static files served by Nginx.
 
 ---
 
-## 13. Nginx Reverse Proxy & SSL
+## 13. Frontend Serving & HTTPS
 
-> **Prerequisites:** Frontend built (step 13), Supabase services running (step 8), DNS configured (your domain must point to this server).
+> **Architecture overview:** The production stack uses a **two-layer** approach:
+> - **Traefik** (runs inside Docker via `docker-compose.override.yml`) handles **HTTPS termination**, **Let's Encrypt certificates**, and **path-based routing** — API paths (`/auth/v1/`, `/rest/v1/`, etc.) go to Kong, everything else goes to the frontend.
+> - **Nginx** (runs on the host) serves the **built static files** (`dist/`) on port 3000. Traefik proxies to it via `host.docker.internal:3000`.
+>
+> You do **not** need Certbot — Traefik handles SSL automatically.
 
-### Install Nginx & Certbot
+> **Prerequisites:** Frontend built (step 12), Supabase services running (step 8), DNS configured (your domain must point to this server), `SITE_DOMAIN` and `ACME_EMAIL` set in `.env` (step 6).
+
+### Install Nginx
 
 ```bash
-sudo apt install -y nginx certbot python3-certbot-nginx
+sudo apt install -y nginx
 ```
 
 **Verify:**
@@ -1364,57 +1370,20 @@ nginx -v
 nginx version: nginx/1.24.0 (Ubuntu)
 ```
 
-### Configure Nginx
+### Configure Nginx (static file server only)
+
+Nginx serves the SPA on port 3000 — it does **not** handle SSL or API proxying (Traefik does that).
 
 Create `/etc/nginx/sites-available/timetrack`:
 
 ```nginx
-# --- Rate limiting zones (shared memory across all Nginx workers) ---
-# api_limit: max 10 requests/second per client IP for API
-# frontend_limit: max 30 requests/second per client IP for frontend
-limit_req_zone $binary_remote_addr zone=api_limit:10m rate=10r/s;
-limit_req_zone $binary_remote_addr zone=frontend_limit:10m rate=30r/s;
-
-# Single-domain setup: frontend + API on the same domain
-# Supabase API paths are routed to Kong; everything else serves the SPA.
 server {
-    listen 80;
-    server_name timetrack.yourdomain.com;
+    listen 3000;
+    server_name _;
 
     # Serve the built frontend from dist/ directory
     root /opt/timetrack/app/dist;
     index index.html;
-
-    # Block public access to process-reminders edge function.
-    # This function should only be called by the local cron job (step 18).
-    location /functions/v1/process-reminders {
-        allow 127.0.0.1;
-        allow ::1;
-        deny all;
-
-        proxy_pass http://localhost:8000;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-
-    # Supabase API paths → Kong (port 8000)
-    location ~ ^/(auth|rest|functions|realtime|storage)/v1/ {
-        limit_req zone=api_limit burst=20 nodelay;
-        limit_req_status 429;
-
-        proxy_pass http://localhost:8000;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-
-        # WebSocket support (required for Supabase Realtime)
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-    }
 
     # Cache static assets aggressively (they have content hashes in filenames)
     location /assets/ {
@@ -1430,7 +1399,6 @@ server {
 
     # SPA routing — any path that doesn't match a file serves index.html
     location / {
-        limit_req zone=frontend_limit burst=60 nodelay;
         try_files $uri $uri/ /index.html;
     }
 }
@@ -1442,7 +1410,7 @@ server {
 # Create symlink to enable the site
 sudo ln -s /etc/nginx/sites-available/timetrack /etc/nginx/sites-enabled/
 
-# Remove default site
+# Remove default site (it listens on port 80, which Traefik needs)
 sudo rm -f /etc/nginx/sites-enabled/default
 
 # Test configuration for syntax errors
@@ -1459,32 +1427,104 @@ nginx: configuration file /etc/nginx/nginx.conf test is successful
 sudo systemctl reload nginx
 ```
 
-### SSL with Let's Encrypt
+**Verify Nginx is serving the frontend:**
+```bash
+curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/
+```
+**Expected output:**
+```
+200
+```
 
-> **Prerequisites:** DNS A record for `timetrack.yourdomain.com` must point to this server's public IP. Only **one domain** is needed.
+### Create Traefik dynamic config for frontend routing
+
+Traefik uses a file-based dynamic configuration to route non-API traffic to Nginx on the host. Create the config directory and file:
 
 ```bash
-sudo certbot --nginx -d timetrack.yourdomain.com
+sudo mkdir -p /opt/timetrack/traefik-config
+
+sudo tee /opt/timetrack/traefik-config/frontend.yml > /dev/null << 'EOF'
+http:
+  routers:
+    frontend:
+      rule: "Host(`${SITE_DOMAIN}`)"
+      entryPoints:
+        - websecure
+      service: frontend
+      tls:
+        certResolver: letsencrypt
+      priority: 1
+  services:
+    frontend:
+      loadBalancer:
+        servers:
+          - url: "http://host.docker.internal:3000"
+EOF
+```
+
+> **⚠️ Replace `${SITE_DOMAIN}`** in the file with your actual domain (e.g., `taika.integral.fi`). Traefik file provider does **not** interpolate environment variables — you must hardcode the domain in this file.
+
+```bash
+# Edit the file to replace the placeholder with your actual domain
+sudo nano /opt/timetrack/traefik-config/frontend.yml
+```
+
+**Verify the file has your actual domain (not a variable):**
+```bash
+cat /opt/timetrack/traefik-config/frontend.yml | grep rule
+```
+**Expected output:**
+```
+      rule: "Host(`timetrack.yourdomain.com`)"
+```
+
+### Verify HTTPS is working
+
+After Traefik starts (it's part of `docker compose up` from step 8), wait ~60 seconds for Let's Encrypt to issue the certificate, then:
+
+```bash
+curl -sI https://timetrack.yourdomain.com/ | head -5
 ```
 
 **Expected output:**
 ```
-Congratulations! You have successfully enabled HTTPS on:
-- https://timetrack.yourdomain.com
+HTTP/2 200
+...
 ```
+
+If you get a certificate error, check Traefik logs:
+```bash
+cd /opt/timetrack/supabase-docker/docker
+docker compose logs traefik --tail=50 | grep -i "acme\|cert\|error"
+```
+
+### Verify API routing through Traefik
 
 ```bash
-sudo systemctl reload nginx
-
-# Verify auto-renewal is working
-sudo certbot renew --dry-run
+curl -s https://timetrack.yourdomain.com/auth/v1/settings | head -5
 ```
 
+**Expected output (JSON with auth settings):**
+```json
+{
+  "external_url": "https://timetrack.yourdomain.com",
+  ...
+}
+```
+
+> **If API routes return 404:** Kong may still be starting. Wait 60 seconds and retry. Check `docker compose logs traefik | grep kong` for health check progression.
+
+### UFW firewall note
+
+The Docker bridge subnet must be allowed to reach Nginx on port 3000. If you followed step 2, this rule is already in place:
+```bash
+sudo ufw status | grep 3000
+```
 **Expected output:**
 ```
-Congratulations, all simulated renewals succeeded:
-  /etc/letsencrypt/live/timetrack.yourdomain.com/fullchain.pem (success)
+3000/tcp                   ALLOW       172.16.0.0/12
 ```
+If missing, add it: `sudo ufw allow from 172.16.0.0/12 to any port 3000 proto tcp`
 
 ---
 
