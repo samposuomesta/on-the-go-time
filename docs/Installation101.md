@@ -1069,7 +1069,54 @@ curl -s http://localhost:8000/rest/v1/ \
 
 ---
 
-## 10. Deploy Edge Functions
+## 10. Create First Admin Account
+
+> **Prerequisites:** Database migrations applied (step 9), Supabase services running (step 8).
+
+The setup script creates a default company and admin user so you can log in immediately.
+
+### Run the setup script
+
+```bash
+cd /opt/timetrack/app
+bash scripts/setup-first-admin.sh
+```
+
+**Expected output:**
+```
+ℹ️  Seeding default company and admin user...
+✅ Database seeded (or already existed)
+ℹ️  Provisioning auth account for admin@timetrack.local...
+✅ Auth account created
+
+════════════════════════════════════════════════════════
+  First admin account ready!
+
+  Email:    admin@timetrack.local
+  Password: ChangeMe123!
+
+  ⚠️  CHANGE THE PASSWORD after first login!
+════════════════════════════════════════════════════════
+```
+
+> The script is **idempotent** — safe to run multiple times. It uses `ON CONFLICT DO NOTHING` for database records and handles existing auth accounts gracefully.
+
+### Verify login
+
+After completing SSL setup (step 12), log in at `https://timetrack.yourdomain.com` with:
+- **Email:** `admin@timetrack.local`
+- **Password:** `ChangeMe123!`
+
+### Post-setup checklist
+
+1. **Change the default password** immediately via Settings
+2. **Update company name** in Admin Dashboard (replace "Default Company")
+3. **Create real employee/manager accounts** from the Admin Dashboard
+4. (Optional) Delete the default admin account after creating a real one
+
+---
+
+## 11. Deploy Edge Functions
 
 > **Prerequisites:** Supabase services running (step 8), TimeTrack app cloned (step 9).
 
