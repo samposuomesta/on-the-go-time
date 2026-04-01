@@ -44,6 +44,8 @@ services:
   traefik:
     image: traefik:v3.3
     restart: unless-stopped
+    environment:
+      - DOCKER_API_VERSION=1.45
     command:
       - "--api.dashboard=false"
       - "--providers.docker=true"
