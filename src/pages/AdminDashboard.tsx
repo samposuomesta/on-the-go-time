@@ -2241,6 +2241,7 @@ function AddEmployeeDialog({ onCreate, companies }: { onCreate: (data: any) => v
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [employeeNumber, setEmployeeNumber] = useState('');
   const [companyId, setCompanyId] = useState('');
   const [role, setRole] = useState<'employee' | 'manager' | 'admin'>('employee');
@@ -2249,7 +2250,8 @@ function AddEmployeeDialog({ onCreate, companies }: { onCreate: (data: any) => v
   const [dailyWorkHours, setDailyWorkHours] = useState('7.5');
   const [autoSubtractLunch, setAutoSubtractLunch] = useState(false);
   const [lunchThreshold, setLunchThreshold] = useState('5');
-  const reset = () => { setFirstName(''); setLastName(''); setEmail(''); setEmployeeNumber(''); setCompanyId(companies.length === 1 ? companies[0].id : ''); setRole('employee'); setContractDate(''); setVacationDays('25'); setDailyWorkHours('7.5'); setAutoSubtractLunch(false); setLunchThreshold('5'); };
+  const [creatingAuth, setCreatingAuth] = useState(false);
+  const reset = () => { setFirstName(''); setLastName(''); setEmail(''); setPassword(''); setEmployeeNumber(''); setCompanyId(companies.length === 1 ? companies[0].id : ''); setRole('employee'); setContractDate(''); setVacationDays('25'); setDailyWorkHours('7.5'); setAutoSubtractLunch(false); setLunchThreshold('5'); };
 
   React.useEffect(() => {
     if (companies.length === 1 && !companyId) setCompanyId(companies[0].id);
@@ -2264,6 +2266,11 @@ function AddEmployeeDialog({ onCreate, companies }: { onCreate: (data: any) => v
           <div className="space-y-1.5"><Label>{t("admin.firstName")}</Label><Input value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder={t("admin.firstName")} /></div>
           <div className="space-y-1.5"><Label>{t("admin.lastName")}</Label><Input value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder={t("admin.lastName")} /></div>
           <div className="space-y-1.5 sm:col-span-2"><Label>{t("admin.email")}</Label><Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder={t("admin.email")} /></div>
+          <div className="space-y-1.5 sm:col-span-2">
+            <Label>{t("admin.initialPassword")}</Label>
+            <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder={t("admin.initialPasswordPlaceholder")} minLength={6} />
+            <p className="text-xs text-muted-foreground">{t("admin.initialPasswordHint")}</p>
+          </div>
           <div className="space-y-1.5 sm:col-span-2">
             <Label>{t("admin.company")} *</Label>
             {companies.length === 1 ? (
@@ -2305,9 +2312,26 @@ function AddEmployeeDialog({ onCreate, companies }: { onCreate: (data: any) => v
             )}
           </div>
         </div>
-        <Button className="w-full mt-2" disabled={!firstName.trim() || !lastName.trim() || !email.trim() || !companyId} onClick={() => {
+        <Button className="w-full mt-2" disabled={!firstName.trim() || !lastName.trim() || !email.trim() || !companyId || (password.trim() !== '' && password.trim().length < 6) || creatingAuth} onClick={async () => {
           const fullName = `${firstName.trim()} ${lastName.trim()}`;
-          onCreate({ name: fullName, email: email.trim(), employee_number: employeeNumber.trim() || null, company_id: companyId, role, contract_start_date: contractDate || null, annual_vacation_days: parseInt(vacationDays) || 25, daily_work_hours: parseFloat(dailyWorkHours) || 7.5, auto_subtract_lunch: autoSubtractLunch, lunch_threshold_hours: parseFloat(lunchThreshold) || 5 });
+          const empEmail = email.trim();
+          onCreate({ name: fullName, email: empEmail, employee_number: employeeNumber.trim() || null, company_id: companyId, role, contract_start_date: contractDate || null, annual_vacation_days: parseInt(vacationDays) || 25, daily_work_hours: parseFloat(dailyWorkHours) || 7.5, auto_subtract_lunch: autoSubtractLunch, lunch_threshold_hours: parseFloat(lunchThreshold) || 5 });
+          // Auto-create auth account with password
+          if (password.trim()) {
+            setCreatingAuth(true);
+            try {
+              const { supabase } = await import('@/integrations/supabase/client');
+              const { error } = await supabase.functions.invoke('create-auth-user', {
+                body: { email: empEmail, password: password.trim() },
+              });
+              if (error) throw error;
+              toast.success(t('admin.authAccountCreated'));
+            } catch (e: any) {
+              toast.error(e?.message || 'Failed to create auth account');
+            } finally {
+              setCreatingAuth(false);
+            }
+          }
           setOpen(false); reset();
         }}>{t("admin.addEmployee")}</Button>
       </DialogContent>

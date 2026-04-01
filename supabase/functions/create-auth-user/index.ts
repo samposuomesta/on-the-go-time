@@ -51,7 +51,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { email, redirectTo } = await req.json();
+    const { email, password, redirectTo } = await req.json();
     if (!email) {
       return new Response(JSON.stringify({ error: "Email is required" }), {
         status: 400,
@@ -63,7 +63,14 @@ Deno.serve(async (req) => {
     const { data: existingUsers } = await adminClient.auth.admin.listUsers();
     const exists = existingUsers?.users?.find((u) => u.email === email);
     if (exists) {
-      // Auth user already exists, just send password reset
+      if (password) {
+        // Update existing user's password
+        await adminClient.auth.admin.updateUserById(exists.id, { password });
+        return new Response(JSON.stringify({ message: "Password updated for existing account" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      // No password provided, send recovery email
       await adminClient.auth.admin.generateLink({
         type: "recovery",
         email,
@@ -74,12 +81,12 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Create auth user with a random password (they'll reset it)
-    const randomPassword = crypto.randomUUID() + crypto.randomUUID();
+    // Create auth user with admin-provided password or a random one
+    const userPassword = password || (crypto.randomUUID() + crypto.randomUUID());
     const { data: newUser, error: createError } = await adminClient.auth.admin.createUser({
       email,
-      password: randomPassword,
-      email_confirm: true, // Auto-confirm so they can use password reset
+      password: userPassword,
+      email_confirm: true,
     });
 
     if (createError) {
@@ -89,19 +96,20 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Send password reset email so employee can set their own password
-    const { error: resetError } = await adminClient.auth.admin.generateLink({
-      type: "recovery",
-      email,
-      options: { redirectTo },
-    });
-
-    if (resetError) {
-      console.error("Failed to generate recovery link:", resetError);
+    // If no password was provided, send recovery email
+    if (!password) {
+      const { error: resetError } = await adminClient.auth.admin.generateLink({
+        type: "recovery",
+        email,
+        options: { redirectTo },
+      });
+      if (resetError) {
+        console.error("Failed to generate recovery link:", resetError);
+      }
     }
 
     return new Response(
-      JSON.stringify({ message: "Auth account created and reset email sent", userId: newUser.user.id }),
+      JSON.stringify({ message: password ? "Auth account created with password" : "Auth account created and reset email sent", userId: newUser.user.id }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err) {
