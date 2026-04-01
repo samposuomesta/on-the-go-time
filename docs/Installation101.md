@@ -1094,6 +1094,8 @@ The setup script creates a default company and admin user so you can log in imme
 
 ### Run the setup script
 
+📂 **App dir** (`/opt/timetrack/app`)
+
 ```bash
 cd /opt/timetrack/app
 bash scripts/setup-first-admin.sh
