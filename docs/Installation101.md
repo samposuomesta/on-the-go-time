@@ -2154,8 +2154,15 @@ sudo fail2ban-client status nginx-limit-req
 | **429 Too Many Requests** | Nginx rate limit hit | Adjust `rate` and `burst` in Nginx config |
 | **Studio 500 "Failed to retrieve tables"** | `meta` service missing on `traefik` and/or missing alias `meta` | Re-copy `docker-compose.override.yml` and recreate containers — see [Step 8 networking note](#copy-the-override-file). Quick fix: `docker network connect --alias meta supabase_traefik supabase-meta && docker network connect --alias meta supabase_default supabase-meta && docker compose restart studio` |
 | **Kong logs: "upstream prematurely closed connection" for pg-meta** | Studio cannot reach meta (network isolation) | Same as above — meta must be on both `supabase_default` and `supabase_traefik` networks |
+| **Traefik: "client version X is too old"** | Docker API version mismatch between Traefik and host Docker engine | Ensure Traefik v3.6+ and add `DOCKER_API_VERSION=1.45` environment variable to the Traefik service in `docker-compose.override.yml` |
+| **Traefik: "Filtering unhealthy or starting container" (Kong)** | Kong hasn't passed its health check yet | Wait 30–60 seconds. Kong must pass its Docker health check before Traefik will route to it. Monitor: `docker compose logs traefik \| grep kong` |
+| **Traefik: API paths return 404 but frontend works** | Kong not yet registered in Traefik routing | Same as above — wait for Kong health. Also verify Kong labels are correct in override file and Kong is on the `traefik` network |
+| **Traefik: frontend returns 502** | Nginx not running on host port 3000, or UFW blocking Docker→host traffic | Verify `curl http://localhost:3000` works. Check UFW: `sudo ufw allow from 172.16.0.0/12 to any port 3000 proto tcp` |
+| **`SITE_DOMAIN` or `ACME_EMAIL` not set warning** | Missing variables in `.env` | Add `SITE_DOMAIN=yourdomain.com` and `ACME_EMAIL=you@example.com` to `/opt/timetrack/supabase-docker/docker/.env` |
 | **fail2ban banning legit IPs** | Rate limit too aggressive | Check `sudo fail2ban-client status nginx-limit-req`, unban: `sudo fail2ban-client set nginx-limit-req unbanip <IP>` |
 | **Disk full** | Docker logs or old images | `docker system df`, `docker image prune -a`, check log rotation |
+| **`psql: command not found`** | postgresql-client not installed | `sudo apt install -y postgresql-client` |
+| **`npm: command not found`** | Node.js not installed | Follow step 4 to install Node.js 24 |
 | **`psql: command not found`** | postgresql-client not installed | `sudo apt install -y postgresql-client` |
 | **`npm: command not found`** | Node.js not installed | Follow step 4 to install Node.js 24 |
 
