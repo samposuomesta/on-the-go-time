@@ -53,6 +53,19 @@
 
 > **Installation order matters!** This guide installs tools in the order they are needed. Do not skip steps. If you jump ahead to e.g. database migration (step 9) without installing `postgresql-client` (step 2), commands will fail.
 
+### Working Directories Quick Reference
+
+Most commands must be run from a specific directory. Look for the **📂** marker before each command block, or use this table:
+
+| Directory | Alias | Used in steps |
+|-----------|-------|---------------|
+| `/opt/timetrack/supabase-docker/docker` | **Supabase dir** | 6, 8, 11, 22, 23 |
+| `/opt/timetrack/app` | **App dir** | 9, 10, 11, 12, 22 |
+| `/opt/timetrack` | **Root dir** | 5, 7, 8 (clone) |
+| Any directory | — | 2, 3, 4 (system packages) |
+
+> **💡 Tip:** `docker compose` commands (start, stop, logs, ps) must be run from the **Supabase dir** where `docker-compose.yml` lives. Application commands (migrations, build, scripts) must be run from the **App dir**. `docker inspect` can be run from any directory since it references containers by name.
+
 ---
 
 ## 2. Server Setup
