@@ -2037,10 +2037,10 @@ docker compose restart functions
 
 ### Update Supabase
 
+📂 **Supabase dir** (`/opt/timetrack/supabase-docker/docker`)
+
 ```bash
 cd /opt/timetrack/supabase-docker/docker
-
-# Check release notes BEFORE upgrading!
 # Update pinned image versions in docker-compose.yml
 # Then:
 docker compose pull
