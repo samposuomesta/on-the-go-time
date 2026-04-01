@@ -384,12 +384,12 @@ SITE_URL=https://timetrack.yourdomain.com        # CHANGE THIS
 # The public URL where the Supabase API is reachable.
 # This is embedded in auth emails (confirmation links, magic links).
 # Must match your Nginx reverse proxy domain for the API.
-API_EXTERNAL_URL=https://api.timetrack.yourdomain.com    # CHANGE THIS
+API_EXTERNAL_URL=https://timetrack.yourdomain.com       # CHANGE THIS
 
 # --- Supabase Public URL ---
 # Used internally by services to know their own public address.
 # Usually same as API_EXTERNAL_URL.
-SUPABASE_PUBLIC_URL=https://api.timetrack.yourdomain.com # CHANGE THIS
+SUPABASE_PUBLIC_URL=https://timetrack.yourdomain.com    # CHANGE THIS
 
 ############################################################
 # SECTION 3: SMTP (Email)
