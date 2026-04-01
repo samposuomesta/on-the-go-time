@@ -2312,7 +2312,7 @@ function AddEmployeeDialog({ onCreate, companies }: { onCreate: (data: any) => v
             )}
           </div>
         </div>
-        <Button className="w-full mt-2" disabled={!firstName.trim() || !lastName.trim() || !email.trim() || !companyId} onClick={() => {
+        <Button className="w-full mt-2" disabled={!firstName.trim() || !lastName.trim() || !email.trim() || !companyId || (password.trim() !== '' && password.trim().length < 6) || creatingAuth} onClick={async () => {
           const fullName = `${firstName.trim()} ${lastName.trim()}`;
           const empEmail = email.trim();
           onCreate({ name: fullName, email: empEmail, employee_number: employeeNumber.trim() || null, company_id: companyId, role, contract_start_date: contractDate || null, annual_vacation_days: parseInt(vacationDays) || 25, daily_work_hours: parseFloat(dailyWorkHours) || 7.5, auto_subtract_lunch: autoSubtractLunch, lunch_threshold_hours: parseFloat(lunchThreshold) || 5 });
