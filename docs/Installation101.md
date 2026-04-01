@@ -2333,21 +2333,25 @@ Access permission for `local/supabase-storage/receipts` is set to `download`
 
 Use this to track your progress:
 
-- [ ] **Step 2:** Server updated, tools installed (`curl`, `git`, `psql`, `ufw`)
+- [ ] **Step 2:** Server updated, tools installed (`curl`, `git`, `psql`, `ufw`), UFW Docker bridge rule added
 - [ ] **Step 3:** Docker 29+ installed, log rotation configured
 - [ ] **Step 4:** Node.js 24 LTS installed (`node --version` → v24.x.x)
 - [ ] **Step 5:** Supabase repo cloned, `.env` copied
 - [ ] **Step 6:** All secrets generated and set in `.env`
 - [ ] **Step 6:** JWT keys generated (`ANON_KEY`, `SERVICE_ROLE_KEY`)
+- [ ] **Step 6:** `SITE_DOMAIN` and `ACME_EMAIL` set in `.env`
 - [ ] **Step 7:** Persistent volume directories created
 - [ ] **Step 7:** Docker image versions pinned in `docker-compose.yml`
-- [ ] **Step 8:** All Supabase containers running (`docker compose ps`)
+- [ ] **Step 8:** Override file copied, all Supabase containers running (`docker compose ps`)
+- [ ] **Step 8:** Kong shows as "healthy", Traefik routing active
 - [ ] **Step 9:** All migrations applied, 22 tables created
 - [ ] **Step 9:** RLS policies and 5 database functions verified
 - [ ] **Step 10:** First admin account created (`setup-first-admin.sh`)
 - [ ] **Step 11:** Edge functions deployed, secrets set
 - [ ] **Step 12:** Frontend built (`dist/` exists)
-- [ ] **Step 13:** Nginx configured, SSL certificate obtained (single domain)
+- [ ] **Step 13:** Nginx serving frontend on port 3000
+- [ ] **Step 13:** Traefik dynamic config (`frontend.yml`) created with actual domain
+- [ ] **Step 13:** HTTPS working (`curl -sI https://yourdomain.com/`)
 - [ ] **Step 14:** fail2ban active, Studio restricted to localhost
 - [ ] **Step 17:** VAPID keys generated and set
 - [ ] **Step 18:** Cron job for process-reminders set (every 5 min)
