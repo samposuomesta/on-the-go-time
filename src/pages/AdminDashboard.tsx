@@ -2314,7 +2314,24 @@ function AddEmployeeDialog({ onCreate, companies }: { onCreate: (data: any) => v
         </div>
         <Button className="w-full mt-2" disabled={!firstName.trim() || !lastName.trim() || !email.trim() || !companyId} onClick={() => {
           const fullName = `${firstName.trim()} ${lastName.trim()}`;
-          onCreate({ name: fullName, email: email.trim(), employee_number: employeeNumber.trim() || null, company_id: companyId, role, contract_start_date: contractDate || null, annual_vacation_days: parseInt(vacationDays) || 25, daily_work_hours: parseFloat(dailyWorkHours) || 7.5, auto_subtract_lunch: autoSubtractLunch, lunch_threshold_hours: parseFloat(lunchThreshold) || 5 });
+          const empEmail = email.trim();
+          onCreate({ name: fullName, email: empEmail, employee_number: employeeNumber.trim() || null, company_id: companyId, role, contract_start_date: contractDate || null, annual_vacation_days: parseInt(vacationDays) || 25, daily_work_hours: parseFloat(dailyWorkHours) || 7.5, auto_subtract_lunch: autoSubtractLunch, lunch_threshold_hours: parseFloat(lunchThreshold) || 5 });
+          // Auto-create auth account with password
+          if (password.trim()) {
+            setCreatingAuth(true);
+            try {
+              const { supabase } = await import('@/integrations/supabase/client');
+              const { error } = await supabase.functions.invoke('create-auth-user', {
+                body: { email: empEmail, password: password.trim() },
+              });
+              if (error) throw error;
+              toast.success(t('admin.authAccountCreated'));
+            } catch (e: any) {
+              toast.error(e?.message || 'Failed to create auth account');
+            } finally {
+              setCreatingAuth(false);
+            }
+          }
           setOpen(false); reset();
         }}>{t("admin.addEmployee")}</Button>
       </DialogContent>
