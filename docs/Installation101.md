@@ -1365,17 +1365,16 @@ sudo systemctl reload nginx
 
 ### SSL with Let's Encrypt
 
-> **Prerequisites:** DNS A records for `timetrack.yourdomain.com` and `api.timetrack.yourdomain.com` must point to this server's public IP.
+> **Prerequisites:** DNS A record for `timetrack.yourdomain.com` must point to this server's public IP. Only **one domain** is needed.
 
 ```bash
-sudo certbot --nginx -d timetrack.yourdomain.com -d api.timetrack.yourdomain.com
+sudo certbot --nginx -d timetrack.yourdomain.com
 ```
 
 **Expected output:**
 ```
 Congratulations! You have successfully enabled HTTPS on:
 - https://timetrack.yourdomain.com
-- https://api.timetrack.yourdomain.com
 ```
 
 ```bash
