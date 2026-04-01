@@ -526,6 +526,8 @@ Both keys are derived from the `JWT_SECRET` you already set in `.env`. Choose on
 
 This script reads `JWT_SECRET` from your `.env` and **writes `ANON_KEY` and `SERVICE_ROLE_KEY` directly into the `.env` file**, overwriting any existing values for those two keys. Other `.env` values (like `POSTGRES_PASSWORD`) are not modified.
 
+📂 **Supabase dir** (`/opt/timetrack/supabase-docker/docker`)
+
 ```bash
 cd /opt/timetrack/supabase-docker/docker
 sh ./utils/generate-keys.sh
