@@ -1,8 +1,8 @@
 # Installation101 – TimeTrack On-Premise Deployment Guide
 
 > **Target OS:** Ubuntu 24.04 LTS  
-> **Stack:** Docker, Supabase Self-Hosted, Nginx, Node.js 24+  
-> **Last updated:** 2026-03-27
+> **Stack:** Docker, Supabase Self-Hosted, Traefik, Nginx, Node.js 24+  
+> **Last updated:** 2026-04-01
 
 ---
 
@@ -115,6 +115,12 @@ psql (PostgreSQL) 16.x (Ubuntu 16.x-0ubuntu0.24.04.x)
 sudo ufw allow OpenSSH
 sudo ufw allow 80/tcp
 sudo ufw allow 443/tcp
+
+# Allow Docker containers (Traefik) to reach host services (Nginx on port 3000).
+# Docker uses the 172.16.0.0/12 subnet by default for bridge networks.
+# Without this rule, Traefik cannot proxy requests to the frontend served on the host.
+sudo ufw allow from 172.16.0.0/12 to any port 3000 proto tcp
+
 sudo ufw enable
 ```
 
@@ -465,6 +471,20 @@ POOLER_MAX_CLIENT_CONN=100                       # DEFAULT OK
 # NOTE: Supavisor listens on the host's port 5432.
 # For direct psql access (migrations, backups), use port 5433 instead,
 # which maps directly to the PostgreSQL container.
+
+############################################################
+# SECTION 6: TRAEFIK / HTTPS
+# Required for production HTTPS via the docker-compose.override.yml
+# Traefik reverse proxy.
+############################################################
+
+# Your domain name (without https:// prefix)
+# Used in Traefik routing rules for Kong and frontend.
+SITE_DOMAIN=timetrack.yourdomain.com              # CHANGE THIS
+
+# Email address for Let's Encrypt certificate registration.
+# You'll receive expiry warnings at this address.
+ACME_EMAIL=you@example.com                         # CHANGE THIS
 ```
 
 ### Quick secret generation script
@@ -813,12 +833,7 @@ The TimeTrack app includes a `docker-compose.override.yml` that adds the DB port
 cp /opt/timetrack/app/docker/docker-compose.override.yml /opt/timetrack/supabase-docker/docker/docker-compose.override.yml
 ```
 
-> **📝 Note on `SITE_DOMAIN` and `ACME_EMAIL` warnings:** The override file includes Traefik configuration for production HTTPS. If you see warnings like `The "SITE_DOMAIN" variable is not set`, these are harmless on localhost. For production, set them in your Supabase `.env` file:
-> ```bash
-> echo 'SITE_DOMAIN=yourdomain.com' >> /opt/timetrack/supabase-docker/docker/.env
-> echo 'ACME_EMAIL=you@example.com' >> /opt/timetrack/supabase-docker/docker/.env
-> ```
-> On localhost, you can safely ignore these warnings — Traefik won't start without valid values but all other services work fine.
+> **📝 `SITE_DOMAIN` and `ACME_EMAIL` must be set in `.env` before starting.** The override file's Traefik config references these variables. If they are missing, you'll see warnings like `The "SITE_DOMAIN" variable is not set` and Traefik will not issue certificates. Make sure you added them in Section 6 of your `.env` file.
 
 > **⚠️ Important:** Without this file, port 5433 will not be exposed and database migrations (step 9) will fail with `Connection refused`.
 
@@ -884,6 +899,12 @@ supabase-kong                Up              0.0.0.0:8000->8000/tcp
 > ```
 > Common causes: wrong password in `.env`, port conflict, missing volume directory.
 
+> **⚠️ Kong health check timing:** Kong has a Docker health check defined. When Traefik starts alongside Kong, it will initially filter Kong as **"unhealthy or starting"** and skip it from routing. This is normal — Traefik re-evaluates containers every time their state changes. Once Kong passes its health check (typically 30–60 seconds after start), Traefik will automatically pick it up and begin routing API traffic. You can monitor this with:
+> ```bash
+> docker compose logs traefik --since=2m 2>&1 | grep -i kong
+> ```
+> Look for the progression from `Filtering unhealthy or starting container` → `Configuration received` with Kong's router rules.
+
 ```bash
 # Watch live logs (Ctrl+C to stop)
 docker compose logs -f --tail=50
@@ -891,7 +912,7 @@ docker compose logs -f --tail=50
 
 ### Verify API is running
 
-Wait ~30 seconds after starting, then:
+Wait **~60 seconds** after starting (Kong needs to pass its health check before Traefik routes to it), then:
 
 ```bash
 curl -s http://localhost:8000/rest/v1/ \
@@ -909,7 +930,7 @@ curl -s http://localhost:8000/rest/v1/ \
 ```
 curl: (7) Failed to connect to localhost port 8000
 ```
-→ Services are still starting. Wait 30 more seconds and retry.
+→ Services are still starting. Wait 60 more seconds and retry. Check `docker compose ps` — Kong should show as "healthy".
 
 ---
 
@@ -1324,14 +1345,20 @@ The built `dist/` folder contains static files served by Nginx.
 
 ---
 
-## 13. Nginx Reverse Proxy & SSL
+## 13. Frontend Serving & HTTPS
 
-> **Prerequisites:** Frontend built (step 13), Supabase services running (step 8), DNS configured (your domain must point to this server).
+> **Architecture overview:** The production stack uses a **two-layer** approach:
+> - **Traefik** (runs inside Docker via `docker-compose.override.yml`) handles **HTTPS termination**, **Let's Encrypt certificates**, and **path-based routing** — API paths (`/auth/v1/`, `/rest/v1/`, etc.) go to Kong, everything else goes to the frontend.
+> - **Nginx** (runs on the host) serves the **built static files** (`dist/`) on port 3000. Traefik proxies to it via `host.docker.internal:3000`.
+>
+> You do **not** need Certbot — Traefik handles SSL automatically.
 
-### Install Nginx & Certbot
+> **Prerequisites:** Frontend built (step 12), Supabase services running (step 8), DNS configured (your domain must point to this server), `SITE_DOMAIN` and `ACME_EMAIL` set in `.env` (step 6).
+
+### Install Nginx
 
 ```bash
-sudo apt install -y nginx certbot python3-certbot-nginx
+sudo apt install -y nginx
 ```
 
 **Verify:**
@@ -1343,57 +1370,20 @@ nginx -v
 nginx version: nginx/1.24.0 (Ubuntu)
 ```
 
-### Configure Nginx
+### Configure Nginx (static file server only)
+
+Nginx serves the SPA on port 3000 — it does **not** handle SSL or API proxying (Traefik does that).
 
 Create `/etc/nginx/sites-available/timetrack`:
 
 ```nginx
-# --- Rate limiting zones (shared memory across all Nginx workers) ---
-# api_limit: max 10 requests/second per client IP for API
-# frontend_limit: max 30 requests/second per client IP for frontend
-limit_req_zone $binary_remote_addr zone=api_limit:10m rate=10r/s;
-limit_req_zone $binary_remote_addr zone=frontend_limit:10m rate=30r/s;
-
-# Single-domain setup: frontend + API on the same domain
-# Supabase API paths are routed to Kong; everything else serves the SPA.
 server {
-    listen 80;
-    server_name timetrack.yourdomain.com;
+    listen 3000;
+    server_name _;
 
     # Serve the built frontend from dist/ directory
     root /opt/timetrack/app/dist;
     index index.html;
-
-    # Block public access to process-reminders edge function.
-    # This function should only be called by the local cron job (step 18).
-    location /functions/v1/process-reminders {
-        allow 127.0.0.1;
-        allow ::1;
-        deny all;
-
-        proxy_pass http://localhost:8000;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-
-    # Supabase API paths → Kong (port 8000)
-    location ~ ^/(auth|rest|functions|realtime|storage)/v1/ {
-        limit_req zone=api_limit burst=20 nodelay;
-        limit_req_status 429;
-
-        proxy_pass http://localhost:8000;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-
-        # WebSocket support (required for Supabase Realtime)
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-    }
 
     # Cache static assets aggressively (they have content hashes in filenames)
     location /assets/ {
@@ -1409,7 +1399,6 @@ server {
 
     # SPA routing — any path that doesn't match a file serves index.html
     location / {
-        limit_req zone=frontend_limit burst=60 nodelay;
         try_files $uri $uri/ /index.html;
     }
 }
@@ -1421,7 +1410,7 @@ server {
 # Create symlink to enable the site
 sudo ln -s /etc/nginx/sites-available/timetrack /etc/nginx/sites-enabled/
 
-# Remove default site
+# Remove default site (it listens on port 80, which Traefik needs)
 sudo rm -f /etc/nginx/sites-enabled/default
 
 # Test configuration for syntax errors
@@ -1438,32 +1427,104 @@ nginx: configuration file /etc/nginx/nginx.conf test is successful
 sudo systemctl reload nginx
 ```
 
-### SSL with Let's Encrypt
+**Verify Nginx is serving the frontend:**
+```bash
+curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/
+```
+**Expected output:**
+```
+200
+```
 
-> **Prerequisites:** DNS A record for `timetrack.yourdomain.com` must point to this server's public IP. Only **one domain** is needed.
+### Create Traefik dynamic config for frontend routing
+
+Traefik uses a file-based dynamic configuration to route non-API traffic to Nginx on the host. Create the config directory and file:
 
 ```bash
-sudo certbot --nginx -d timetrack.yourdomain.com
+sudo mkdir -p /opt/timetrack/traefik-config
+
+sudo tee /opt/timetrack/traefik-config/frontend.yml > /dev/null << 'EOF'
+http:
+  routers:
+    frontend:
+      rule: "Host(`${SITE_DOMAIN}`)"
+      entryPoints:
+        - websecure
+      service: frontend
+      tls:
+        certResolver: letsencrypt
+      priority: 1
+  services:
+    frontend:
+      loadBalancer:
+        servers:
+          - url: "http://host.docker.internal:3000"
+EOF
+```
+
+> **⚠️ Replace `${SITE_DOMAIN}`** in the file with your actual domain (e.g., `taika.integral.fi`). Traefik file provider does **not** interpolate environment variables — you must hardcode the domain in this file.
+
+```bash
+# Edit the file to replace the placeholder with your actual domain
+sudo nano /opt/timetrack/traefik-config/frontend.yml
+```
+
+**Verify the file has your actual domain (not a variable):**
+```bash
+cat /opt/timetrack/traefik-config/frontend.yml | grep rule
+```
+**Expected output:**
+```
+      rule: "Host(`timetrack.yourdomain.com`)"
+```
+
+### Verify HTTPS is working
+
+After Traefik starts (it's part of `docker compose up` from step 8), wait ~60 seconds for Let's Encrypt to issue the certificate, then:
+
+```bash
+curl -sI https://timetrack.yourdomain.com/ | head -5
 ```
 
 **Expected output:**
 ```
-Congratulations! You have successfully enabled HTTPS on:
-- https://timetrack.yourdomain.com
+HTTP/2 200
+...
 ```
+
+If you get a certificate error, check Traefik logs:
+```bash
+cd /opt/timetrack/supabase-docker/docker
+docker compose logs traefik --tail=50 | grep -i "acme\|cert\|error"
+```
+
+### Verify API routing through Traefik
 
 ```bash
-sudo systemctl reload nginx
-
-# Verify auto-renewal is working
-sudo certbot renew --dry-run
+curl -s https://timetrack.yourdomain.com/auth/v1/settings | head -5
 ```
 
+**Expected output (JSON with auth settings):**
+```json
+{
+  "external_url": "https://timetrack.yourdomain.com",
+  ...
+}
+```
+
+> **If API routes return 404:** Kong may still be starting. Wait 60 seconds and retry. Check `docker compose logs traefik | grep kong` for health check progression.
+
+### UFW firewall note
+
+The Docker bridge subnet must be allowed to reach Nginx on port 3000. If you followed step 2, this rule is already in place:
+```bash
+sudo ufw status | grep 3000
+```
 **Expected output:**
 ```
-Congratulations, all simulated renewals succeeded:
-  /etc/letsencrypt/live/timetrack.yourdomain.com/fullchain.pem (success)
+3000/tcp                   ALLOW       172.16.0.0/12
 ```
+If missing, add it: `sudo ufw allow from 172.16.0.0/12 to any port 3000 proto tcp`
 
 ---
 
@@ -2093,8 +2154,15 @@ sudo fail2ban-client status nginx-limit-req
 | **429 Too Many Requests** | Nginx rate limit hit | Adjust `rate` and `burst` in Nginx config |
 | **Studio 500 "Failed to retrieve tables"** | `meta` service missing on `traefik` and/or missing alias `meta` | Re-copy `docker-compose.override.yml` and recreate containers — see [Step 8 networking note](#copy-the-override-file). Quick fix: `docker network connect --alias meta supabase_traefik supabase-meta && docker network connect --alias meta supabase_default supabase-meta && docker compose restart studio` |
 | **Kong logs: "upstream prematurely closed connection" for pg-meta** | Studio cannot reach meta (network isolation) | Same as above — meta must be on both `supabase_default` and `supabase_traefik` networks |
+| **Traefik: "client version X is too old"** | Docker API version mismatch between Traefik and host Docker engine | Ensure Traefik v3.6+ and add `DOCKER_API_VERSION=1.45` environment variable to the Traefik service in `docker-compose.override.yml` |
+| **Traefik: "Filtering unhealthy or starting container" (Kong)** | Kong hasn't passed its health check yet | Wait 30–60 seconds. Kong must pass its Docker health check before Traefik will route to it. Monitor: `docker compose logs traefik \| grep kong` |
+| **Traefik: API paths return 404 but frontend works** | Kong not yet registered in Traefik routing | Same as above — wait for Kong health. Also verify Kong labels are correct in override file and Kong is on the `traefik` network |
+| **Traefik: frontend returns 502** | Nginx not running on host port 3000, or UFW blocking Docker→host traffic | Verify `curl http://localhost:3000` works. Check UFW: `sudo ufw allow from 172.16.0.0/12 to any port 3000 proto tcp` |
+| **`SITE_DOMAIN` or `ACME_EMAIL` not set warning** | Missing variables in `.env` | Add `SITE_DOMAIN=yourdomain.com` and `ACME_EMAIL=you@example.com` to `/opt/timetrack/supabase-docker/docker/.env` |
 | **fail2ban banning legit IPs** | Rate limit too aggressive | Check `sudo fail2ban-client status nginx-limit-req`, unban: `sudo fail2ban-client set nginx-limit-req unbanip <IP>` |
 | **Disk full** | Docker logs or old images | `docker system df`, `docker image prune -a`, check log rotation |
+| **`psql: command not found`** | postgresql-client not installed | `sudo apt install -y postgresql-client` |
+| **`npm: command not found`** | Node.js not installed | Follow step 4 to install Node.js 24 |
 | **`psql: command not found`** | postgresql-client not installed | `sudo apt install -y postgresql-client` |
 | **`npm: command not found`** | Node.js not installed | Follow step 4 to install Node.js 24 |
 
@@ -2265,21 +2333,25 @@ Access permission for `local/supabase-storage/receipts` is set to `download`
 
 Use this to track your progress:
 
-- [ ] **Step 2:** Server updated, tools installed (`curl`, `git`, `psql`, `ufw`)
+- [ ] **Step 2:** Server updated, tools installed (`curl`, `git`, `psql`, `ufw`), UFW Docker bridge rule added
 - [ ] **Step 3:** Docker 29+ installed, log rotation configured
 - [ ] **Step 4:** Node.js 24 LTS installed (`node --version` → v24.x.x)
 - [ ] **Step 5:** Supabase repo cloned, `.env` copied
 - [ ] **Step 6:** All secrets generated and set in `.env`
 - [ ] **Step 6:** JWT keys generated (`ANON_KEY`, `SERVICE_ROLE_KEY`)
+- [ ] **Step 6:** `SITE_DOMAIN` and `ACME_EMAIL` set in `.env`
 - [ ] **Step 7:** Persistent volume directories created
 - [ ] **Step 7:** Docker image versions pinned in `docker-compose.yml`
-- [ ] **Step 8:** All Supabase containers running (`docker compose ps`)
+- [ ] **Step 8:** Override file copied, all Supabase containers running (`docker compose ps`)
+- [ ] **Step 8:** Kong shows as "healthy", Traefik routing active
 - [ ] **Step 9:** All migrations applied, 22 tables created
 - [ ] **Step 9:** RLS policies and 5 database functions verified
 - [ ] **Step 10:** First admin account created (`setup-first-admin.sh`)
 - [ ] **Step 11:** Edge functions deployed, secrets set
 - [ ] **Step 12:** Frontend built (`dist/` exists)
-- [ ] **Step 13:** Nginx configured, SSL certificate obtained (single domain)
+- [ ] **Step 13:** Nginx serving frontend on port 3000
+- [ ] **Step 13:** Traefik dynamic config (`frontend.yml`) created with actual domain
+- [ ] **Step 13:** HTTPS working (`curl -sI https://yourdomain.com/`)
 - [ ] **Step 14:** fail2ban active, Studio restricted to localhost
 - [ ] **Step 17:** VAPID keys generated and set
 - [ ] **Step 18:** Cron job for process-reminders set (every 5 min)
