@@ -2046,25 +2046,56 @@ services:
 
 ### Database backup (daily cron)
 
+> **⚠️ Important:** The backup script uses `pg_dump` which is a **read-only** operation — it does not lock tables or affect running services. It's safe to run while the application is live.
+
 ```bash
 # Create backup script
-cat > /opt/timetrack/backup.sh << 'EOF'
+cat > /opt/timetrack/backup.sh << 'SCRIPT'
 #!/bin/bash
+set -euo pipefail
+
 BACKUP_DIR="/opt/timetrack/backups"
 mkdir -p "$BACKUP_DIR"
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+DUMP_FILE="$BACKUP_DIR/timetrack_$TIMESTAMP.dump"
 
-pg_dump "postgresql://postgres:<POSTGRES_PASSWORD>@localhost:5433/postgres" \
-  -F c -f "$BACKUP_DIR/timetrack_$TIMESTAMP.dump"
+# Read POSTGRES_PASSWORD from the Supabase .env file
+PG_PASS=$(grep '^POSTGRES_PASSWORD=' /opt/timetrack/supabase-docker/docker/.env | cut -d= -f2-)
+
+if [ -z "$PG_PASS" ]; then
+  echo "$(date): ERROR — POSTGRES_PASSWORD not found in .env" >&2
+  exit 1
+fi
+
+# Check database is reachable before dumping
+if ! pg_isready -h localhost -p 5433 -U postgres -q 2>/dev/null; then
+  echo "$(date): ERROR — PostgreSQL not reachable on port 5433" >&2
+  exit 1
+fi
+
+pg_dump "postgresql://postgres:${PG_PASS}@localhost:5433/postgres" \
+  -F c -f "$DUMP_FILE" 2>&1
+
+if [ $? -eq 0 ] && [ -s "$DUMP_FILE" ]; then
+  echo "$(date): ✅ Backup completed -> $(basename $DUMP_FILE) ($(du -h "$DUMP_FILE" | cut -f1))"
+else
+  echo "$(date): ❌ Backup FAILED or produced empty file" >&2
+  rm -f "$DUMP_FILE"
+  exit 1
+fi
 
 # Keep last 30 days
 find "$BACKUP_DIR" -name "*.dump" -mtime +30 -delete
-
-echo "$(date): Backup completed -> timetrack_$TIMESTAMP.dump"
-EOF
+SCRIPT
 
 chmod +x /opt/timetrack/backup.sh
 ```
+
+> **Key improvements over a basic script:**
+> - Reads `POSTGRES_PASSWORD` from `.env` automatically (no hardcoded passwords)
+> - Checks database is reachable before attempting dump
+> - Validates the dump file is non-empty
+> - Logs success/failure clearly for cron monitoring
 
 **Test the backup:**
 ```bash
