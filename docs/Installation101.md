@@ -2021,9 +2021,10 @@ crontab -e
 
 ### Update application
 
+📂 **App dir** (`/opt/timetrack/app`)
+
 ```bash
 cd /opt/timetrack/app
-git pull
 npm install
 npm run build
 # Nginx serves from dist/ — no restart needed
