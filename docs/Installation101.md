@@ -1254,6 +1254,8 @@ curl -s -o /dev/null -w "%{http_code}" \
 
 ### Clone and configure
 
+📂 **App dir** (`/opt/timetrack/app`)
+
 ```bash
 cd /opt/timetrack/app
 
