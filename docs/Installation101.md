@@ -115,6 +115,12 @@ psql (PostgreSQL) 16.x (Ubuntu 16.x-0ubuntu0.24.04.x)
 sudo ufw allow OpenSSH
 sudo ufw allow 80/tcp
 sudo ufw allow 443/tcp
+
+# Allow Docker containers (Traefik) to reach host services (Nginx on port 3000).
+# Docker uses the 172.16.0.0/12 subnet by default for bridge networks.
+# Without this rule, Traefik cannot proxy requests to the frontend served on the host.
+sudo ufw allow from 172.16.0.0/12 to any port 3000 proto tcp
+
 sudo ufw enable
 ```
 
