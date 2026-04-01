@@ -2245,15 +2245,16 @@ Use this to track your progress:
 - [ ] **Step 8:** All Supabase containers running (`docker compose ps`)
 - [ ] **Step 9:** All migrations applied, 22 tables created
 - [ ] **Step 9:** RLS policies and 5 database functions verified
-- [ ] **Step 10:** Edge functions deployed, secrets set
-- [ ] **Step 11:** Frontend built (`dist/` exists)
-- [ ] **Step 12:** Nginx configured, SSL certificate obtained
-- [ ] **Step 13:** fail2ban active, Studio restricted to localhost
-- [ ] **Step 16:** VAPID keys generated and set
-- [ ] **Step 17:** Cron job for process-reminders set (every 5 min)
-- [ ] **Step 18:** `receipts` storage bucket created
-- [ ] **Step 20:** Health check script working
-- [ ] **Step 21:** Backup cron configured (daily at 2 AM)
+- [ ] **Step 10:** First admin account created (`setup-first-admin.sh`)
+- [ ] **Step 11:** Edge functions deployed, secrets set
+- [ ] **Step 12:** Frontend built (`dist/` exists)
+- [ ] **Step 13:** Nginx configured, SSL certificate obtained (single domain)
+- [ ] **Step 14:** fail2ban active, Studio restricted to localhost
+- [ ] **Step 17:** VAPID keys generated and set
+- [ ] **Step 18:** Cron job for process-reminders set (every 5 min)
+- [ ] **Step 19:** `receipts` storage bucket created
+- [ ] **Step 21:** Health check script working
+- [ ] **Step 22:** Backup cron configured (daily at 2 AM)
 
 ---
 
