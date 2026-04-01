@@ -2086,31 +2086,73 @@ crontab -e
 
 📂 **App dir** (`/opt/timetrack/app`)
 
+> **⚠️ Critical:** The `docker-compose.override.yml` lives in the app repo but is **copied** to the Supabase directory. A `git pull` updates the app copy — you must re-copy it if it changed. However, the override file is generic (uses `${SITE_DOMAIN}` from `.env`), so re-copying is always safe.
+
 ```bash
 cd /opt/timetrack/app
-npm install
-npm run build
-# Nginx serves from dist/ — no restart needed
 
-# Re-deploy edge functions if changed
-cp -r supabase/functions/* /opt/timetrack/supabase-docker/docker/volumes/functions/
+# 1. Pull latest code
+git pull
+
+# 2. Install any new/changed dependencies
+npm install
+
+# 3. Apply new database migrations (if any)
+#    Set the connection string first (replace <POSTGRES_PASSWORD> with your value)
+export SUPABASE_DB_URL="postgresql://postgres:<POSTGRES_PASSWORD>@localhost:5433/postgres"
+for f in supabase/migrations/*.sql; do
+  echo "Applying $f ..."
+  psql "$SUPABASE_DB_URL" -f "$f" 2>&1
+  if [ $? -ne 0 ]; then
+    echo "⚠️  Warning on $f (may already be applied)"
+  fi
+done
+
+# 4. Rebuild frontend
+npm run build
+# Nginx serves from dist/ — no Nginx restart needed
+
+# 5. Re-copy override file (safe — always idempotent)
+cp docker/docker-compose.override.yml /opt/timetrack/supabase-docker/docker/docker-compose.override.yml
+
+# 6. Re-deploy edge functions if changed
+cp -r supabase/functions/create-auth-user /opt/timetrack/supabase-docker/docker/volumes/functions/
+cp -r supabase/functions/data-api /opt/timetrack/supabase-docker/docker/volumes/functions/
+cp -r supabase/functions/process-reminders /opt/timetrack/supabase-docker/docker/volumes/functions/
+
+# 7. Restart affected services
 cd /opt/timetrack/supabase-docker/docker
 docker compose restart functions
+# Only recreate if override file changed (safe to always run):
+docker compose up -d --force-recreate
 ```
 
-### Update Supabase
+> **💡 Why `--force-recreate`?** If the override file changed (e.g., new Traefik labels, new service config), Docker Compose needs to recreate containers to pick up the changes. This is safe — containers restart with the same data volumes. Allow ~60 seconds for Kong to pass its health check after restart.
+
+> **⚠️ The `frontend.yml` at `/opt/timetrack/traefik-config/frontend.yml` is NOT in the git repo** — it contains your hardcoded domain and lives only on the server. `git pull` will never touch it.
+
+### Update Supabase infrastructure
 
 📂 **Supabase dir** (`/opt/timetrack/supabase-docker/docker`)
 
+> **⚠️ Warning:** Never blindly `git pull` + `docker compose pull` on the Supabase repo. Always check the [Supabase changelog](https://github.com/supabase/supabase/releases) for breaking changes and update image tags deliberately.
+
 ```bash
 cd /opt/timetrack/supabase-docker/docker
-# Update pinned image versions in docker-compose.yml
-# Then:
+# 1. Check current versions
+docker compose images
+
+# 2. Update pinned image versions in docker-compose.yml (manually)
+nano docker-compose.yml
+
+# 3. Pull new images and restart
 docker compose pull
 docker compose up -d
-```
 
-> **⚠️ Warning:** Never blindly `git pull` + `docker compose pull` on the Supabase repo. Always check the changelog for breaking changes and update image tags deliberately.
+# 4. Wait for Kong health check (~60s) then verify
+sleep 60
+docker compose ps
+```
 
 ### Monitor
 
