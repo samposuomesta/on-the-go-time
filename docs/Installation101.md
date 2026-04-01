@@ -1279,7 +1279,8 @@ Create `/etc/nginx/sites-available/timetrack`:
 limit_req_zone $binary_remote_addr zone=api_limit:10m rate=10r/s;
 limit_req_zone $binary_remote_addr zone=frontend_limit:10m rate=30r/s;
 
-# Frontend — serves the built React SPA
+# Single-domain setup: frontend + API on the same domain
+# Supabase API paths are routed to Kong; everything else serves the SPA.
 server {
     listen 80;
     server_name timetrack.yourdomain.com;
@@ -1288,13 +1289,35 @@ server {
     root /opt/timetrack/app/dist;
     index index.html;
 
-    # Rate limit for frontend (generous — mostly static files)
-    limit_req zone=frontend_limit burst=60 nodelay;
+    # Block public access to process-reminders edge function.
+    # This function should only be called by the local cron job (step 17).
+    location /functions/v1/process-reminders {
+        allow 127.0.0.1;
+        allow ::1;
+        deny all;
 
-    # SPA routing — any path that doesn't match a file serves index.html
-    # This is required for React Router to handle client-side routes
-    location / {
-        try_files $uri $uri/ /index.html;
+        proxy_pass http://localhost:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # Supabase API paths → Kong (port 8000)
+    location ~ ^/(auth|rest|functions|realtime|storage)/v1/ {
+        limit_req zone=api_limit burst=20 nodelay;
+        limit_req_status 429;
+
+        proxy_pass http://localhost:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # WebSocket support (required for Supabase Realtime)
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
     }
 
     # Cache static assets aggressively (they have content hashes in filenames)
@@ -1308,44 +1331,11 @@ server {
         expires off;
         add_header Cache-Control "no-cache, no-store, must-revalidate";
     }
-}
 
-# Supabase API — reverse proxy to Kong (Docker container on port 8000)
-server {
-    listen 80;
-    server_name api.timetrack.yourdomain.com;
-
-    # Rate limiting for API endpoints
-    limit_req zone=api_limit burst=20 nodelay;
-    limit_req_status 429;
-
-    # Block public access to process-reminders edge function.
-    # This function should only be called by the local cron job (step 17).
-    # Only localhost connections are allowed through.
-    location /functions/v1/process-reminders {
-        allow 127.0.0.1;
-        allow ::1;
-        deny all;
-
-        proxy_pass http://localhost:8000;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-
-    # All other API requests → forward to Supabase Kong gateway
+    # SPA routing — any path that doesn't match a file serves index.html
     location / {
-        proxy_pass http://localhost:8000;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-
-        # WebSocket support (required for Supabase Realtime)
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
+        limit_req zone=frontend_limit burst=60 nodelay;
+        try_files $uri $uri/ /index.html;
     }
 }
 ```
