@@ -1202,7 +1202,7 @@ added xxx packages in xxs
 # These variables are embedded into the built JavaScript at build time.
 cat > .env.production << 'EOF'
 # URL where the Supabase API is publicly reachable (your Nginx reverse proxy)
-VITE_SUPABASE_URL=https://api.timetrack.yourdomain.com
+VITE_SUPABASE_URL=https://timetrack.yourdomain.com
 
 # The ANON_KEY generated in step 6 (safe to include — restricted by RLS)
 VITE_SUPABASE_PUBLISHABLE_KEY=<YOUR_ANON_KEY>
