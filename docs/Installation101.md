@@ -1176,6 +1176,8 @@ drwxr-xr-x 2 timetrack timetrack 4096 ... data-api
 drwxr-xr-x 2 timetrack timetrack 4096 ... process-reminders
 ```
 
+📂 **Supabase dir** (`/opt/timetrack/supabase-docker/docker`)
+
 ```bash
 # Restart edge-functions container to pick up the new functions
 # NOTE: The Docker Compose service name is "functions", not "supabase-edge-functions"
