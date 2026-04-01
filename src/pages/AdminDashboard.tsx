@@ -2267,6 +2267,11 @@ function AddEmployeeDialog({ onCreate, companies }: { onCreate: (data: any) => v
           <div className="space-y-1.5"><Label>{t("admin.lastName")}</Label><Input value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder={t("admin.lastName")} /></div>
           <div className="space-y-1.5 sm:col-span-2"><Label>{t("admin.email")}</Label><Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder={t("admin.email")} /></div>
           <div className="space-y-1.5 sm:col-span-2">
+            <Label>{t("admin.initialPassword")}</Label>
+            <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder={t("admin.initialPasswordPlaceholder")} minLength={6} />
+            <p className="text-xs text-muted-foreground">{t("admin.initialPasswordHint")}</p>
+          </div>
+          <div className="space-y-1.5 sm:col-span-2">
             <Label>{t("admin.company")} *</Label>
             {companies.length === 1 ? (
               <Input value={companies[0].name} disabled className="bg-muted" />
