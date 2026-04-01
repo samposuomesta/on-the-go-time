@@ -53,6 +53,19 @@
 
 > **Installation order matters!** This guide installs tools in the order they are needed. Do not skip steps. If you jump ahead to e.g. database migration (step 9) without installing `postgresql-client` (step 2), commands will fail.
 
+### Working Directories Quick Reference
+
+Most commands must be run from a specific directory. Look for the **📂** marker before each command block, or use this table:
+
+| Directory | Alias | Used in steps |
+|-----------|-------|---------------|
+| `/opt/timetrack/supabase-docker/docker` | **Supabase dir** | 6, 8, 11, 22, 23 |
+| `/opt/timetrack/app` | **App dir** | 9, 10, 11, 12, 22 |
+| `/opt/timetrack` | **Root dir** | 5, 7, 8 (clone) |
+| Any directory | — | 2, 3, 4 (system packages) |
+
+> **💡 Tip:** `docker compose` commands (start, stop, logs, ps) must be run from the **Supabase dir** where `docker-compose.yml` lives. Application commands (migrations, build, scripts) must be run from the **App dir**. `docker inspect` can be run from any directory since it references containers by name.
+
 ---
 
 ## 2. Server Setup
@@ -513,6 +526,8 @@ Both keys are derived from the `JWT_SECRET` you already set in `.env`. Choose on
 
 This script reads `JWT_SECRET` from your `.env` and **writes `ANON_KEY` and `SERVICE_ROLE_KEY` directly into the `.env` file**, overwriting any existing values for those two keys. Other `.env` values (like `POSTGRES_PASSWORD`) are not modified.
 
+📂 **Supabase dir** (`/opt/timetrack/supabase-docker/docker`)
+
 ```bash
 cd /opt/timetrack/supabase-docker/docker
 sh ./utils/generate-keys.sh
@@ -815,10 +830,10 @@ cp /opt/timetrack/app/docker/docker-compose.override.yml /opt/timetrack/supabase
 
 ### Pull and start
 
+📂 **Supabase dir** (`/opt/timetrack/supabase-docker/docker`)
+
 ```bash
 cd /opt/timetrack/supabase-docker/docker
-
-# Pull all container images (this may take 5-10 minutes on first run)
 docker compose pull
 ```
 
@@ -936,7 +951,9 @@ psql "$SUPABASE_DB_URL" -c "SELECT version();"
 
 ### Apply all migrations
 
-> **⚠️ Important:** Run this from the **app directory**, not the Supabase docker directory.
+> **⚠️ Important:** Run this from the **App dir**, not the Supabase docker directory.
+
+📂 **App dir** (`/opt/timetrack/app`)
 
 ```bash
 cd /opt/timetrack/app
@@ -1077,6 +1094,8 @@ The setup script creates a default company and admin user so you can log in imme
 
 ### Run the setup script
 
+📂 **App dir** (`/opt/timetrack/app`)
+
 ```bash
 cd /opt/timetrack/app
 bash scripts/setup-first-admin.sh
@@ -1132,6 +1151,8 @@ The application uses 3 Edge Functions:
 
 The official `supabase/supabase/docker` setup mounts a `volumes/functions` directory into the Edge Runtime container automatically.
 
+📂 **App dir** (`/opt/timetrack/app`)
+
 ```bash
 cd /opt/timetrack/app
 
@@ -1155,6 +1176,8 @@ drwxr-xr-x 2 timetrack timetrack 4096 ... data-api
 drwxr-xr-x 2 timetrack timetrack 4096 ... process-reminders
 ```
 
+📂 **Supabase dir** (`/opt/timetrack/supabase-docker/docker`)
+
 ```bash
 # Restart edge-functions container to pick up the new functions
 # NOTE: The Docker Compose service name is "functions", not "supabase-edge-functions"
@@ -1170,6 +1193,8 @@ docker compose restart functions
 ```
 
 ### Option B: Use Supabase CLI
+
+📂 **App dir** (`/opt/timetrack/app`)
 
 ```bash
 cd /opt/timetrack/app
@@ -1230,6 +1255,8 @@ curl -s -o /dev/null -w "%{http_code}" \
 > **Prerequisites:** Node.js installed (step 4), TimeTrack app cloned (step 9).
 
 ### Clone and configure
+
+📂 **App dir** (`/opt/timetrack/app`)
 
 ```bash
 cd /opt/timetrack/app
@@ -1996,9 +2023,10 @@ crontab -e
 
 ### Update application
 
+📂 **App dir** (`/opt/timetrack/app`)
+
 ```bash
 cd /opt/timetrack/app
-git pull
 npm install
 npm run build
 # Nginx serves from dist/ — no restart needed
@@ -2011,10 +2039,10 @@ docker compose restart functions
 
 ### Update Supabase
 
+📂 **Supabase dir** (`/opt/timetrack/supabase-docker/docker`)
+
 ```bash
 cd /opt/timetrack/supabase-docker/docker
-
-# Check release notes BEFORE upgrading!
 # Update pinned image versions in docker-compose.yml
 # Then:
 docker compose pull
