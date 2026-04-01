@@ -602,12 +602,13 @@ If you see lines like `POSTGRES_PASSWORD=<STRONG_RANDOM_PASSWORD>`, those placeh
 > Before starting Docker with Traefik or any TLS proxy, your domain must already resolve to your server:
 >
 > 1. Add an **A record** for your domain (e.g. `timetrack.example.com`) pointing to your server's public IP
-> 2. If using Studio subdomain, add an **A record** for `studio.timetrack.example.com` as well
-> 3. Wait for DNS propagation — verify with:
+> 2. Wait for DNS propagation — verify with:
 >    ```bash
->    dig +short yourdomain.com
+>    dig +short timetrack.yourdomain.com
 >    ```
 >    The output must show your server IP. Let's Encrypt HTTP challenge will fail if DNS is not ready.
+>
+> Only **one domain** is needed — both the frontend and API are served from the same domain using path-based routing.
 
 ### Alternative: Official TLS proxy
 
