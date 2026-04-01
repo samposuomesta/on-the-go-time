@@ -1600,7 +1600,7 @@ curl -s "https://<PROJECT_REF>.supabase.co/storage/v1/object/list/receipts" \
 
 | Variable | Cloud Value | Self-Hosted Value |
 |----------|------------|-------------------|
-| `VITE_SUPABASE_URL` | `https://pqmdsvdcbyefdngdmuud.supabase.co` | `https://api.timetrack.yourdomain.com` |
+| `VITE_SUPABASE_URL` | `https://pqmdsvdcbyefdngdmuud.supabase.co` | `https://timetrack.yourdomain.com` |
 | `VITE_SUPABASE_PUBLISHABLE_KEY` | Cloud anon key | Your generated anon key |
 | `VITE_SUPABASE_PROJECT_ID` | `pqmdsvdcbyefdngdmuud` | `local` (or any identifier) |
 
