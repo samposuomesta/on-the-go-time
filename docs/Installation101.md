@@ -899,6 +899,12 @@ supabase-kong                Up              0.0.0.0:8000->8000/tcp
 > ```
 > Common causes: wrong password in `.env`, port conflict, missing volume directory.
 
+> **⚠️ Kong health check timing:** Kong has a Docker health check defined. When Traefik starts alongside Kong, it will initially filter Kong as **"unhealthy or starting"** and skip it from routing. This is normal — Traefik re-evaluates containers every time their state changes. Once Kong passes its health check (typically 30–60 seconds after start), Traefik will automatically pick it up and begin routing API traffic. You can monitor this with:
+> ```bash
+> docker compose logs traefik --since=2m 2>&1 | grep -i kong
+> ```
+> Look for the progression from `Filtering unhealthy or starting container` → `Configuration received` with Kong's router rules.
+
 ```bash
 # Watch live logs (Ctrl+C to stop)
 docker compose logs -f --tail=50
@@ -906,7 +912,7 @@ docker compose logs -f --tail=50
 
 ### Verify API is running
 
-Wait ~30 seconds after starting, then:
+Wait **~60 seconds** after starting (Kong needs to pass its health check before Traefik routes to it), then:
 
 ```bash
 curl -s http://localhost:8000/rest/v1/ \
@@ -924,7 +930,7 @@ curl -s http://localhost:8000/rest/v1/ \
 ```
 curl: (7) Failed to connect to localhost port 8000
 ```
-→ Services are still starting. Wait 30 more seconds and retry.
+→ Services are still starting. Wait 60 more seconds and retry. Check `docker compose ps` — Kong should show as "healthy".
 
 ---
 
