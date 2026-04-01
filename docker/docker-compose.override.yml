@@ -4,7 +4,7 @@ services:
     restart: unless-stopped
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.kong.rule=Host(`${SITE_DOMAIN}`) && PathPrefix(`/auth/v1`, `/rest/v1`, `/functions/v1`, `/realtime/v1`, `/storage/v1`)"
+      - "traefik.http.routers.kong.rule=Host(`${SITE_DOMAIN}`) && (PathPrefix(`/auth/v1`) || PathPrefix(`/rest/v1`) || PathPrefix(`/functions/v1`) || PathPrefix(`/realtime/v1`) || PathPrefix(`/storage/v1`))"
       - "traefik.http.routers.kong.entrypoints=websecure"
       - "traefik.http.routers.kong.tls.certresolver=letsencrypt"
       - "traefik.http.services.kong.loadbalancer.server.port=8000"
