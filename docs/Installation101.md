@@ -1532,7 +1532,9 @@ If missing, add it: `sudo ufw allow from 172.16.0.0/12 to any port 3000 proto tc
 
 ### 16.1 Install and configure fail2ban
 
-Protect SSH and Nginx from brute-force attacks:
+Protect SSH and Nginx from brute-force attacks.
+
+> **Run from:** Any directory (these are system-level commands, not project-specific).
 
 ```bash
 sudo apt install -y fail2ban
