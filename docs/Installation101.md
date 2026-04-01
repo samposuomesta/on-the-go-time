@@ -471,6 +471,20 @@ POOLER_MAX_CLIENT_CONN=100                       # DEFAULT OK
 # NOTE: Supavisor listens on the host's port 5432.
 # For direct psql access (migrations, backups), use port 5433 instead,
 # which maps directly to the PostgreSQL container.
+
+############################################################
+# SECTION 6: TRAEFIK / HTTPS
+# Required for production HTTPS via the docker-compose.override.yml
+# Traefik reverse proxy.
+############################################################
+
+# Your domain name (without https:// prefix)
+# Used in Traefik routing rules for Kong and frontend.
+SITE_DOMAIN=timetrack.yourdomain.com              # CHANGE THIS
+
+# Email address for Let's Encrypt certificate registration.
+# You'll receive expiry warnings at this address.
+ACME_EMAIL=you@example.com                         # CHANGE THIS
 ```
 
 ### Quick secret generation script
