@@ -2241,6 +2241,7 @@ function AddEmployeeDialog({ onCreate, companies }: { onCreate: (data: any) => v
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [employeeNumber, setEmployeeNumber] = useState('');
   const [companyId, setCompanyId] = useState('');
   const [role, setRole] = useState<'employee' | 'manager' | 'admin'>('employee');
@@ -2249,7 +2250,8 @@ function AddEmployeeDialog({ onCreate, companies }: { onCreate: (data: any) => v
   const [dailyWorkHours, setDailyWorkHours] = useState('7.5');
   const [autoSubtractLunch, setAutoSubtractLunch] = useState(false);
   const [lunchThreshold, setLunchThreshold] = useState('5');
-  const reset = () => { setFirstName(''); setLastName(''); setEmail(''); setEmployeeNumber(''); setCompanyId(companies.length === 1 ? companies[0].id : ''); setRole('employee'); setContractDate(''); setVacationDays('25'); setDailyWorkHours('7.5'); setAutoSubtractLunch(false); setLunchThreshold('5'); };
+  const [creatingAuth, setCreatingAuth] = useState(false);
+  const reset = () => { setFirstName(''); setLastName(''); setEmail(''); setPassword(''); setEmployeeNumber(''); setCompanyId(companies.length === 1 ? companies[0].id : ''); setRole('employee'); setContractDate(''); setVacationDays('25'); setDailyWorkHours('7.5'); setAutoSubtractLunch(false); setLunchThreshold('5'); };
 
   React.useEffect(() => {
     if (companies.length === 1 && !companyId) setCompanyId(companies[0].id);
