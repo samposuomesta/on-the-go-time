@@ -1,26 +1,13 @@
 services:
-  # --- Kong API gateway (behind Traefik only) ---
+  # --- Kong API gateway (behind Traefik — single domain) ---
   kong:
     restart: unless-stopped
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.kong.rule=Host(`${SITE_DOMAIN}`)"
+      - "traefik.http.routers.kong.rule=Host(`${SITE_DOMAIN}`) && PathPrefix(`/auth/v1`, `/rest/v1`, `/functions/v1`, `/realtime/v1`, `/storage/v1`)"
       - "traefik.http.routers.kong.entrypoints=websecure"
       - "traefik.http.routers.kong.tls.certresolver=letsencrypt"
       - "traefik.http.services.kong.loadbalancer.server.port=8000"
-      - "traefik.docker.network=traefik"
-    networks:
-      - traefik
-
-  # --- Studio dashboard (behind Traefik only) ---
-  studio:
-    restart: unless-stopped
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.studio.rule=Host(`studio.${SITE_DOMAIN}`)"
-      - "traefik.http.routers.studio.entrypoints=websecure"
-      - "traefik.http.routers.studio.tls.certresolver=letsencrypt"
-      - "traefik.http.services.studio.loadbalancer.server.port=3000"
       - "traefik.docker.network=traefik"
     networks:
       - traefik
@@ -48,6 +35,9 @@ services:
       retries: 5
 
   rest:
+    restart: unless-stopped
+
+  studio:
     restart: unless-stopped
 
   # --- Traefik reverse proxy with HTTPS ---

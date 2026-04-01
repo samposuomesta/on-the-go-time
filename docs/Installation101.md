@@ -17,20 +17,21 @@
 7. [Persistent Volumes](#7-persistent-volumes)
 8. [Start Supabase Services](#8-start-supabase-services)
 9. [Database Migration](#9-database-migration)
-10. [Deploy Edge Functions](#10-deploy-edge-functions)
-11. [Build & Deploy the Frontend](#11-build--deploy-the-frontend)
-12. [Nginx Reverse Proxy & SSL](#12-nginx-reverse-proxy--ssl)
-13. [Security Hardening](#13-security-hardening)
-14. [Migration from Supabase Cloud](#14-migration-from-supabase-cloud)
-15. [Code Changes Required](#15-code-changes-required)
-16. [Secrets & Environment Variables](#16-secrets--environment-variables)
-17. [Cron Jobs](#17-cron-jobs)
-18. [Storage (Receipts Bucket)](#18-storage-receipts-bucket)
-19. [Push Notifications (VAPID)](#19-push-notifications-vapid)
-20. [Health Checks & Monitoring](#20-health-checks--monitoring)
-21. [Backup & Maintenance](#21-backup--maintenance)
-22. [Troubleshooting](#22-troubleshooting)
-23. [Optional: S3-Compatible Storage (MinIO)](#23-optional-s3-compatible-storage-minio)
+10. [Create First Admin Account](#10-create-first-admin-account)
+11. [Deploy Edge Functions](#11-deploy-edge-functions)
+12. [Build & Deploy the Frontend](#12-build--deploy-the-frontend)
+13. [Nginx Reverse Proxy & SSL](#13-nginx-reverse-proxy--ssl)
+14. [Security Hardening](#14-security-hardening)
+15. [Migration from Supabase Cloud](#15-migration-from-supabase-cloud)
+16. [Code Changes Required](#16-code-changes-required)
+17. [Secrets & Environment Variables](#17-secrets--environment-variables)
+18. [Cron Jobs](#18-cron-jobs)
+19. [Storage (Receipts Bucket)](#19-storage-receipts-bucket)
+20. [Push Notifications (VAPID)](#20-push-notifications-vapid)
+21. [Health Checks & Monitoring](#21-health-checks--monitoring)
+22. [Backup & Maintenance](#22-backup--maintenance)
+23. [Troubleshooting](#23-troubleshooting)
+24. [Optional: S3-Compatible Storage (MinIO)](#24-optional-s3-compatible-storage-minio)
 
 ---
 
@@ -217,9 +218,9 @@ sudo systemctl restart docker
 
 > **Why Node.js?** You need Node.js + npm to:
 > - Generate JWT keys (step 6, Option B/C)
-> - Install frontend dependencies (`npm install`, step 11)
-> - Build the production frontend (`npm run build`, step 11)
-> - Generate VAPID keys for push notifications (step 16)
+> - Install frontend dependencies (`npm install`, step 13)
+> - Build the production frontend (`npm run build`, step 13)
+> - Generate VAPID keys for push notifications (step 19)
 
 ```bash
 # Install Node.js 24 LTS via NodeSource
@@ -384,12 +385,12 @@ SITE_URL=https://timetrack.yourdomain.com        # CHANGE THIS
 # The public URL where the Supabase API is reachable.
 # This is embedded in auth emails (confirmation links, magic links).
 # Must match your Nginx reverse proxy domain for the API.
-API_EXTERNAL_URL=https://api.timetrack.yourdomain.com    # CHANGE THIS
+API_EXTERNAL_URL=https://timetrack.yourdomain.com       # CHANGE THIS
 
 # --- Supabase Public URL ---
 # Used internally by services to know their own public address.
 # Usually same as API_EXTERNAL_URL.
-SUPABASE_PUBLIC_URL=https://api.timetrack.yourdomain.com # CHANGE THIS
+SUPABASE_PUBLIC_URL=https://timetrack.yourdomain.com    # CHANGE THIS
 
 ############################################################
 # SECTION 3: SMTP (Email)
@@ -602,12 +603,13 @@ If you see lines like `POSTGRES_PASSWORD=<STRONG_RANDOM_PASSWORD>`, those placeh
 > Before starting Docker with Traefik or any TLS proxy, your domain must already resolve to your server:
 >
 > 1. Add an **A record** for your domain (e.g. `timetrack.example.com`) pointing to your server's public IP
-> 2. If using Studio subdomain, add an **A record** for `studio.timetrack.example.com` as well
-> 3. Wait for DNS propagation — verify with:
+> 2. Wait for DNS propagation — verify with:
 >    ```bash
->    dig +short yourdomain.com
+>    dig +short timetrack.yourdomain.com
 >    ```
 >    The output must show your server IP. Let's Encrypt HTTP challenge will fail if DNS is not ready.
+>
+> Only **one domain** is needed — both the frontend and API are served from the same domain using path-based routing.
 
 ### Alternative: Official TLS proxy
 
@@ -790,7 +792,7 @@ git clone <YOUR_TIMETRACK_REPO_URL> app
 
 ### Copy the override file
 
-The TimeTrack app includes a `docker-compose.override.yml` that adds the DB port mapping (5433→5432), Traefik labels, health checks, restart policies, and **critically, connects the `meta` service to the Traefik network with a `meta` alias so Studio can resolve `http://meta:8080`**. **You must copy it before starting services:**
+The TimeTrack app includes a `docker-compose.override.yml` that adds the DB port mapping (5433→5432), Traefik labels with **single-domain path-based routing** (API paths like `/auth/v1/`, `/rest/v1/` etc. are routed to Kong), health checks, restart policies, and **critically, connects the `meta` service to the Traefik network with a `meta` alias so Studio can resolve `http://meta:8080`**. **You must copy it before starting services:**
 
 ```bash
 cp /opt/timetrack/app/docker/docker-compose.override.yml /opt/timetrack/supabase-docker/docker/docker-compose.override.yml
@@ -1067,7 +1069,54 @@ curl -s http://localhost:8000/rest/v1/ \
 
 ---
 
-## 10. Deploy Edge Functions
+## 10. Create First Admin Account
+
+> **Prerequisites:** Database migrations applied (step 9), Supabase services running (step 8).
+
+The setup script creates a default company and admin user so you can log in immediately.
+
+### Run the setup script
+
+```bash
+cd /opt/timetrack/app
+bash scripts/setup-first-admin.sh
+```
+
+**Expected output:**
+```
+ℹ️  Seeding default company and admin user...
+✅ Database seeded (or already existed)
+ℹ️  Provisioning auth account for admin@timetrack.local...
+✅ Auth account created
+
+════════════════════════════════════════════════════════
+  First admin account ready!
+
+  Email:    admin@timetrack.local
+  Password: ChangeMe123!
+
+  ⚠️  CHANGE THE PASSWORD after first login!
+════════════════════════════════════════════════════════
+```
+
+> The script is **idempotent** — safe to run multiple times. It uses `ON CONFLICT DO NOTHING` for database records and handles existing auth accounts gracefully.
+
+### Verify login
+
+After completing SSL setup (step 13), log in at `https://timetrack.yourdomain.com` with:
+- **Email:** `admin@timetrack.local`
+- **Password:** `ChangeMe123!`
+
+### Post-setup checklist
+
+1. **Change the default password** immediately via Settings
+2. **Update company name** in Admin Dashboard (replace "Default Company")
+3. **Create real employee/manager accounts** from the Admin Dashboard
+4. (Optional) Delete the default admin account after creating a real one
+
+---
+
+## 11. Deploy Edge Functions
 
 > **Prerequisites:** Supabase services running (step 8), TimeTrack app cloned (step 9).
 
@@ -1077,7 +1126,7 @@ The application uses 3 Edge Functions:
 |----------|---------|---------|
 | `create-auth-user` | Admin creates auth accounts for employees | Called from Admin UI |
 | `data-api` | External REST API with API key auth | Called by external systems |
-| `process-reminders` | Push notification reminders | Cron job (step 17) |
+| `process-reminders` | Push notification reminders | Cron job (step 18) |
 
 ### Option A: Mount via volume (recommended for `supabase-docker`)
 
@@ -1150,7 +1199,7 @@ SUPABASE_ANON_KEY=<YOUR_ANON_KEY>
 SUPABASE_SERVICE_ROLE_KEY=<YOUR_SERVICE_ROLE_KEY>
 
 # Secret used to authenticate cron-triggered calls to process-reminders.
-# The cron job (step 17) sends this in the x-cron-secret header.
+# The cron job (step 19) sends this in the x-cron-secret header.
 # Generate: openssl rand -base64 32
 CRON_SECRET=<YOUR_CRON_SECRET>
 
@@ -1176,7 +1225,7 @@ curl -s -o /dev/null -w "%{http_code}" \
 
 ---
 
-## 11. Build & Deploy the Frontend
+## 12. Build & Deploy the Frontend
 
 > **Prerequisites:** Node.js installed (step 4), TimeTrack app cloned (step 9).
 
@@ -1201,7 +1250,7 @@ added xxx packages in xxs
 # These variables are embedded into the built JavaScript at build time.
 cat > .env.production << 'EOF'
 # URL where the Supabase API is publicly reachable (your Nginx reverse proxy)
-VITE_SUPABASE_URL=https://api.timetrack.yourdomain.com
+VITE_SUPABASE_URL=https://timetrack.yourdomain.com
 
 # The ANON_KEY generated in step 6 (safe to include — restricted by RLS)
 VITE_SUPABASE_PUBLISHABLE_KEY=<YOUR_ANON_KEY>
@@ -1242,15 +1291,15 @@ ls -la dist/
 drwxr-xr-x 2 timetrack timetrack  xxxx ... assets
 ```
 
-### Serve with Nginx (see step 12)
+### Serve with Nginx (see step 13)
 
 The built `dist/` folder contains static files served by Nginx.
 
 ---
 
-## 12. Nginx Reverse Proxy & SSL
+## 13. Nginx Reverse Proxy & SSL
 
-> **Prerequisites:** Frontend built (step 11), Supabase services running (step 8), DNS configured (your domain must point to this server).
+> **Prerequisites:** Frontend built (step 13), Supabase services running (step 8), DNS configured (your domain must point to this server).
 
 ### Install Nginx & Certbot
 
@@ -1278,7 +1327,8 @@ Create `/etc/nginx/sites-available/timetrack`:
 limit_req_zone $binary_remote_addr zone=api_limit:10m rate=10r/s;
 limit_req_zone $binary_remote_addr zone=frontend_limit:10m rate=30r/s;
 
-# Frontend — serves the built React SPA
+# Single-domain setup: frontend + API on the same domain
+# Supabase API paths are routed to Kong; everything else serves the SPA.
 server {
     listen 80;
     server_name timetrack.yourdomain.com;
@@ -1287,13 +1337,35 @@ server {
     root /opt/timetrack/app/dist;
     index index.html;
 
-    # Rate limit for frontend (generous — mostly static files)
-    limit_req zone=frontend_limit burst=60 nodelay;
+    # Block public access to process-reminders edge function.
+    # This function should only be called by the local cron job (step 18).
+    location /functions/v1/process-reminders {
+        allow 127.0.0.1;
+        allow ::1;
+        deny all;
 
-    # SPA routing — any path that doesn't match a file serves index.html
-    # This is required for React Router to handle client-side routes
-    location / {
-        try_files $uri $uri/ /index.html;
+        proxy_pass http://localhost:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # Supabase API paths → Kong (port 8000)
+    location ~ ^/(auth|rest|functions|realtime|storage)/v1/ {
+        limit_req zone=api_limit burst=20 nodelay;
+        limit_req_status 429;
+
+        proxy_pass http://localhost:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # WebSocket support (required for Supabase Realtime)
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
     }
 
     # Cache static assets aggressively (they have content hashes in filenames)
@@ -1307,44 +1379,11 @@ server {
         expires off;
         add_header Cache-Control "no-cache, no-store, must-revalidate";
     }
-}
 
-# Supabase API — reverse proxy to Kong (Docker container on port 8000)
-server {
-    listen 80;
-    server_name api.timetrack.yourdomain.com;
-
-    # Rate limiting for API endpoints
-    limit_req zone=api_limit burst=20 nodelay;
-    limit_req_status 429;
-
-    # Block public access to process-reminders edge function.
-    # This function should only be called by the local cron job (step 17).
-    # Only localhost connections are allowed through.
-    location /functions/v1/process-reminders {
-        allow 127.0.0.1;
-        allow ::1;
-        deny all;
-
-        proxy_pass http://localhost:8000;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-
-    # All other API requests → forward to Supabase Kong gateway
+    # SPA routing — any path that doesn't match a file serves index.html
     location / {
-        proxy_pass http://localhost:8000;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-
-        # WebSocket support (required for Supabase Realtime)
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
+        limit_req zone=frontend_limit burst=60 nodelay;
+        try_files $uri $uri/ /index.html;
     }
 }
 ```
@@ -1374,17 +1413,16 @@ sudo systemctl reload nginx
 
 ### SSL with Let's Encrypt
 
-> **Prerequisites:** DNS A records for `timetrack.yourdomain.com` and `api.timetrack.yourdomain.com` must point to this server's public IP.
+> **Prerequisites:** DNS A record for `timetrack.yourdomain.com` must point to this server's public IP. Only **one domain** is needed.
 
 ```bash
-sudo certbot --nginx -d timetrack.yourdomain.com -d api.timetrack.yourdomain.com
+sudo certbot --nginx -d timetrack.yourdomain.com
 ```
 
 **Expected output:**
 ```
 Congratulations! You have successfully enabled HTTPS on:
 - https://timetrack.yourdomain.com
-- https://api.timetrack.yourdomain.com
 ```
 
 ```bash
@@ -1402,9 +1440,9 @@ Congratulations, all simulated renewals succeeded:
 
 ---
 
-## 13. Security Hardening
+## 14. Security Hardening
 
-### 13.1 Install and configure fail2ban
+### 16.1 Install and configure fail2ban
 
 Protect SSH and Nginx from brute-force attacks:
 
@@ -1459,11 +1497,11 @@ Status
 `- Jail list:   nginx-botsearch, nginx-http-auth, nginx-limit-req, sshd
 ```
 
-### 13.2 Docker log rotation (already configured in step 3)
+### 16.2 Docker log rotation (already configured in step 3)
 
 The global `/etc/docker/daemon.json` limits each container log to **3 files × 10 MB = 30 MB max per container**. This prevents any single container from filling the disk.
 
-### 13.3 Restrict Supabase Studio (Dashboard)
+### 16.3 Restrict Supabase Studio (Dashboard)
 
 The Supabase Studio runs on port 3000 by default. **Do not expose it publicly.** Access it only via SSH tunnel:
 
@@ -1482,7 +1520,7 @@ studio:
     - "127.0.0.1:3000:3000"   # Only accessible from localhost
 ```
 
-### 13.4 SSH hardening (optional but recommended)
+### 16.4 SSH hardening (optional but recommended)
 
 ```bash
 # Disable root login and password auth
@@ -1493,7 +1531,7 @@ sudo systemctl restart sshd
 
 > **⚠️ Warning:** Ensure you have SSH key access configured and tested BEFORE disabling password authentication! Otherwise you will lock yourself out.
 
-### 13.5 Automatic security updates
+### 14.5 Automatic security updates
 
 ```bash
 sudo apt install -y unattended-upgrades
@@ -1502,11 +1540,11 @@ sudo dpkg-reconfigure -plow unattended-upgrades
 
 ---
 
-## 14. Migration from Supabase Cloud
+## 15. Migration from Supabase Cloud
 
 When moving from Supabase Cloud to self-hosted, these are the key steps:
 
-### 14.1 Export database
+### 16.1 Export database
 
 ```bash
 # From Supabase Cloud (using their CLI or dashboard)
@@ -1538,7 +1576,7 @@ supabase db dump --project-ref <CLOUD_PROJECT_REF> -f schema_dump.sql
 supabase db dump --project-ref <CLOUD_PROJECT_REF> --data-only -f data_dump.sql
 ```
 
-### 14.2 Import to self-hosted
+### 16.2 Import to self-hosted
 
 ```bash
 # Restore schema + data
@@ -1555,7 +1593,7 @@ psql "$SUPABASE_DB_URL" -f data_dump.sql
 (warnings about existing objects are normal if you already ran migrations)
 ```
 
-### 14.3 Migrate auth users
+### 16.3 Migrate auth users
 
 ```bash
 # Export auth users from Cloud
@@ -1575,7 +1613,7 @@ INSERT 0 xx
 ```
 (Where xx is the number of users imported.)
 
-### 14.4 Migrate storage objects
+### 16.4 Migrate storage objects
 
 ```bash
 # Download all receipts from Cloud storage bucket
@@ -1593,17 +1631,17 @@ curl -s "https://<PROJECT_REF>.supabase.co/storage/v1/object/list/receipts" \
 
 ---
 
-## 15. Code Changes Required
+## 16. Code Changes Required
 
-### 15.1 Environment variables (`.env.production`)
+### 16.1 Environment variables (`.env.production`)
 
 | Variable | Cloud Value | Self-Hosted Value |
 |----------|------------|-------------------|
-| `VITE_SUPABASE_URL` | `https://pqmdsvdcbyefdngdmuud.supabase.co` | `https://api.timetrack.yourdomain.com` |
+| `VITE_SUPABASE_URL` | `https://pqmdsvdcbyefdngdmuud.supabase.co` | `https://timetrack.yourdomain.com` |
 | `VITE_SUPABASE_PUBLISHABLE_KEY` | Cloud anon key | Your generated anon key |
 | `VITE_SUPABASE_PROJECT_ID` | `pqmdsvdcbyefdngdmuud` | `local` (or any identifier) |
 
-### 15.2 Supabase client (`src/integrations/supabase/client.ts`)
+### 16.2 Supabase client (`src/integrations/supabase/client.ts`)
 
 **No code changes needed!** The client reads from environment variables:
 
@@ -1614,7 +1652,7 @@ const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
 Just ensure your `.env.production` has the correct values before building.
 
-### 15.3 Edge Function URLs
+### 16.3 Edge Function URLs
 
 Edge functions are called via the Supabase URL. Since `VITE_SUPABASE_URL` changes, all edge function calls automatically point to the new host. No code changes needed if you use the standard pattern:
 
@@ -1623,15 +1661,15 @@ Edge functions are called via the Supabase URL. Since `VITE_SUPABASE_URL` change
 const { data } = await supabase.functions.invoke('create-auth-user', { body: {...} });
 ```
 
-### 15.4 Service Worker (`public/sw.js`)
+### 16.4 Service Worker (`public/sw.js`)
 
 Check if there are any hardcoded Supabase URLs in `sw.js`. If so, replace them with your domain.
 
-### 15.5 PWA Manifest (`public/manifest.json`)
+### 16.5 PWA Manifest (`public/manifest.json`)
 
 Update `start_url` and `scope` if they reference the cloud domain.
 
-### 15.6 Remove `lovable-tagger` (optional)
+### 16.6 Remove `lovable-tagger` (optional)
 
 The `lovable-tagger` dev dependency is Lovable-specific. You can remove it for self-hosted:
 
@@ -1651,7 +1689,7 @@ plugins: [react()],
 
 ---
 
-## 16. Secrets & Environment Variables
+## 17. Secrets & Environment Variables
 
 ### Edge Function secrets mapping
 
@@ -1691,13 +1729,13 @@ Copy both keys into your edge function environment variables.
 
 ---
 
-## 17. Cron Jobs
+## 18. Cron Jobs
 
-> **Prerequisites:** Supabase services running (step 8), Edge functions deployed (step 10), `CRON_SECRET` set in edge function environment (step 10).
+> **Prerequisites:** Supabase services running (step 8), Edge functions deployed (step 11), `CRON_SECRET` set in edge function environment (step 11).
 
 The `process-reminders` edge function must be triggered periodically (every 5 minutes recommended).
 
-> **Important:** The Nginx config (step 12) blocks external access to `/functions/v1/process-reminders`. The cron job runs on localhost and is allowed through.
+> **Important:** The Nginx config (step 13) blocks external access to `/functions/v1/process-reminders`. The cron job runs on localhost and is allowed through.
 
 ### Option A: System cron (recommended)
 
@@ -1744,7 +1782,7 @@ SELECT cron.schedule(
 
 ---
 
-## 18. Storage (Receipts Bucket)
+## 19. Storage (Receipts Bucket)
 
 > **Prerequisites:** Supabase services running (step 8), database migrated (step 9).
 
@@ -1772,19 +1810,19 @@ Ensure the same RLS policies from Cloud are applied. Check your migration files 
 
 ---
 
-## 19. Push Notifications (VAPID)
+## 20. Push Notifications (VAPID)
 
 The `process-reminders` function sends Web Push notifications. For this to work on-premise:
 
-1. ✅ VAPID keys must be set as edge function secrets (see step 16)
-2. ✅ The frontend `sw.js` must be served over HTTPS (see step 12)
+1. ✅ VAPID keys must be set as edge function secrets (see step 17)
+2. ✅ The frontend `sw.js` must be served over HTTPS (see step 13)
 3. ✅ The push subscription endpoint URLs are third-party services (Google FCM, Mozilla autopush) — your server needs outbound HTTPS access to the internet
 
 ---
 
-## 20. Health Checks & Monitoring
+## 21. Health Checks & Monitoring
 
-### 20.1 Health check script
+### 21.1 Health check script
 
 Create `/opt/timetrack/healthcheck.sh`:
 
@@ -1871,7 +1909,7 @@ chmod +x /opt/timetrack/healthcheck.sh
 === Result: 0 failure(s) ===
 ```
 
-### 20.2 Automated health checks via cron
+### 21.2 Automated health checks via cron
 
 ```bash
 crontab -e
@@ -1916,7 +1954,7 @@ services:
 
 ---
 
-## 21. Backup & Maintenance
+## 22. Backup & Maintenance
 
 ### Database backup (daily cron)
 
@@ -2007,21 +2045,21 @@ sudo fail2ban-client status nginx-limit-req
 
 ---
 
-## 22. Troubleshooting
+## 23. Troubleshooting
 
 ### Common issues
 
 | Problem | Likely cause | Solution |
 |---------|-------------|----------|
-| **CORS errors** | `API_EXTERNAL_URL` doesn't match your domain | Fix the URL in `.env`, restart services |
+| **CORS errors** | `API_EXTERNAL_URL` doesn't match your domain, or frontend and API on different origins | With single-domain setup this should not happen. Verify `API_EXTERNAL_URL=https://timetrack.yourdomain.com` in `.env`, restart services |
 | **Auth not working** | `SITE_URL` doesn't match frontend domain | Fix in `.env`, restart `supabase-auth` |
 | **Edge functions 502** | Function crashed or missing secrets | Check logs: `docker compose logs functions` |
 | **Database connection refused** | Wrong password or port not exposed | Verify `POSTGRES_PASSWORD` in `.env` and use port **5433** (not 5432) |
 | **`password authentication failed for user "supabase_admin"`** | `POSTGRES_PASSWORD` changed in `.env` after first boot | See [Password mismatch after first boot](#password-mismatch-after-first-boot) below |
 | **`"supabase_admin" is a reserved role`** | Attempted manual `ALTER USER` on reserved role | Do **not** modify reserved roles manually — see recovery steps below |
 | **"Tenant or user not found"** | Connecting to Supavisor (port 5432) instead of PostgreSQL | Use port **5433** for direct `psql` access, or use `docker exec -i supabase-db psql -U postgres -d postgres` |
-| **Push notifications fail** | Missing VAPID keys or no outbound HTTPS | Set VAPID keys (step 16), check firewall allows outbound 443 |
-| **Storage upload fails** | Missing `receipts` bucket | Create it (step 18) |
+| **Push notifications fail** | Missing VAPID keys or no outbound HTTPS | Set VAPID keys (step 17), check firewall allows outbound 443 |
+| **Storage upload fails** | Missing `receipts` bucket | Create it (step 19) |
 | **JWT errors** | Mismatched `JWT_SECRET` and keys | Regenerate ANON/SERVICE keys with same JWT_SECRET |
 | **PostgREST 401** | Missing RLS policies or functions | Re-run migrations (step 9) |
 | **429 Too Many Requests** | Nginx rate limit hit | Adjust `rate` and `burst` in Nginx config |
@@ -2086,11 +2124,11 @@ docker compose up -d
 
 ---
 
-## 23. Optional: S3-Compatible Storage (MinIO)
+## 24. Optional: S3-Compatible Storage (MinIO)
 
 For production deployments that need scalable, redundant storage, you can replace the default Supabase storage with MinIO (S3-compatible object storage).
 
-### 23.1 Deploy MinIO
+### 24.1 Deploy MinIO
 
 Add to `docker-compose.yml` or run separately:
 
@@ -2114,7 +2152,7 @@ minio:
   restart: unless-stopped
 ```
 
-### 23.2 Configure Supabase Storage to use MinIO
+### 24.2 Configure Supabase Storage to use MinIO
 
 In the Supabase `.env`, set the storage backend:
 
@@ -2139,7 +2177,7 @@ AWS_SECRET_ACCESS_KEY=<STRONG_PASSWORD>
 AWS_DEFAULT_REGION=us-east-1
 ```
 
-### 23.3 Create the bucket in MinIO
+### 24.3 Create the bucket in MinIO
 
 ```bash
 # Install MinIO client
@@ -2178,6 +2216,9 @@ Access permission for `local/supabase-storage/receipts` is set to `download`
 ├── app/                          # TimeTrack frontend
 │   ├── .env.production           # Frontend env vars (3 variables)
 │   ├── dist/                     # Built static files (served by Nginx)
+│   ├── scripts/
+│   │   ├── setup-first-admin.sh  # First admin provisioning (step 10)
+│   │   └── seed-defaults.sql     # Default company + admin SQL
 │   ├── src/
 │   └── supabase/
 │       └── migrations/           # SQL migrations
@@ -2186,8 +2227,8 @@ Access permission for `local/supabase-storage/receipts` is set to `download`
 │   ├── storage/                  # Supabase Storage files
 │   └── minio/                    # (optional) MinIO data
 ├── backups/                      # Database backups (daily cron)
-├── backup.sh                     # Backup script (step 21)
-└── healthcheck.sh                # Health check script (step 20)
+├── backup.sh                     # Backup script (step 22)
+└── healthcheck.sh                # Health check script (step 21)
 ```
 
 ---
@@ -2207,15 +2248,16 @@ Use this to track your progress:
 - [ ] **Step 8:** All Supabase containers running (`docker compose ps`)
 - [ ] **Step 9:** All migrations applied, 22 tables created
 - [ ] **Step 9:** RLS policies and 5 database functions verified
-- [ ] **Step 10:** Edge functions deployed, secrets set
-- [ ] **Step 11:** Frontend built (`dist/` exists)
-- [ ] **Step 12:** Nginx configured, SSL certificate obtained
-- [ ] **Step 13:** fail2ban active, Studio restricted to localhost
-- [ ] **Step 16:** VAPID keys generated and set
-- [ ] **Step 17:** Cron job for process-reminders set (every 5 min)
-- [ ] **Step 18:** `receipts` storage bucket created
-- [ ] **Step 20:** Health check script working
-- [ ] **Step 21:** Backup cron configured (daily at 2 AM)
+- [ ] **Step 10:** First admin account created (`setup-first-admin.sh`)
+- [ ] **Step 11:** Edge functions deployed, secrets set
+- [ ] **Step 12:** Frontend built (`dist/` exists)
+- [ ] **Step 13:** Nginx configured, SSL certificate obtained (single domain)
+- [ ] **Step 14:** fail2ban active, Studio restricted to localhost
+- [ ] **Step 17:** VAPID keys generated and set
+- [ ] **Step 18:** Cron job for process-reminders set (every 5 min)
+- [ ] **Step 19:** `receipts` storage bucket created
+- [ ] **Step 21:** Health check script working
+- [ ] **Step 22:** Backup cron configured (daily at 2 AM)
 
 ---
 
