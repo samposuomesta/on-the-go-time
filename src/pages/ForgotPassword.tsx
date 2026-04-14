@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from 'sonner';
 import logo from '@/assets/logo.svg';
 
@@ -12,15 +13,18 @@ export default function ForgotPassword() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMessage(null);
     setLoading(true);
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/reset-password`,
     });
     setLoading(false);
     if (error) {
+      setErrorMessage(error.message);
       toast.error(error.message);
     } else {
       setSent(true);
@@ -38,8 +42,13 @@ export default function ForgotPassword() {
         <CardContent>
           {sent ? (
             <div className="text-center space-y-4">
+              <Alert>
+                <AlertDescription>
+                  If an account exists for <strong>{email}</strong>, a password reset link has been sent.
+                </AlertDescription>
+              </Alert>
               <p className="text-muted-foreground text-sm">
-                A password reset link has been sent to <strong>{email}</strong>. Check your inbox.
+                Check your inbox and spam folder. If SMTP is still misconfigured on the server, the request may succeed here without the email being delivered.
               </p>
               <Link to="/login">
                 <Button variant="outline" className="w-full">Back to Sign In</Button>
@@ -47,6 +56,11 @@ export default function ForgotPassword() {
             </div>
           ) : (
             <form onSubmit={handleReset} className="space-y-4">
+              {errorMessage ? (
+                <Alert variant="destructive">
+                  <AlertDescription>{errorMessage}</AlertDescription>
+                </Alert>
+              ) : null}
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
