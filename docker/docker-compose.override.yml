@@ -8,6 +8,8 @@ services:
       - "traefik.http.routers.kong.entrypoints=websecure"
       - "traefik.http.routers.kong.tls.certresolver=letsencrypt"
       - "traefik.http.routers.kong.priority=100"
+      - "traefik.http.routers.kong.middlewares=kong-headers"
+      - "traefik.http.middlewares.kong-headers.headers.customrequestheaders.X-Forwarded-Proto=https"
       - "traefik.http.services.kong.loadbalancer.server.port=8000"
       - "traefik.docker.network=traefik"
     networks:
