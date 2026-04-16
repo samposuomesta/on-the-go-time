@@ -70,12 +70,17 @@ Deno.serve(async (req) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      // No password provided, send recovery email
-      await adminClient.auth.admin.generateLink({
-        type: "recovery",
-        email,
-        options: { redirectTo },
+      // No password provided, send recovery email that actually delivers
+      const { error: resetError } = await adminClient.auth.resetPasswordForEmail(email, {
+        redirectTo,
       });
+      if (resetError) {
+        console.error("Failed to send recovery email:", resetError);
+        return new Response(JSON.stringify({ error: resetError.message }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
       return new Response(JSON.stringify({ message: "Password reset email sent" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -96,15 +101,13 @@ Deno.serve(async (req) => {
       });
     }
 
-    // If no password was provided, send recovery email
+    // If no password was provided, send recovery email that actually delivers
     if (!password) {
-      const { error: resetError } = await adminClient.auth.admin.generateLink({
-        type: "recovery",
-        email,
-        options: { redirectTo },
+      const { error: resetError } = await adminClient.auth.resetPasswordForEmail(email, {
+        redirectTo,
       });
       if (resetError) {
-        console.error("Failed to generate recovery link:", resetError);
+        console.error("Failed to send recovery email:", resetError);
       }
     }
 
