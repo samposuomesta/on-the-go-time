@@ -79,6 +79,7 @@ services:
 
 networks:
   traefik:
+    name: traefik
 
 volumes:
   traefik-certs:
