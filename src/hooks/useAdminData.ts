@@ -550,6 +550,26 @@ export function useAdminData() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-all-work-bank'] }),
   });
 
+  const deleteEmployee = useMutation({
+    mutationFn: async ({ id, email }: { id: string; email: string }) => {
+      // Delete auth user first via edge function
+      try {
+        await supabase.functions.invoke('delete-auth-user', {
+          body: { email },
+        });
+      } catch (e) {
+        console.error('Failed to delete auth user:', e);
+      }
+      // Delete from public.users (cascading deletes handle related data)
+      const { error } = await supabase.from('users').delete().eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-employees'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-user-managers'] });
+    },
+  });
+
   return {
     employees, projects, companies, reminderRules, userManagers, absenceReasons, auditLog, loginSessions, apiLogs, apiKeysList,
     pendingTravel, pendingHours, pendingTimeEntries, absences, vacationRequests,
@@ -557,7 +577,7 @@ export function useAdminData() {
     allTravelExpenses: allTravel, projectHours: allHours,
     approveTravel, approveHours, approveAbsence, approveVacation, approveTimeEntry, updateTimeEntry,
     updateProjectHours, updateTravelExpense, insertAuditReason,
-    updateEmployee, toggleProject, createProject, updateProject, createEmployee,
+    updateEmployee, toggleProject, createProject, updateProject, createEmployee, deleteEmployee,
     createCompany, updateCompany,
     createReminder, updateReminder, toggleReminder, deleteReminder,
     createAbsenceReason, updateAbsenceReason, toggleAbsenceReason, deleteAbsenceReason,
