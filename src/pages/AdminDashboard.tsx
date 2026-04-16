@@ -707,6 +707,7 @@ function FennoaImportDialog({ onCreate, companies }: { onCreate: (data: any) => 
 function EmployeesPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: string) => boolean }) {
   const { t } = useTranslation();
   const [sendingInvite, setSendingInvite] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; email: string; name: string } | null>(null);
   const employees = (admin.employees.data ?? []).filter((e: any) => canSeeUser(e.id));
   const userManagers = admin.userManagers.data ?? [];
   const workBankTxns = admin.allWorkBank.data ?? [];
@@ -768,7 +769,7 @@ function EmployeesPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
                   <TableHead className="font-semibold">Vacation Days</TableHead>
                   <TableHead className="font-semibold">Daily Hours</TableHead>
                   <TableHead className="font-semibold">Lunch Break</TableHead>
-                  <TableHead className="w-[60px]"></TableHead>
+                  <TableHead className="w-[90px]"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -827,6 +828,15 @@ function EmployeesPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
                             toast.success(`Work bank balance set to ${desiredBalance}h`);
                           }}
                         />
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                          title={t('admin.deleteEmployee')}
+                          onClick={() => setDeleteTarget({ id: emp.id, email: emp.email, name: emp.name })}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
                       </TableCell>
                     </TableRow>
                   );
@@ -836,6 +846,31 @@ function EmployeesPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
           </div>
         </CardContent>
       </Card>
+
+      {/* Delete confirmation dialog */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => { if (!open) setDeleteTarget(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('admin.deleteEmployee')}: {deleteTarget?.name}</AlertDialogTitle>
+            <AlertDialogDescription>{t('admin.deleteEmployeeConfirm')}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('dashboard.sickConfirmNo')}</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (deleteTarget) {
+                  admin.deleteEmployee.mutate({ id: deleteTarget.id, email: deleteTarget.email });
+                  toast.success(t('admin.employeeDeleted'));
+                  setDeleteTarget(null);
+                }
+              }}
+            >
+              {t('admin.deleteEmployee')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
