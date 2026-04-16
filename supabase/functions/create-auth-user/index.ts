@@ -86,11 +86,27 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Create auth user with admin-provided password or a random one
-    const userPassword = password || (crypto.randomUUID() + crypto.randomUUID());
+    if (!password) {
+      const { data: invitedUser, error: inviteError } = await adminClient.auth.admin.inviteUserByEmail(email, {
+        redirectTo,
+      });
+
+      if (inviteError) {
+        return new Response(JSON.stringify({ error: inviteError.message }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      return new Response(
+        JSON.stringify({ message: "Invite email sent", userId: invitedUser.user?.id ?? null }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const { data: newUser, error: createError } = await adminClient.auth.admin.createUser({
       email,
-      password: userPassword,
+      password,
       email_confirm: true,
     });
 
@@ -101,18 +117,8 @@ Deno.serve(async (req) => {
       });
     }
 
-    // If no password was provided, send recovery email that actually delivers
-    if (!password) {
-      const { error: resetError } = await adminClient.auth.resetPasswordForEmail(email, {
-        redirectTo,
-      });
-      if (resetError) {
-        console.error("Failed to send recovery email:", resetError);
-      }
-    }
-
     return new Response(
-      JSON.stringify({ message: password ? "Auth account created with password" : "Auth account created and reset email sent", userId: newUser.user.id }),
+      JSON.stringify({ message: "Auth account created with password", userId: newUser.user.id }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err) {
