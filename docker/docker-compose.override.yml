@@ -30,7 +30,7 @@ services:
   auth:
     restart: unless-stopped
     environment:
-      - GOTRUE_SMTP_HOST=web.tentacle.fi
+      - GOTRUE_SMTP_HOST=web1.tentacle.fi
       - GOTRUE_SMTP_PORT=587
       - GOTRUE_SMTP_USER=taika@lsp.fi
       - GOTRUE_SMTP_PASS=25jfqi492814dwq!
