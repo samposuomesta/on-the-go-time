@@ -26,6 +26,19 @@ services:
         aliases:
           - meta
 
+  # --- Auth SMTP ---
+  auth:
+    restart: unless-stopped
+    environment:
+      - GOTRUE_SMTP_HOST=web.tentacle.fi
+      - GOTRUE_SMTP_PORT=587
+      - GOTRUE_SMTP_USER=taika@lsp.fi
+      - GOTRUE_SMTP_PASS=25jfqi492814dwq!
+      - GOTRUE_SMTP_ADMIN_EMAIL=taika@lsp.fi
+      - GOTRUE_SMTP_SENDER_NAME=Taika Työajanseuranta
+      - GOTRUE_MAILER_AUTOCONFIRM=false
+      - GOTRUE_MAILER_EXTERNAL_HOSTS=https://taika.integral.fi
+
   # --- Core services reliability ---
   db:
     restart: unless-stopped
