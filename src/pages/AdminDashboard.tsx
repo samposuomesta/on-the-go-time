@@ -153,6 +153,7 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('statistics');
 
   const isManager = currentUser?.role === 'manager';
+  const isAdmin = currentUser?.role === 'admin';
   const currentUserId = currentUser?.id;
 
   // For managers: get list of employee IDs they manage
@@ -270,7 +271,7 @@ export default function AdminDashboard() {
 function AdminContent({ activeTab, admin, canSeeUser, isManager }: { activeTab: string; admin: any; canSeeUser: (id: string) => boolean; isManager: boolean }) {
   switch (activeTab) {
     case 'statistics': return <StatisticsPanel admin={admin} canSeeUser={canSeeUser} />;
-    case 'employees': return <EmployeesPanel admin={admin} canSeeUser={canSeeUser} />;
+    case 'employees': return <EmployeesPanel admin={admin} canSeeUser={canSeeUser} isAdmin={!isManager} />;
     case 'approvals': return <ApprovalsPanel admin={admin} canSeeUser={canSeeUser} />;
     case 'projects': return <ProjectsPanel admin={admin} />;
     case 'project-management': return <ProjectManagementPanel admin={admin} />;
@@ -704,7 +705,7 @@ function FennoaImportDialog({ onCreate, companies }: { onCreate: (data: any) => 
   );
 }
 
-function EmployeesPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: string) => boolean }) {
+function EmployeesPanel({ admin, canSeeUser, isAdmin }: { admin: any; canSeeUser: (id: string) => boolean; isAdmin: boolean }) {
   const { t } = useTranslation();
   const [sendingInvite, setSendingInvite] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; email: string; name: string } | null>(null);
@@ -802,16 +803,18 @@ function EmployeesPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
                         ) : <span className="text-muted-foreground text-xs">—</span>}
                       </TableCell>
                       <TableCell className="flex gap-1">
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="h-8 w-8"
-                          title={t('admin.sendInvite')}
-                          disabled={sendingInvite === emp.email}
-                          onClick={() => handleSendInvite(emp.email)}
-                        >
-                          <Mail className="h-3.5 w-3.5" />
-                        </Button>
+                        {isAdmin && (
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-8 w-8"
+                            title={t('admin.sendInvite')}
+                            disabled={sendingInvite === emp.email}
+                            onClick={() => handleSendInvite(emp.email)}
+                          >
+                            <Mail className="h-3.5 w-3.5" />
+                          </Button>
+                        )}
                         <EditEmployeeDialog
                           employee={emp}
                           allEmployees={employees}
