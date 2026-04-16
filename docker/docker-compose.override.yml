@@ -37,7 +37,7 @@ services:
       - GOTRUE_SMTP_ADMIN_EMAIL=taika@lsp.fi
       - GOTRUE_SMTP_SENDER_NAME=Taika Työajanseuranta
       - GOTRUE_MAILER_AUTOCONFIRM=false
-      - GOTRUE_MAILER_EXTERNAL_HOSTS=https://taika.integral.fi
+      - GOTRUE_MAILER_EXTERNAL_HOSTS=taika.integral.fi
 
   # --- Core services reliability ---
   db:
