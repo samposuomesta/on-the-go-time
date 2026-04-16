@@ -751,7 +751,10 @@ function EmployeesPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
         <div className="flex gap-2">
           <FennoaImportDialog companies={admin.companies.data || []} onCreate={(data) => { admin.createEmployee.mutate(data); }} />
           <ImportEmployeesDialog companies={admin.companies.data || []} onCreate={(data) => { admin.createEmployee.mutate(data); }} />
-          <AddEmployeeDialog companies={admin.companies.data || []} onCreate={(data) => { admin.createEmployee.mutate(data); toast.success('Employee added'); }} />
+          <AddEmployeeDialog companies={admin.companies.data || []} onCreate={async (data) => {
+            await admin.createEmployee.mutateAsync(data);
+            toast.success('Employee added');
+          }} />
         </div>
       </div>
       <Card>
@@ -2270,7 +2273,7 @@ function ImportEmployeesDialog({ onCreate, companies }: { onCreate: (data: any) 
   );
 }
 
-function AddEmployeeDialog({ onCreate, companies }: { onCreate: (data: any) => void; companies: any[] }) {
+function AddEmployeeDialog({ onCreate, companies }: { onCreate: (data: any) => Promise<void>; companies: any[] }) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [firstName, setFirstName] = useState('');
@@ -2350,24 +2353,19 @@ function AddEmployeeDialog({ onCreate, companies }: { onCreate: (data: any) => v
         <Button className="w-full mt-2" disabled={!firstName.trim() || !lastName.trim() || !email.trim() || !companyId || (password.trim() !== '' && password.trim().length < 6) || creatingAuth} onClick={async () => {
           const fullName = `${firstName.trim()} ${lastName.trim()}`;
           const empEmail = email.trim();
-          onCreate({ name: fullName, email: empEmail, employee_number: employeeNumber.trim() || null, company_id: companyId, role, contract_start_date: contractDate || null, annual_vacation_days: parseInt(vacationDays) || 25, daily_work_hours: parseFloat(dailyWorkHours) || 7.5, auto_subtract_lunch: autoSubtractLunch, lunch_threshold_hours: parseFloat(lunchThreshold) || 5 });
-          // Auto-create auth account with password
-          if (password.trim()) {
-            setCreatingAuth(true);
-            try {
-              const { supabase } = await import('@/integrations/supabase/client');
-              const { error } = await supabase.functions.invoke('create-auth-user', {
-                body: { email: empEmail, password: password.trim() },
-              });
-              if (error) throw error;
+          setCreatingAuth(true);
+          try {
+            await onCreate({ name: fullName, email: empEmail, employee_number: employeeNumber.trim() || null, company_id: companyId, role, contract_start_date: contractDate || null, annual_vacation_days: parseInt(vacationDays) || 25, daily_work_hours: parseFloat(dailyWorkHours) || 7.5, auto_subtract_lunch: autoSubtractLunch, lunch_threshold_hours: parseFloat(lunchThreshold) || 5, password: password.trim() || undefined });
+            if (password.trim()) {
               toast.success(t('admin.authAccountCreated'));
-            } catch (e: any) {
-              toast.error(e?.message || 'Failed to create auth account');
-            } finally {
-              setCreatingAuth(false);
             }
+            setOpen(false);
+            reset();
+          } catch (e: any) {
+            toast.error(e?.message || 'Failed to create employee');
+          } finally {
+            setCreatingAuth(false);
           }
-          setOpen(false); reset();
         }}>{t("admin.addEmployee")}</Button>
       </DialogContent>
     </Dialog>

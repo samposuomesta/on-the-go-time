@@ -349,23 +349,31 @@ export function useAdminData() {
   });
 
   const createEmployee = useMutation({
-    mutationFn: async (data: { name: string; email: string; role: 'employee' | 'manager' | 'admin'; company_id?: string; contract_start_date?: string; annual_vacation_days?: number; daily_work_hours?: number; auto_subtract_lunch?: boolean; lunch_threshold_hours?: number; employee_number?: string | null }) => {
-      const { error } = await supabase.from('users').insert({ ...data, company_id: data.company_id || companyId });
+    mutationFn: async (data: { name: string; email: string; role: 'employee' | 'manager' | 'admin'; company_id?: string; contract_start_date?: string; annual_vacation_days?: number; daily_work_hours?: number; auto_subtract_lunch?: boolean; lunch_threshold_hours?: number; employee_number?: string | null; password?: string }) => {
+      const { password, ...profile } = data;
+      const { data: createdUser, error } = await supabase
+        .from('users')
+        .insert({ ...profile, company_id: profile.company_id || companyId })
+        .select('id')
+        .single();
+
       if (error) throw error;
 
-      // Create auth account and send password reset email
-      try {
-        const { error: fnError } = await supabase.functions.invoke('create-auth-user', {
-          body: {
-            email: data.email,
-            redirectTo: `${window.location.origin}/reset-password`,
-          },
-        });
-        if (fnError) {
-          console.error('Auth account creation failed:', fnError);
-        }
-      } catch (e) {
-        console.error('Failed to create auth account:', e);
+      const { error: fnError } = await supabase.functions.invoke('create-auth-user', {
+        body: password?.trim()
+          ? {
+              email: profile.email,
+              password: password.trim(),
+            }
+          : {
+              email: profile.email,
+              redirectTo: `${window.location.origin}/reset-password`,
+            },
+      });
+
+      if (fnError) {
+        await supabase.from('users').delete().eq('id', createdUser.id);
+        throw fnError;
       }
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-employees'] }),
