@@ -271,7 +271,7 @@ export default function AdminDashboard() {
 function AdminContent({ activeTab, admin, canSeeUser, isManager }: { activeTab: string; admin: any; canSeeUser: (id: string) => boolean; isManager: boolean }) {
   switch (activeTab) {
     case 'statistics': return <StatisticsPanel admin={admin} canSeeUser={canSeeUser} />;
-    case 'employees': return <EmployeesPanel admin={admin} canSeeUser={canSeeUser} />;
+    case 'employees': return <EmployeesPanel admin={admin} canSeeUser={canSeeUser} isAdmin={!isManager} />;
     case 'approvals': return <ApprovalsPanel admin={admin} canSeeUser={canSeeUser} />;
     case 'projects': return <ProjectsPanel admin={admin} />;
     case 'project-management': return <ProjectManagementPanel admin={admin} />;
@@ -705,7 +705,7 @@ function FennoaImportDialog({ onCreate, companies }: { onCreate: (data: any) => 
   );
 }
 
-function EmployeesPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: string) => boolean }) {
+function EmployeesPanel({ admin, canSeeUser, isAdmin }: { admin: any; canSeeUser: (id: string) => boolean; isAdmin: boolean }) {
   const { t } = useTranslation();
   const [sendingInvite, setSendingInvite] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; email: string; name: string } | null>(null);
