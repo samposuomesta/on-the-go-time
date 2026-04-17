@@ -80,7 +80,8 @@ export function Dashboard() {
       {/* Header */}
       <header className="sticky top-0 z-50 bg-card border-b border-border px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3 min-w-0">
-          <img src="/favicon.png" alt="Logo" className="h-9 w-9 shrink-0" />
+          <img src="/favicon.png" alt="Logo" className="h-9 w-9 shrink-0 dark:hidden" />
+          <img src="/favicon-white.png" alt="Logo" className="h-9 w-9 shrink-0 hidden dark:block" />
           <div className="min-w-0">
             {(() => {
               const parts = (currentUser?.name ?? '').split(' ');
