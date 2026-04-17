@@ -360,7 +360,7 @@ async function queryWithCompanyUsers(
   query = query.order("created_at", { ascending: true }).order("id", { ascending: true }).limit(limit);
 
   const { data, error } = await query;
-  if (error) { console.error("Query error:", error); throw { status: 500, code: "INTERNAL_ERROR", message: "Internal server error" }; }
+  if (error) throw mapPgError(error);
 
   const nextCursor =
     data && data.length === limit
