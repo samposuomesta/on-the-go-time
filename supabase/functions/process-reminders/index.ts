@@ -19,6 +19,26 @@ interface ReminderAction {
   referenceId: string;
 }
 
+function getHelsinkiDateParts(date: Date) {
+  const formatter = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Europe/Helsinki",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+
+  const parts = formatter.formatToParts(date);
+  const get = (type: Intl.DateTimeFormatPartTypes) => parts.find((part) => part.type === type)?.value ?? "00";
+
+  return {
+    currentTime: `${get("hour")}:${get("minute")}`,
+    todayStr: `${get("year")}-${get("month")}-${get("day")}`,
+  };
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -41,13 +61,7 @@ Deno.serve(async (req) => {
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
     const now = new Date();
-    const currentTime = now.toLocaleTimeString("fi-FI", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-      timeZone: "Europe/Helsinki",
-    });
-    const todayStr = now.toISOString().slice(0, 10);
+    const { currentTime, todayStr } = getHelsinkiDateParts(now);
 
     const actions: ReminderAction[] = [];
 
