@@ -659,6 +659,7 @@ export type Database = {
           status: Database["public"]["Enums"]["request_status"]
           sync_status: string | null
           synced_at: string | null
+          title: string | null
           user_id: string
         }
         Insert: {
@@ -676,6 +677,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["request_status"]
           sync_status?: string | null
           synced_at?: string | null
+          title?: string | null
           user_id: string
         }
         Update: {
@@ -693,6 +695,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["request_status"]
           sync_status?: string | null
           synced_at?: string | null
+          title?: string | null
           user_id?: string
         }
         Relationships: [
