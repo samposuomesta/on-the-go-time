@@ -143,6 +143,8 @@ export default function SettingsPage() {
     toast.success(t('settings.deviceRevoked'));
     void refetchSubs();
   };
+
+  const upsertReminder = useMutation({
     mutationFn: async ({ type, enabled, time }: { type: string; enabled: boolean; time: string }) => {
       if (!userId) return;
       const { error } = await supabase
