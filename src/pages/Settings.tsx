@@ -273,6 +273,135 @@ export default function SettingsPage() {
           </div>
         </section>
 
+        {/* Notifications (Web Push) */}
+        <section>
+          <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t('settings.notifications')}</Label>
+          <Card className="mt-2">
+            <CardContent className="p-4 space-y-4">
+              {/* Status rows */}
+              <div className="space-y-2 text-sm">
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">{t('settings.notificationsBrowserSupport')}</span>
+                  <span className={cn('flex items-center gap-1 font-medium', pushStatus.supported ? 'text-success' : 'text-destructive')}>
+                    {pushStatus.supported ? <Check className="h-4 w-4" /> : <X className="h-4 w-4" />}
+                    {pushStatus.supported ? t('settings.notificationsSupported') : t('settings.notificationsNotSupported')}
+                  </span>
+                </div>
+                {pushStatus.isIOS && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">{t('settings.notificationsInstalled')}</span>
+                    <span className={cn('flex items-center gap-1 font-medium', pushStatus.standalone ? 'text-success' : 'text-destructive')}>
+                      {pushStatus.standalone ? <Check className="h-4 w-4" /> : <X className="h-4 w-4" />}
+                      {pushStatus.standalone ? t('settings.notificationsYes') : t('settings.notificationsNo')}
+                    </span>
+                  </div>
+                )}
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">{t('settings.notificationsPermission')}</span>
+                  <span className={cn(
+                    'flex items-center gap-1 font-medium',
+                    pushStatus.permission === 'granted' ? 'text-success'
+                      : pushStatus.permission === 'denied' ? 'text-destructive'
+                      : 'text-muted-foreground',
+                  )}>
+                    {pushStatus.permission === 'granted' && <Check className="h-4 w-4" />}
+                    {pushStatus.permission === 'denied' && <X className="h-4 w-4" />}
+                    {pushStatus.permission === 'granted'
+                      ? t('settings.notificationsGranted')
+                      : pushStatus.permission === 'denied'
+                      ? t('settings.notificationsDenied')
+                      : t('settings.notificationsDefault')}
+                  </span>
+                </div>
+              </div>
+
+              {/* iOS install banner */}
+              {pushStatus.supported && pushStatus.isIOS && !pushStatus.standalone && (
+                <div className="rounded-lg border border-warning/40 bg-warning/10 p-3 text-xs space-y-1">
+                  <div className="flex items-center gap-2 font-semibold text-warning-foreground">
+                    <AlertTriangle className="h-4 w-4 text-warning" />
+                    {t('settings.iosInstallTitle')}
+                  </div>
+                  <p>{t('settings.iosStep1')}</p>
+                  <p>{t('settings.iosStep2')}</p>
+                  <p>{t('settings.iosStep3')}</p>
+                  <p>{t('settings.iosStep4')}</p>
+                </div>
+              )}
+
+              {/* Permission denied help */}
+              {pushStatus.supported && pushStatus.permission === 'denied' && (
+                <p className="text-xs text-muted-foreground">{t('settings.permissionDeniedHelp')}</p>
+              )}
+
+              {/* Enable button */}
+              <Button
+                onClick={handleEnableNotifications}
+                disabled={
+                  !pushStatus.supported ||
+                  (pushStatus.isIOS && !pushStatus.standalone) ||
+                  pushStatus.permission === 'denied'
+                }
+                className="w-full"
+              >
+                <Bell className="h-4 w-4 mr-2" />
+                {t('settings.enableNotifications')}
+              </Button>
+
+              {/* Test notification */}
+              {subscriptions.length > 0 && (
+                <Button
+                  onClick={handleSendTest}
+                  disabled={testSending}
+                  variant="outline"
+                  className="w-full"
+                >
+                  <Send className="h-4 w-4 mr-2" />
+                  {t('settings.sendTestNotification')}
+                </Button>
+              )}
+
+              {/* Subscribed devices */}
+              {subscriptions.length > 0 && (
+                <div className="pt-2 border-t border-border space-y-2">
+                  <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    {t('settings.subscribedDevices')}
+                  </div>
+                  {subscriptions.map((sub) => {
+                    const ua = sub.user_agent ?? '';
+                    const shortUa = ua.length > 60 ? ua.slice(0, 60) + '…' : ua;
+                    return (
+                      <div key={sub.id} className="flex items-start justify-between gap-2 rounded-md border border-border p-2 text-xs">
+                        <div className="flex-1 min-w-0 space-y-0.5">
+                          <div className="flex items-center gap-1.5 font-medium">
+                            <Smartphone className="h-3 w-3 shrink-0" />
+                            <span className="capitalize">{sub.platform ?? 'unknown'}</span>
+                          </div>
+                          {shortUa && <div className="text-muted-foreground truncate">{shortUa}</div>}
+                          <div className="text-muted-foreground">
+                            {t('settings.lastSuccess')}:{' '}
+                            {sub.last_success_at
+                              ? new Date(sub.last_success_at).toLocaleString()
+                              : t('settings.never')}
+                          </div>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleRevokeDevice(sub.endpoint)}
+                          className="text-destructive hover:text-destructive shrink-0"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </section>
+
         {/* Reminders */}
         <section>
           <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t('settings.reminders')}</Label>
