@@ -1,4 +1,4 @@
-const CACHE_NAME = 'timetrack-v6';
+const CACHE_NAME = 'timetrack-v7';
 const OFFLINE_URLS = ['/', '/index.html'];
 
 self.addEventListener('install', (event) => {
@@ -38,22 +38,35 @@ self.addEventListener('fetch', (event) => {
 
 // Web Push notification handler
 self.addEventListener('push', (event) => {
-  let data = { title: 'TimeTrack', body: 'You have a new notification' };
-  
+  // Always provide non-empty defaults so iOS/Safari never drops the notification
+  let data = {
+    title: 'TimeTrack',
+    body: 'You have a new notification',
+    type: 'general',
+    icon: '/manifest-icon-192.maskable.png',
+  };
+
   if (event.data) {
     try {
-      data = event.data.json();
+      const parsed = event.data.json();
+      data = {
+        title: typeof parsed.title === 'string' && parsed.title ? parsed.title : data.title,
+        body: typeof parsed.body === 'string' && parsed.body ? parsed.body : data.body,
+        type: typeof parsed.type === 'string' && parsed.type ? parsed.type : data.type,
+        icon: typeof parsed.icon === 'string' && parsed.icon ? parsed.icon : data.icon,
+      };
     } catch (e) {
-      data.body = event.data.text();
+      const txt = event.data.text();
+      if (txt) data.body = txt;
     }
   }
 
   const options = {
     body: data.body,
-    icon: '/manifest-icon-192.maskable.png',
+    icon: data.icon,
     badge: '/manifest-icon-192.maskable.png',
     vibrate: [100, 50, 100],
-    data: { type: data.type || 'general' },
+    data: { type: data.type },
     actions: [],
   };
 

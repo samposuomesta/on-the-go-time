@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { APP_VERSION, BUILD_DATE } from '@/lib/version';
-import { ArrowLeft, Moon, Sun, Monitor, Bell } from 'lucide-react';
+import { ArrowLeft, Moon, Sun, Monitor, Bell, Smartphone, Check, X, AlertTriangle, Send, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useTranslation, Language } from '@/lib/i18n';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
@@ -47,7 +48,8 @@ export default function SettingsPage() {
   const [theme, setTheme] = useState<Theme>(getStoredTheme);
   const { language, setLanguage, t } = useTranslation();
   const { data: currentUser } = useCurrentUser();
-  const { subscribe } = usePushSubscription();
+  const { status: pushStatus, subscribe, unsubscribe, refresh: refreshPush } = usePushSubscription();
+  const [testSending, setTestSending] = useState(false);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -78,6 +80,70 @@ export default function SettingsPage() {
     enabled: !!userId,
   });
 
+  const { data: subscriptions = [], refetch: refetchSubs } = useQuery({
+    queryKey: ['push-subscriptions', userId],
+    queryFn: async () => {
+      if (!userId) return [];
+      const { data, error } = await supabase
+        .from('push_subscriptions')
+        .select('id, endpoint, user_agent, platform, last_success_at, last_failure_at, failure_count, created_at')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+    enabled: !!userId,
+  });
+
+  const handleEnableNotifications = async () => {
+    const result = await subscribe({ requestPermission: true });
+    if (result.ok) {
+      toast.success(t('settings.notificationsEnabled'));
+      void refetchSubs();
+    } else {
+      const reason = 'reason' in result ? result.reason : 'unknown';
+      const msg =
+        reason === 'unsupported'
+          ? t('settings.notificationsUnsupported')
+          : reason === 'not-standalone-ios'
+          ? t('settings.iosInstallTitle')
+          : reason === 'permission-denied'
+          ? (pushStatus.permission === 'denied'
+              ? t('settings.permissionDeniedHelp')
+              : t('settings.notificationsPermissionRequired'))
+          : t('settings.notificationsPermissionRequired');
+      toast.error(msg);
+    }
+  };
+
+  const handleSendTest = async () => {
+    setTestSending(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('send-test-notification');
+      if (error) throw error;
+      const result = data as { sent?: number; failed?: number; expired?: number; error?: string } | null;
+      if (result?.error === 'no-subscriptions') {
+        toast.error(t('settings.noSubscriptions'));
+      } else if ((result?.sent ?? 0) > 0) {
+        toast.success(t('settings.testSent'));
+      } else {
+        toast.error(t('settings.testFailed'));
+      }
+      void refetchSubs();
+    } catch (err) {
+      console.error('Test send failed:', err);
+      toast.error(t('settings.testFailed'));
+    } finally {
+      setTestSending(false);
+    }
+  };
+
+  const handleRevokeDevice = async (endpoint: string) => {
+    await unsubscribe(endpoint);
+    toast.success(t('settings.deviceRevoked'));
+    void refetchSubs();
+  };
+
   const upsertReminder = useMutation({
     mutationFn: async ({ type, enabled, time }: { type: string; enabled: boolean; time: string }) => {
       if (!userId) return;
@@ -102,11 +168,14 @@ export default function SettingsPage() {
       const result = await subscribe({ requestPermission: true });
 
       if (!result.ok) {
-        toast.error(
-          'reason' in result && result.reason === 'unsupported'
+        const reason = 'reason' in result ? result.reason : 'unknown';
+        const msg =
+          reason === 'unsupported'
             ? t('settings.notificationsUnsupported')
-            : t('settings.notificationsPermissionRequired')
-        );
+            : reason === 'not-standalone-ios'
+            ? t('settings.iosInstallTitle')
+            : t('settings.notificationsPermissionRequired');
+        toast.error(msg);
         return;
       }
     }
@@ -202,6 +271,135 @@ export default function SettingsPage() {
               </button>
             ))}
           </div>
+        </section>
+
+        {/* Notifications (Web Push) */}
+        <section>
+          <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t('settings.notifications')}</Label>
+          <Card className="mt-2">
+            <CardContent className="p-4 space-y-4">
+              {/* Status rows */}
+              <div className="space-y-2 text-sm">
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">{t('settings.notificationsBrowserSupport')}</span>
+                  <span className={cn('flex items-center gap-1 font-medium', pushStatus.supported ? 'text-success' : 'text-destructive')}>
+                    {pushStatus.supported ? <Check className="h-4 w-4" /> : <X className="h-4 w-4" />}
+                    {pushStatus.supported ? t('settings.notificationsSupported') : t('settings.notificationsNotSupported')}
+                  </span>
+                </div>
+                {pushStatus.isIOS && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">{t('settings.notificationsInstalled')}</span>
+                    <span className={cn('flex items-center gap-1 font-medium', pushStatus.standalone ? 'text-success' : 'text-destructive')}>
+                      {pushStatus.standalone ? <Check className="h-4 w-4" /> : <X className="h-4 w-4" />}
+                      {pushStatus.standalone ? t('settings.notificationsYes') : t('settings.notificationsNo')}
+                    </span>
+                  </div>
+                )}
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">{t('settings.notificationsPermission')}</span>
+                  <span className={cn(
+                    'flex items-center gap-1 font-medium',
+                    pushStatus.permission === 'granted' ? 'text-success'
+                      : pushStatus.permission === 'denied' ? 'text-destructive'
+                      : 'text-muted-foreground',
+                  )}>
+                    {pushStatus.permission === 'granted' && <Check className="h-4 w-4" />}
+                    {pushStatus.permission === 'denied' && <X className="h-4 w-4" />}
+                    {pushStatus.permission === 'granted'
+                      ? t('settings.notificationsGranted')
+                      : pushStatus.permission === 'denied'
+                      ? t('settings.notificationsDenied')
+                      : t('settings.notificationsDefault')}
+                  </span>
+                </div>
+              </div>
+
+              {/* iOS install banner */}
+              {pushStatus.supported && pushStatus.isIOS && !pushStatus.standalone && (
+                <div className="rounded-lg border border-warning/40 bg-warning/10 p-3 text-xs space-y-1">
+                  <div className="flex items-center gap-2 font-semibold text-warning-foreground">
+                    <AlertTriangle className="h-4 w-4 text-warning" />
+                    {t('settings.iosInstallTitle')}
+                  </div>
+                  <p>{t('settings.iosStep1')}</p>
+                  <p>{t('settings.iosStep2')}</p>
+                  <p>{t('settings.iosStep3')}</p>
+                  <p>{t('settings.iosStep4')}</p>
+                </div>
+              )}
+
+              {/* Permission denied help */}
+              {pushStatus.supported && pushStatus.permission === 'denied' && (
+                <p className="text-xs text-muted-foreground">{t('settings.permissionDeniedHelp')}</p>
+              )}
+
+              {/* Enable button */}
+              <Button
+                onClick={handleEnableNotifications}
+                disabled={
+                  !pushStatus.supported ||
+                  (pushStatus.isIOS && !pushStatus.standalone) ||
+                  pushStatus.permission === 'denied'
+                }
+                className="w-full"
+              >
+                <Bell className="h-4 w-4 mr-2" />
+                {t('settings.enableNotifications')}
+              </Button>
+
+              {/* Test notification */}
+              {subscriptions.length > 0 && (
+                <Button
+                  onClick={handleSendTest}
+                  disabled={testSending}
+                  variant="outline"
+                  className="w-full"
+                >
+                  <Send className="h-4 w-4 mr-2" />
+                  {t('settings.sendTestNotification')}
+                </Button>
+              )}
+
+              {/* Subscribed devices */}
+              {subscriptions.length > 0 && (
+                <div className="pt-2 border-t border-border space-y-2">
+                  <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    {t('settings.subscribedDevices')}
+                  </div>
+                  {subscriptions.map((sub) => {
+                    const ua = sub.user_agent ?? '';
+                    const shortUa = ua.length > 60 ? ua.slice(0, 60) + '…' : ua;
+                    return (
+                      <div key={sub.id} className="flex items-start justify-between gap-2 rounded-md border border-border p-2 text-xs">
+                        <div className="flex-1 min-w-0 space-y-0.5">
+                          <div className="flex items-center gap-1.5 font-medium">
+                            <Smartphone className="h-3 w-3 shrink-0" />
+                            <span className="capitalize">{sub.platform ?? 'unknown'}</span>
+                          </div>
+                          {shortUa && <div className="text-muted-foreground truncate">{shortUa}</div>}
+                          <div className="text-muted-foreground">
+                            {t('settings.lastSuccess')}:{' '}
+                            {sub.last_success_at
+                              ? new Date(sub.last_success_at).toLocaleString()
+                              : t('settings.never')}
+                          </div>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleRevokeDevice(sub.endpoint)}
+                          className="text-destructive hover:text-destructive shrink-0"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </section>
 
         {/* Reminders */}
