@@ -194,6 +194,9 @@ const translations = {
     'expense.customerPlaceholder': 'Customer name',
     'expense.route': 'Route',
     'expense.routePlaceholder': 'e.g. Helsinki — Tampere',
+    'expense.title': 'Title',
+    'expense.titlePlaceholder': 'e.g. Hotel Helsinki',
+    'expense.titleRequired': 'Title is required',
 
     // Admin
     'admin.title': 'Admin Panel',
@@ -794,6 +797,9 @@ const translations = {
     'expense.customerPlaceholder': 'Asiakkaan nimi',
     'expense.route': 'Reitti',
     'expense.routePlaceholder': 'esim. Helsinki — Tampere',
+    'expense.title': 'Otsikko',
+    'expense.titlePlaceholder': 'esim. Hotelli Helsinki',
+    'expense.titleRequired': 'Otsikko on pakollinen',
 
     // Admin
     'admin.title': 'Hallintapaneeli',

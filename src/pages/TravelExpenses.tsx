@@ -109,11 +109,12 @@ export default function TravelExpenses() {
           expenses.map((ex: any) => (
             <div key={ex.id} className="bg-card rounded-lg border border-border p-3">
               <div className="flex justify-between items-start">
-                <div>
-                  <p className="text-sm font-medium">{ex.projects?.name ?? t('entries.noProject')}</p>
+                <div className="min-w-0 flex-1 pr-2">
+                  {ex.title && <p className="text-sm font-semibold truncate">{ex.title}</p>}
+                  <p className={cn("text-sm", ex.title ? "text-muted-foreground" : "font-medium")}>{ex.projects?.name ?? t('entries.noProject')}</p>
                   <p className="text-xs text-muted-foreground mt-0.5">{format(parseISO(ex.date), 'EEE, MMM d', { locale: dateLocale })}</p>
                 </div>
-                <div className="text-right flex flex-col items-end gap-1">
+                <div className="text-right flex flex-col items-end gap-1 shrink-0">
                   <div>
                     {Number(ex.kilometers ?? 0) > 0 && <span className="text-xs font-medium">{ex.kilometers} km</span>}
                     {Number(ex.parking_cost ?? 0) > 0 && <span className="text-xs font-medium ml-2">€{Number(ex.parking_cost).toFixed(2)}</span>}
@@ -125,7 +126,6 @@ export default function TravelExpenses() {
               {ex.receipt_image && (
                 <button
                   onClick={async () => {
-                    // If it's an old public URL, open directly; otherwise generate signed URL
                     if (ex.receipt_image!.startsWith('http')) {
                       window.open(ex.receipt_image!, '_blank');
                     } else {

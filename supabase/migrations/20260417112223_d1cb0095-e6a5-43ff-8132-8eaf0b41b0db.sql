@@ -1,0 +1,1 @@
+ALTER TABLE public.travel_expenses ADD COLUMN title text;
