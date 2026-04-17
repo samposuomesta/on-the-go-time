@@ -290,7 +290,7 @@ export default function MyEntries() {
                   <div className="flex justify-between items-start">
                     <div>
                       <div className="flex items-center gap-2">
-                        <p className="text-sm font-medium">{ex.projects?.name ?? t('entries.noProject')}</p>
+                        <p className="text-sm font-medium">{ex.title || ex.customer_name || t('entries.noProject')}</p>
                         <StatusBadge status={ex.status} t={t} />
                       </div>
                       <p className="text-xs text-muted-foreground mt-0.5">{format(parseISO(ex.date), 'EEE, MMM d', { locale: dateLocale })}</p>
