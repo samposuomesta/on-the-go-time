@@ -491,24 +491,39 @@ export type Database = {
           auth: string
           created_at: string
           endpoint: string
+          failure_count: number
           id: string
+          last_failure_at: string | null
+          last_success_at: string | null
           p256dh: string
+          platform: string | null
+          user_agent: string | null
           user_id: string
         }
         Insert: {
           auth: string
           created_at?: string
           endpoint: string
+          failure_count?: number
           id?: string
+          last_failure_at?: string | null
+          last_success_at?: string | null
           p256dh: string
+          platform?: string | null
+          user_agent?: string | null
           user_id: string
         }
         Update: {
           auth?: string
           created_at?: string
           endpoint?: string
+          failure_count?: number
           id?: string
+          last_failure_at?: string | null
+          last_success_at?: string | null
           p256dh?: string
+          platform?: string | null
+          user_agent?: string | null
           user_id?: string
         }
         Relationships: [
