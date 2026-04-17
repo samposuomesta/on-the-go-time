@@ -201,16 +201,33 @@ Deno.serve(async (req) => {
           try {
             const result = await sendWebPush(
               { endpoint: sub.endpoint, p256dh: sub.p256dh, auth: sub.auth },
-              JSON.stringify({ title: "TimeTrack", body: action.message, type: action.type }),
+              JSON.stringify({
+                title: "TimeTrack",
+                body: action.message,
+                type: action.type,
+                icon: "/manifest-icon-192.maskable.png",
+              }),
               VAPID_PUBLIC_KEY,
               VAPID_PRIVATE_KEY,
             );
 
             if (result.expired) {
               await supabase.from("push_subscriptions").delete().eq("id", sub.id);
+            } else {
+              await supabase
+                .from("push_subscriptions")
+                .update({ last_success_at: new Date().toISOString(), failure_count: 0 })
+                .eq("id", sub.id);
             }
           } catch (e) {
             console.error(`Push failed for ${action.userId}:`, e);
+            await supabase
+              .from("push_subscriptions")
+              .update({
+                last_failure_at: new Date().toISOString(),
+                failure_count: (sub.failure_count ?? 0) + 1,
+              })
+              .eq("id", sub.id);
           }
         }
       }
