@@ -29,9 +29,10 @@ export function exportProjectHoursCSV(hours: any[]) {
 }
 
 export function exportTravelExpensesCSV(expenses: any[]) {
-  const headers = ['Date', 'Project', 'Kilometers', 'Parking (€)', 'Description', 'Status', 'Receipt'];
+  const headers = ['Date', 'Title', 'Project', 'Kilometers', 'Parking (€)', 'Description', 'Status', 'Receipt'];
   const rows = expenses.map((e: any) => [
     e.date,
+    `"${(e.title ?? '').replace(/"/g, '""')}"`,
     `"${(e.projects?.name ?? '').replace(/"/g, '""')}"`,
     e.kilometers ?? 0,
     Number(e.parking_cost ?? 0).toFixed(2),

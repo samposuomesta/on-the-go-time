@@ -21,10 +21,12 @@ export function EditExpenseDialog({ entry, open, onOpenChange }: Props) {
   const queryClient = useQueryClient();
   const projects = useProjects();
   const [projectId, setProjectId] = useState(entry.project_id ?? '');
+  const [title, setTitle] = useState(entry.title ?? '');
   const [date, setDate] = useState(entry.date);
   const [kilometers, setKilometers] = useState(String(entry.kilometers ?? 0));
   const [parkingCost, setParkingCost] = useState(String(entry.parking_cost ?? 0));
   const [description, setDescription] = useState(entry.description ?? '');
+  const hasReceipt = !!entry.receipt_image;
 
   const updateMutation = useMutation({
     mutationFn: async () => {
