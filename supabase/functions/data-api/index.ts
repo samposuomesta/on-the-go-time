@@ -75,8 +75,7 @@ Deno.serve(async (req) => {
   const rateLimit: number = keyRow.rate_limit ?? 1000;
 
   // ── Rate limit ─────────────────────────────────────────────────────────
-  const { data: rlRow } = await db.rpc("", {}).maybeSingle(); // placeholder – use raw SQL below
-  // We use a direct insert for rate limiting
+  // We use a direct upsert for rate limiting
   const { data: rlData, error: rlErr } = await db
     .from("api_rate_limits")
     .upsert(
