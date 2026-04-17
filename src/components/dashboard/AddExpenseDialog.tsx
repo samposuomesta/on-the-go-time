@@ -144,7 +144,8 @@ export function AddExpenseDialog({ open, onOpenChange, mode }: Props) {
                   ))}
                 </SelectContent>
               </Select>
-            </div>
+              </div>
+            </>
           )}
           <div>
             <Label>{t('expense.date')}</Label>
