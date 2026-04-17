@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { APP_VERSION, BUILD_DATE } from '@/lib/version';
-import { ArrowLeft, Moon, Sun, Monitor, Bell } from 'lucide-react';
+import { ArrowLeft, Moon, Sun, Monitor, Bell, Smartphone, Check, X, AlertTriangle, Send, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useTranslation, Language } from '@/lib/i18n';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
@@ -47,7 +48,8 @@ export default function SettingsPage() {
   const [theme, setTheme] = useState<Theme>(getStoredTheme);
   const { language, setLanguage, t } = useTranslation();
   const { data: currentUser } = useCurrentUser();
-  const { subscribe } = usePushSubscription();
+  const { status: pushStatus, subscribe, unsubscribe, refresh: refreshPush } = usePushSubscription();
+  const [testSending, setTestSending] = useState(false);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -102,11 +104,14 @@ export default function SettingsPage() {
       const result = await subscribe({ requestPermission: true });
 
       if (!result.ok) {
-        toast.error(
-          'reason' in result && result.reason === 'unsupported'
+        const reason = 'reason' in result ? result.reason : 'unknown';
+        const msg =
+          reason === 'unsupported'
             ? t('settings.notificationsUnsupported')
-            : t('settings.notificationsPermissionRequired')
-        );
+            : reason === 'not-standalone-ios'
+            ? t('settings.iosInstallTitle')
+            : t('settings.notificationsPermissionRequired');
+        toast.error(msg);
         return;
       }
     }
