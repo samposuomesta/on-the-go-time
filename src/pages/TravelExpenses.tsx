@@ -110,8 +110,9 @@ export default function TravelExpenses() {
             <div key={ex.id} className="bg-card rounded-lg border border-border p-3">
               <div className="flex justify-between items-start">
                 <div className="min-w-0 flex-1 pr-2">
-                  {ex.title && <p className="text-sm font-semibold truncate">{ex.title}</p>}
-                  <p className={cn("text-sm", ex.title ? "text-muted-foreground" : "font-medium")}>{ex.projects?.name ?? t('entries.noProject')}</p>
+                  <p className="text-sm font-medium truncate">
+                    {ex.title || ex.customer_name || t('entries.noProject')}
+                  </p>
                   <p className="text-xs text-muted-foreground mt-0.5">{format(parseISO(ex.date), 'EEE, MMM d', { locale: dateLocale })}</p>
                 </div>
                 <div className="text-right flex flex-col items-end gap-1 shrink-0">
