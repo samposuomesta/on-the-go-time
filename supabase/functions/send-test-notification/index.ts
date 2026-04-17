@@ -1,5 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
-import { sendWebPush } from "../process-reminders/web-push.ts";
+import { sendWebPush } from "./web-push.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
