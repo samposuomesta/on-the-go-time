@@ -35,6 +35,25 @@ async function sha256(text: string): Promise<string> {
     .join("");
 }
 
+// Map Postgres / PostgREST errors to user-friendly responses
+function mapPgError(error: any): { status: number; code: string; message: string } {
+  console.error("DB error:", error);
+  const code = error?.code;
+  const msg = error?.message || "Database error";
+
+  // Postgres invalid input syntax (e.g. bad date, bad uuid, bad enum)
+  // 22007 invalid_datetime_format, 22008 datetime_field_overflow,
+  // 22P02 invalid_text_representation, 22023 invalid_parameter_value
+  if (code === "22007" || code === "22008" || code === "22P02" || code === "22023") {
+    return { status: 400, code: "VALIDATION_ERROR", message: msg };
+  }
+  // PostgREST parse / filter errors
+  if (code === "PGRST100" || code === "PGRST103" || code === "PGRST116") {
+    return { status: 400, code: "VALIDATION_ERROR", message: msg };
+  }
+  return { status: 500, code: "INTERNAL_ERROR", message: "Internal server error" };
+}
+
 // ── Main handler ─────────────────────────────────────────────────────────
 
 Deno.serve(async (req) => {
@@ -360,7 +379,7 @@ async function queryWithCompanyUsers(
   query = query.order("created_at", { ascending: true }).order("id", { ascending: true }).limit(limit);
 
   const { data, error } = await query;
-  if (error) { console.error("Query error:", error); throw { status: 500, code: "INTERNAL_ERROR", message: "Internal server error" }; }
+  if (error) throw mapPgError(error);
 
   const nextCursor =
     data && data.length === limit
@@ -395,7 +414,7 @@ async function queryDirectCompany(
   query = query.order("created_at", { ascending: true }).order("id", { ascending: true }).limit(limit);
 
   const { data, error } = await query;
-  if (error) { console.error("Query error:", error); throw { status: 500, code: "INTERNAL_ERROR", message: "Internal server error" }; }
+  if (error) throw mapPgError(error);
 
   const nextCursor =
     data && data.length === limit
@@ -435,7 +454,7 @@ async function queryChanges(
   query = query.order("created_at", { ascending: true }).order("id", { ascending: true }).limit(limit);
 
   const { data, error } = await query;
-  if (error) { console.error("Query error:", error); throw { status: 500, code: "INTERNAL_ERROR", message: "Internal server error" }; }
+  if (error) throw mapPgError(error);
 
   const mapped = (data || []).map((row: any) => ({
     table: row.table_name,
