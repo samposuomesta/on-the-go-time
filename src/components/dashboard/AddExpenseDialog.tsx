@@ -23,6 +23,7 @@ export function AddExpenseDialog({ open, onOpenChange, mode }: Props) {
   const projects = useProjects();
   const { t } = useTranslation();
   const [projectId, setProjectId] = useState('');
+  const [title, setTitle] = useState('');
   const [customerName, setCustomerName] = useState('');
   const [route, setRoute] = useState('');
   const [kilometers, setKilometers] = useState('');
@@ -76,6 +77,10 @@ export function AddExpenseDialog({ open, onOpenChange, mode }: Props) {
   };
 
   const handleSave = async () => {
+    if (mode === 'receipt' && !title.trim()) {
+      toast.error(t('expense.titleRequired'));
+      return;
+    }
     setSaving(true);
 
     let receiptUrl: string | null = null;
@@ -90,6 +95,7 @@ export function AddExpenseDialog({ open, onOpenChange, mode }: Props) {
     const { error } = await supabase.from('travel_expenses').insert({
       user_id: userId,
       project_id: projectId || null,
+      title: mode === 'receipt' ? title.trim() : null,
       customer_name: (mode === 'kilometers' || mode === 'parking') ? (customerName || null) : null,
       route: mode === 'kilometers' ? (route || null) : null,
       date,
@@ -105,7 +111,7 @@ export function AddExpenseDialog({ open, onOpenChange, mode }: Props) {
     }
     toast.success(t('expense.added'));
     onOpenChange(false);
-    setKilometers(''); setParkingCost(''); setDescription('');
+    setKilometers(''); setParkingCost(''); setDescription(''); setTitle('');
     setCustomerName(''); setRoute('');
     clearReceipt();
   };
@@ -123,9 +129,14 @@ export function AddExpenseDialog({ open, onOpenChange, mode }: Props) {
               <Input value={customerName} onChange={e => setCustomerName(e.target.value)} placeholder={t('expense.customerPlaceholder')} />
             </div>
           ) : (
-            <div>
-              <Label>{t('expense.project')}</Label>
-              <Select value={projectId} onValueChange={setProjectId}>
+            <>
+              <div>
+                <Label>{t('expense.title')} *</Label>
+                <Input value={title} onChange={e => setTitle(e.target.value)} placeholder={t('expense.titlePlaceholder')} maxLength={120} />
+              </div>
+              <div>
+                <Label>{t('expense.project')}</Label>
+                <Select value={projectId} onValueChange={setProjectId}>
                 <SelectTrigger><SelectValue placeholder={t('expense.selectProject')} /></SelectTrigger>
                 <SelectContent>
                   {projects.map(p => (
