@@ -16,19 +16,43 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
   return outputArray;
 }
 
+type SubscribeResult =
+  | { ok: true }
+  | { ok: false; reason: 'unsupported' | 'permission-denied' | 'no-user' | 'unknown' };
+
 export function usePushSubscription() {
   const { data: currentUser } = useCurrentUser();
 
-  const subscribe = useCallback(async () => {
-    if (!currentUser?.id) return;
-    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+  const subscribe = useCallback(async ({ requestPermission = false }: { requestPermission?: boolean } = {}): Promise<SubscribeResult> => {
+    if (!currentUser?.id) return { ok: false, reason: 'no-user' };
+    if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) {
+      return { ok: false, reason: 'unsupported' };
+    }
 
     try {
+      let permission = Notification.permission;
+
+      if (permission !== 'granted') {
+        if (!requestPermission) {
+          return { ok: false, reason: 'permission-denied' };
+        }
+
+        permission = await Notification.requestPermission();
+      }
+
+      if (permission !== 'granted') {
+        return { ok: false, reason: 'permission-denied' };
+      }
+
       const registration = await navigator.serviceWorker.ready;
       
       let subscription = await registration.pushManager.getSubscription();
       
       if (!subscription) {
+        if (!requestPermission) {
+          return { ok: false, reason: 'permission-denied' };
+        }
+
         subscription = await registration.pushManager.subscribe({
           userVisibleOnly: true,
           applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY).buffer as ArrayBuffer,
@@ -54,13 +78,16 @@ export function usePushSubscription() {
           auth: subJson.keys.auth,
         });
       }
+
+      return { ok: true };
     } catch (err) {
       console.warn('Push subscription failed:', err);
+      return { ok: false, reason: 'unknown' };
     }
   }, [currentUser?.id]);
 
   useEffect(() => {
-    subscribe();
+    void subscribe({ requestPermission: false });
   }, [subscribe]);
 
   return { subscribe };

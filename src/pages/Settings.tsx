@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { useTranslation, Language } from '@/lib/i18n';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
+import { usePushSubscription } from '@/hooks/usePushSubscription';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -46,6 +47,7 @@ export default function SettingsPage() {
   const [theme, setTheme] = useState<Theme>(getStoredTheme);
   const { language, setLanguage, t } = useTranslation();
   const { data: currentUser } = useCurrentUser();
+  const { subscribe } = usePushSubscription();
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -92,11 +94,26 @@ export default function SettingsPage() {
 
   const getReminder = (type: string) => reminders.find((r) => r.type === type);
 
-  const handleToggle = (type: string, defaultTime: string) => {
+  const handleToggle = async (type: string, defaultTime: string) => {
     const existing = getReminder(type);
+    const nextEnabled = existing ? !existing.enabled : true;
+
+    if (nextEnabled) {
+      const result = await subscribe({ requestPermission: true });
+
+      if (!result.ok) {
+        toast.error(
+          result.reason === 'unsupported'
+            ? t('settings.notificationsUnsupported')
+            : t('settings.notificationsPermissionRequired')
+        );
+        return;
+      }
+    }
+
     upsertReminder.mutate({
       type,
-      enabled: existing ? !existing.enabled : true,
+      enabled: nextEnabled,
       time: existing?.time ?? defaultTime,
     });
   };
