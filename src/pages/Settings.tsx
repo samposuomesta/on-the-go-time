@@ -103,7 +103,7 @@ export default function SettingsPage() {
 
       if (!result.ok) {
         toast.error(
-          result.reason === 'unsupported'
+          'reason' in result && result.reason === 'unsupported'
             ? t('settings.notificationsUnsupported')
             : t('settings.notificationsPermissionRequired')
         );
