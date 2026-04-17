@@ -64,6 +64,14 @@ else
 
   PSQL_CMD=(psql -h localhost -p 5433 -U postgres -d postgres -v ON_ERROR_STOP=1)
 
+  # Detect whether the tracking table already exists BEFORE creating it.
+  # If it doesn't exist, this is a first-run on a database that already has
+  # the schema applied — we baseline by marking every existing migration file
+  # as "already applied" instead of trying to re-run them (which would fail
+  # with "type/table already exists" errors).
+  TABLE_EXISTS="$(PGPASSWORD="$POSTGRES_PASSWORD" "${PSQL_CMD[@]}" -tAq -c \
+    "SELECT to_regclass('public.schema_migrations') IS NOT NULL;")"
+
   # Ensure tracking table exists
   PGPASSWORD="$POSTGRES_PASSWORD" "${PSQL_CMD[@]}" -q -c "
     CREATE TABLE IF NOT EXISTS public.schema_migrations (
@@ -71,6 +79,20 @@ else
       applied_at timestamptz NOT NULL DEFAULT now()
     );
   " >/dev/null
+
+  if [ "$TABLE_EXISTS" != "t" ]; then
+    echo "    First run detected — baselining existing migrations as already applied."
+    BASELINE_COUNT=0
+    shopt -s nullglob
+    for mig_file in $(ls -1 "$MIGRATIONS_DIR"/*.sql 2>/dev/null | sort); do
+      version="$(basename "$mig_file" .sql)"
+      PGPASSWORD="$POSTGRES_PASSWORD" "${PSQL_CMD[@]}" -q -c \
+        "INSERT INTO public.schema_migrations(version) VALUES ('$version') ON CONFLICT DO NOTHING;" >/dev/null
+      BASELINE_COUNT=$((BASELINE_COUNT + 1))
+    done
+    shopt -u nullglob
+    echo "    Baselined $BASELINE_COUNT existing migration(s). Future runs will only apply new files."
+  fi
 
   # Iterate migrations in lexicographic (timestamp) order
   shopt -s nullglob
