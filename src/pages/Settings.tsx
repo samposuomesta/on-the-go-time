@@ -80,7 +80,69 @@ export default function SettingsPage() {
     enabled: !!userId,
   });
 
-  const upsertReminder = useMutation({
+  const { data: subscriptions = [], refetch: refetchSubs } = useQuery({
+    queryKey: ['push-subscriptions', userId],
+    queryFn: async () => {
+      if (!userId) return [];
+      const { data, error } = await supabase
+        .from('push_subscriptions')
+        .select('id, endpoint, user_agent, platform, last_success_at, last_failure_at, failure_count, created_at')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+    enabled: !!userId,
+  });
+
+  const handleEnableNotifications = async () => {
+    const result = await subscribe({ requestPermission: true });
+    if (result.ok) {
+      toast.success(t('settings.notificationsEnabled'));
+      void refetchSubs();
+    } else {
+      const reason = 'reason' in result ? result.reason : 'unknown';
+      const msg =
+        reason === 'unsupported'
+          ? t('settings.notificationsUnsupported')
+          : reason === 'not-standalone-ios'
+          ? t('settings.iosInstallTitle')
+          : reason === 'permission-denied'
+          ? (pushStatus.permission === 'denied'
+              ? t('settings.permissionDeniedHelp')
+              : t('settings.notificationsPermissionRequired'))
+          : t('settings.notificationsPermissionRequired');
+      toast.error(msg);
+    }
+  };
+
+  const handleSendTest = async () => {
+    setTestSending(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('send-test-notification');
+      if (error) throw error;
+      const result = data as { sent?: number; failed?: number; expired?: number; error?: string } | null;
+      if (result?.error === 'no-subscriptions') {
+        toast.error(t('settings.noSubscriptions'));
+      } else if ((result?.sent ?? 0) > 0) {
+        toast.success(t('settings.testSent'));
+      } else {
+        toast.error(t('settings.testFailed'));
+      }
+      void refetchSubs();
+    } catch (err) {
+      console.error('Test send failed:', err);
+      toast.error(t('settings.testFailed'));
+    } finally {
+      setTestSending(false);
+    }
+  };
+
+  const handleRevokeDevice = async (endpoint: string) => {
+    await unsubscribe(endpoint);
+    toast.success(t('settings.deviceRevoked'));
+    void refetchSubs();
+  };
     mutationFn: async ({ type, enabled, time }: { type: string; enabled: boolean; time: string }) => {
       if (!userId) return;
       const { error } = await supabase
