@@ -59,6 +59,10 @@ async function getVapidPublicKey(): Promise<string> {
       .invoke('push-public-key')
       .then(({ data, error }) => {
         if (error) throw error;
+        if (data && typeof data === 'object' && 'ok' in data && data.ok === false) {
+          const message = typeof data.error === 'string' ? data.error : 'Failed to fetch VAPID public key';
+          throw new Error(message);
+        }
         const publicKey = typeof data?.publicKey === 'string' ? data.publicKey : '';
         if (!publicKey) throw new Error('Missing VAPID public key');
         // Return key as-is without normalization
