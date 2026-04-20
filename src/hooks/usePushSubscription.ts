@@ -236,6 +236,7 @@ export function usePushSubscription() {
 
         // ⚠️ TÄRKEÄ: käytä RAW avainta backendista (älä normalize sitä)
         const vapidPublicKey = await getVapidPublicKey();
+        console.log(vapidPublicKey);
         const applicationServerKey = urlBase64ToUint8Array(vapidPublicKey);
 
         // DEBUG (pakollinen tarkistus) — pitäisi olla 65
