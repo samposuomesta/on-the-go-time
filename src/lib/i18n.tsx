@@ -58,6 +58,8 @@ const translations = {
     'settings.iosStep3': '3. Open the app from your Home Screen',
     'settings.iosStep4': '4. Return here and tap Enable Notifications',
     'settings.permissionDeniedHelp': 'Notifications are blocked. Enable them in your browser/device settings.',
+    'settings.subscriptionFailed': 'Could not register this device for push notifications. Try "Reset notifications" below.',
+    'settings.iosResubscribeHelp': 'iOS lost the push registration. Tap "Reset notifications" to re-register this device.',
     'theme.light': 'Light',
     'theme.dark': 'Dark',
     'theme.system': 'System',
