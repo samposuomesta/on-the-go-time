@@ -398,7 +398,8 @@ export function usePushSubscription() {
       return await subscribe({ requestPermission: true });
     } catch (err) {
       console.error('[push] reset failed', err);
-      return { ok: false, reason: 'unknown' };
+      const errorDetail = err instanceof Error ? `${err.name}: ${err.message}` : String(err);
+      return { ok: false, reason: 'unknown', error: errorDetail };
     }
   }, [currentUser?.id, refresh, subscribe]);
 
