@@ -208,6 +208,35 @@ export default function SettingsPage() {
     void refetchSubs();
   };
 
+  const handleResetSubscriptions = async () => {
+    setResetting(true);
+    try {
+      const result = await resetAllPush();
+      if (result.ok) {
+        toast.success(t('settings.resetSubscriptionsSuccess'));
+      } else {
+        const reason = 'reason' in result ? result.reason : 'unknown';
+        const msg =
+          reason === 'unsupported'
+            ? t('settings.notificationsUnsupported')
+            : reason === 'not-standalone-ios'
+            ? t('settings.iosInstallTitle')
+            : reason === 'permission-denied'
+            ? (pushStatus.permission === 'denied'
+                ? t('settings.permissionDeniedHelp')
+                : t('settings.notificationsPermissionRequired'))
+            : t('settings.resetSubscriptionsFailed');
+        toast.error(msg);
+      }
+      void refetchSubs();
+    } catch (err) {
+      console.error('Reset subscriptions failed:', err);
+      toast.error(t('settings.resetSubscriptionsFailed'));
+    } finally {
+      setResetting(false);
+    }
+  };
+
   const upsertReminder = useMutation({
     mutationFn: async ({ type, enabled, time }: { type: string; enabled: boolean; time: string }) => {
       if (!userId) return;
@@ -431,6 +460,22 @@ export default function SettingsPage() {
                   <Send className="h-4 w-4 mr-2" />
                   {t('settings.sendTestNotification')}
                 </Button>
+              )}
+
+              {/* Reset all subscriptions */}
+              {pushStatus.supported && !(pushStatus.isIOS && !pushStatus.standalone) && (
+                <div className="space-y-1">
+                  <Button
+                    onClick={handleResetSubscriptions}
+                    disabled={resetting || pushStatus.permission === 'denied'}
+                    variant="outline"
+                    className="w-full"
+                  >
+                    <RefreshCw className={cn('h-4 w-4 mr-2', resetting && 'animate-spin')} />
+                    {t('settings.resetSubscriptions')}
+                  </Button>
+                  <p className="text-xs text-muted-foreground">{t('settings.resetSubscriptionsHint')}</p>
+                </div>
               )}
 
               {/* Subscribed devices */}
