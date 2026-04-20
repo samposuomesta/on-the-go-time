@@ -495,7 +495,7 @@ export default function SettingsPage() {
                   <p className="text-xs text-muted-foreground">{t('settings.resetSubscriptionsHint')}</p>
                   {lastPushError && (
                     <p className="text-xs text-destructive break-words pt-1" role="alert">
-                      {t('settings.lastPushErrorLabel')}: {lastPushError}
+                      {language === 'fi' ? 'Viimeisin virhe' : 'Last error'}: {lastPushError}
                     </p>
                   )}
                 </div>
