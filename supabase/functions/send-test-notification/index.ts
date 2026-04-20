@@ -79,8 +79,23 @@ Deno.serve(async (req) => {
     let sent = 0;
     let failed = 0;
     let expired = 0;
+    const details: Array<{
+      endpointHost: string;
+      platform: string | null;
+      ok: boolean;
+      expired?: boolean;
+      status?: number;
+      error?: string;
+    }> = [];
 
     for (const sub of subs) {
+      let endpointHost = "unknown";
+      try {
+        endpointHost = new URL(sub.endpoint).host;
+      } catch {
+        // ignore
+      }
+
       try {
         const result = await sendWebPush(
           { endpoint: sub.endpoint, p256dh: sub.p256dh, auth: sub.auth },
@@ -92,15 +107,18 @@ Deno.serve(async (req) => {
         if (result.expired) {
           await admin.from("push_subscriptions").delete().eq("id", sub.id);
           expired++;
+          details.push({ endpointHost, platform: sub.platform, ok: false, expired: true, status: result.status });
         } else {
           await admin
             .from("push_subscriptions")
             .update({ last_success_at: new Date().toISOString(), failure_count: 0 })
             .eq("id", sub.id);
           sent++;
+          details.push({ endpointHost, platform: sub.platform, ok: true, status: result.status });
         }
       } catch (e) {
-        console.error("Test push failed:", e);
+        const message = e instanceof Error ? e.message : String(e);
+        console.error("Test push failed:", message);
         await admin
           .from("push_subscriptions")
           .update({
@@ -109,11 +127,12 @@ Deno.serve(async (req) => {
           })
           .eq("id", sub.id);
         failed++;
+        details.push({ endpointHost, platform: sub.platform, ok: false, error: message });
       }
     }
 
     return new Response(
-      JSON.stringify({ sent, failed, expired, total: subs.length }),
+      JSON.stringify({ sent, failed, expired, total: subs.length, details }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (error) {
