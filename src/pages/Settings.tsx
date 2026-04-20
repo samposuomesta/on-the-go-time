@@ -157,8 +157,10 @@ export default function SettingsPage() {
               ? (refreshed.permission === 'denied'
                   ? t('settings.permissionDeniedHelp')
                   : t('settings.notificationsPermissionRequired'))
-              : t('settings.testFailed');
-          toast.error(`${msg} [${reason}]`);
+              : refreshed.isIOS
+              ? t('settings.iosResubscribeHelp')
+              : t('settings.subscriptionFailed');
+          toast.error(msg);
           return;
         }
         await refetchSubs();
