@@ -2,10 +2,9 @@ import { useCallback, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useCurrentUser } from './useCurrentUser';
 
-// This must match the VAPID_PUBLIC_KEY secret
-const VAPID_PUBLIC_KEY = 'BIXnTKeIRE7ZUXy-SOII2sCZh1engSLzWA2rXJnr4787y0dUtAjmQkalAKmriG9olpmZ0i0_mwnlVqVg_P50JCc';
+let vapidPublicKeyPromise: Promise<string> | null = null;
 
-function urlBase64ToUint8Array(base64String: string): Uint8Array {
+function urlBase64ToUint8Array(base64String: string): ArrayBuffer {
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
   const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
   const rawData = window.atob(base64);
@@ -13,7 +12,45 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
   for (let i = 0; i < rawData.length; ++i) {
     outputArray[i] = rawData.charCodeAt(i);
   }
-  return outputArray;
+  return outputArray.buffer;
+}
+
+function normalizeBase64Url(value: string): string {
+  return value.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+function arrayBufferToBase64Url(value: ArrayBuffer | ArrayBufferView | null | undefined): string | null {
+  if (!value) return null;
+
+  const bytes = value instanceof ArrayBuffer
+    ? new Uint8Array(value)
+    : new Uint8Array(value.buffer, value.byteOffset, value.byteLength);
+
+  let binary = '';
+  for (const byte of bytes) {
+    binary += String.fromCharCode(byte);
+  }
+
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+async function getVapidPublicKey(): Promise<string> {
+  if (!vapidPublicKeyPromise) {
+    vapidPublicKeyPromise = supabase.functions
+      .invoke('push-public-key')
+      .then(({ data, error }) => {
+        if (error) throw error;
+        const publicKey = typeof data?.publicKey === 'string' ? data.publicKey : '';
+        if (!publicKey) throw new Error('Missing VAPID public key');
+        return normalizeBase64Url(publicKey);
+      })
+      .catch((error) => {
+        vapidPublicKeyPromise = null;
+        throw error;
+      });
+  }
+
+  return vapidPublicKeyPromise;
 }
 
 export type SubscribeReason =
@@ -139,6 +176,9 @@ export function usePushSubscription() {
           return { ok: false, reason: 'permission-denied' };
         }
 
+        const vapidPublicKey = await getVapidPublicKey();
+        const applicationServerKey = urlBase64ToUint8Array(vapidPublicKey);
+
         const registration = await navigator.serviceWorker.ready;
         let subscription = await registration.pushManager.getSubscription();
 
@@ -146,10 +186,33 @@ export function usePushSubscription() {
           console.log('[push] creating new subscription');
           subscription = await registration.pushManager.subscribe({
             userVisibleOnly: true,
-            applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY).buffer as ArrayBuffer,
+            applicationServerKey,
           });
         } else {
-          console.log('[push] reusing existing subscription');
+          const currentEndpoint = subscription.endpoint;
+          const currentApplicationServerKey = arrayBufferToBase64Url(subscription.options?.applicationServerKey);
+          const shouldRefreshSubscription = isIOS || (currentApplicationServerKey !== null && currentApplicationServerKey !== vapidPublicKey);
+
+          if (shouldRefreshSubscription) {
+            console.log('[push] refreshing existing subscription', {
+              isIOS,
+              keyChanged: currentApplicationServerKey !== null && currentApplicationServerKey !== vapidPublicKey,
+            });
+
+            await subscription.unsubscribe();
+            await supabase
+              .from('push_subscriptions')
+              .delete()
+              .eq('user_id', currentUser.id)
+              .eq('endpoint', currentEndpoint);
+
+            subscription = await registration.pushManager.subscribe({
+              userVisibleOnly: true,
+              applicationServerKey,
+            });
+          } else {
+            console.log('[push] reusing existing subscription');
+          }
         }
 
         const subJson = subscription.toJSON();

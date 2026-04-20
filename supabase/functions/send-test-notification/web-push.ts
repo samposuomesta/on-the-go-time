@@ -27,6 +27,10 @@ function concat(...arrays: Uint8Array[]): Uint8Array {
   return result;
 }
 
+function toArrayBuffer(value: Uint8Array): ArrayBuffer {
+  return value.buffer.slice(value.byteOffset, value.byteOffset + value.byteLength) as ArrayBuffer;
+}
+
 function lengthPrefixed(buffer: Uint8Array): Uint8Array {
   const len = new Uint8Array(2);
   len[0] = (buffer.length >> 8) & 0xff;
@@ -122,7 +126,7 @@ async function encryptPayload(
   // Import subscriber's public key
   const subscriberKey = await crypto.subtle.importKey(
     "raw",
-    subscriptionPublicKey,
+    toArrayBuffer(subscriptionPublicKey),
     { name: "ECDH", namedCurve: "P-256" },
     false,
     [],
@@ -148,7 +152,7 @@ async function encryptPayload(
 
   const prkKey = await crypto.subtle.importKey(
     "raw",
-    subscriptionAuth,
+    toArrayBuffer(subscriptionAuth),
     { name: "HKDF" },
     false,
     ["deriveBits"],
@@ -170,8 +174,8 @@ async function encryptPayload(
       {
         name: "HKDF",
         hash: "SHA-256",
-        salt: subscriptionAuth,
-        info: authInfo,
+        salt: toArrayBuffer(subscriptionAuth),
+        info: toArrayBuffer(authInfo),
       },
       ikmKey,
       256,
@@ -226,7 +230,7 @@ async function encryptPayload(
     await crypto.subtle.encrypt(
       { name: "AES-GCM", iv: nonceBits },
       cek,
-      paddedPayload,
+      toArrayBuffer(paddedPayload),
     ),
   );
 
@@ -254,6 +258,10 @@ export interface PushSubscription {
 export interface SendResult {
   expired: boolean;
   status?: number;
+}
+
+function createPushDeliveryError(status: number, body: string): Error {
+  return new Error(`Push delivery failed with status ${status}${body ? `: ${body}` : ""}`);
 }
 
 export async function sendWebPush(
@@ -299,6 +307,8 @@ export async function sendWebPush(
     if (response.status === 410 || response.status === 404) {
       return { expired: true };
     }
+
+     throw createPushDeliveryError(response.status, body);
   }
 
   return { expired: false, status: response.status };

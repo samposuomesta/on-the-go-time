@@ -119,6 +119,23 @@ export default function SettingsPage() {
   const handleSendTest = async () => {
     setTestSending(true);
     try {
+      const subscriptionResult = await subscribe({ requestPermission: pushStatus.permission === 'default' });
+      if (!subscriptionResult.ok) {
+        const reason = 'reason' in subscriptionResult ? subscriptionResult.reason : 'unknown';
+        const msg =
+          reason === 'unsupported'
+            ? t('settings.notificationsUnsupported')
+            : reason === 'not-standalone-ios'
+            ? t('settings.iosInstallTitle')
+            : reason === 'permission-denied'
+            ? (pushStatus.permission === 'denied'
+                ? t('settings.permissionDeniedHelp')
+                : t('settings.notificationsPermissionRequired'))
+            : t('settings.testFailed');
+        toast.error(msg);
+        return;
+      }
+
       const { data, error } = await supabase.functions.invoke('send-test-notification');
       if (error) throw error;
       const result = data as { sent?: number; failed?: number; expired?: number; error?: string } | null;
