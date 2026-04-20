@@ -28,7 +28,7 @@ function concat(...arrays: Uint8Array[]): Uint8Array {
 }
 
 function toArrayBuffer(value: Uint8Array): ArrayBuffer {
-  return value.buffer.slice(value.byteOffset, value.byteOffset + value.byteLength);
+  return value.buffer.slice(value.byteOffset, value.byteOffset + value.byteLength) as ArrayBuffer;
 }
 
 function lengthPrefixed(buffer: Uint8Array): Uint8Array {
