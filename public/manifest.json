@@ -1,6 +1,6 @@
 {
-  "name": "TimeTrack",
-  "short_name": "TimeTrack",
+  "name": "TAika",
+  "short_name": "TAika",
   "description": "Employee time tracking application",
   "start_url": "/",
   "display": "standalone",
