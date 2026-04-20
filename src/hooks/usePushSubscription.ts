@@ -323,7 +323,7 @@ export function usePushSubscription() {
   );
 
   const resetAll = useCallback(async (): Promise<SubscribeResult> => {
-    console.log('[push] resetAll() called');
+    console.log('[push] resetAll() called (force reset)');
     if (!currentUser?.id) {
       console.warn('[push] reset: no current user');
       return { ok: false, reason: 'no-user' };
@@ -333,48 +333,67 @@ export function usePushSubscription() {
       return { ok: false, reason: 'unsupported' };
     }
 
-    // 1. Unsubscribe local browser subscription if present (best-effort, never fatal)
     try {
+      // 1. Try to get existing SW registration
       const reg = await navigator.serviceWorker.ready;
-      const existingSub = await reg.pushManager.getSubscription();
-      if (existingSub) {
-        try {
-          await existingSub.unsubscribe();
+
+      // 2. Try to unsubscribe locally (don't fail on iOS bugs)
+      try {
+        const sub = await reg.pushManager.getSubscription();
+        if (sub) {
+          await sub.unsubscribe();
           console.log('[push] reset: local subscription removed');
-        } catch (e) {
-          console.warn('[push] reset: local unsubscribe failed', e);
+        } else {
+          console.log('[push] reset: no local subscription to remove');
         }
-      } else {
-        console.log('[push] reset: no local subscription to remove');
+      } catch (e) {
+        console.warn('[push] reset: local unsubscribe failed (iOS bug)', e);
       }
-    } catch (e) {
-      console.warn('[push] reset: serviceWorker.ready failed', e);
-    }
 
-    // 2. Delete ALL server-side subscriptions for this user (best-effort, never fatal)
-    try {
-      const { error: delErr } = await supabase
-        .from('push_subscriptions')
-        .delete()
-        .eq('user_id', currentUser.id);
-      if (delErr) {
-        console.warn('[push] reset: server delete error', delErr);
-      } else {
-        console.log('[push] reset: server subscriptions deleted');
+      // 3. Delete ALL server-side subscriptions for this user (always)
+      try {
+        const { error: delErr } = await supabase
+          .from('push_subscriptions')
+          .delete()
+          .eq('user_id', currentUser.id);
+        if (delErr) {
+          console.warn('[push] reset: server delete error', delErr);
+        } else {
+          console.log('[push] reset: server subscriptions deleted');
+        }
+      } catch (e) {
+        console.warn('[push] reset: server delete threw', e);
       }
-    } catch (e) {
-      console.warn('[push] reset: server delete threw', e);
-    }
 
-    try {
-      await refresh();
-    } catch (e) {
-      console.warn('[push] reset: refresh failed', e);
-    }
+      // 4. Unregister ALL service workers and re-register (CRITICAL for iOS)
+      try {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        for (const r of registrations) {
+          await r.unregister();
+          console.log('[push] reset: unregistered SW', r.scope);
+        }
+        await navigator.serviceWorker.register('/sw.js');
+        console.log('[push] reset: service worker re-registered');
+      } catch (e) {
+        console.warn('[push] reset: SW re-register failed', e);
+      }
 
-    // 3. Re-subscribe (creates fresh APNs/FCM registration)
-    console.log('[push] reset: re-subscribing');
-    return subscribe({ requestPermission: true });
+      // 5. Small delay (iOS needs this to settle APNs registration)
+      await new Promise((res) => setTimeout(res, 500));
+
+      try {
+        await refresh();
+      } catch (e) {
+        console.warn('[push] reset: refresh failed', e);
+      }
+
+      // 6. Re-subscribe with fresh APNs/FCM registration
+      console.log('[push] reset: re-subscribing');
+      return await subscribe({ requestPermission: true });
+    } catch (err) {
+      console.error('[push] reset failed', err);
+      return { ok: false, reason: 'unknown' };
+    }
   }, [currentUser?.id, refresh, subscribe]);
 
   return { status, subscribe, unsubscribe, refresh, resetAll };
