@@ -40,7 +40,7 @@ self.addEventListener('fetch', (event) => {
 self.addEventListener('push', (event) => {
   // Always provide non-empty defaults so iOS/Safari never drops the notification
   let data = {
-    title: 'TimeTrack',
+    title: 'TAika',
     body: 'You have a new notification',
     type: 'general',
     icon: '/manifest-icon-192.maskable.png',
