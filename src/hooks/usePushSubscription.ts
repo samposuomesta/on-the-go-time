@@ -318,5 +318,45 @@ export function usePushSubscription() {
     [currentUser?.id, refresh],
   );
 
-  return { status, subscribe, unsubscribe, refresh };
+  const resetAll = useCallback(async (): Promise<SubscribeResult> => {
+    console.log('[push] resetAll() called');
+    if (!currentUser?.id) return { ok: false, reason: 'no-user' };
+    if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) {
+      return { ok: false, reason: 'unsupported' };
+    }
+
+    try {
+      // 1. Unsubscribe local browser subscription if present
+      const reg = await navigator.serviceWorker.ready;
+      const existingSub = await reg.pushManager.getSubscription();
+      if (existingSub) {
+        try {
+          await existingSub.unsubscribe();
+          console.log('[push] reset: local subscription removed');
+        } catch (e) {
+          console.warn('[push] reset: local unsubscribe failed', e);
+        }
+      }
+
+      // 2. Delete ALL server-side subscriptions for this user
+      const { error: delErr } = await supabase
+        .from('push_subscriptions')
+        .delete()
+        .eq('user_id', currentUser.id);
+      if (delErr) {
+        console.warn('[push] reset: server delete error', delErr);
+      } else {
+        console.log('[push] reset: server subscriptions deleted');
+      }
+
+      await refresh();
+    } catch (err) {
+      console.warn('[push] reset: cleanup failed', err);
+    }
+
+    // 3. Re-subscribe (creates fresh APNs/FCM registration)
+    return subscribe({ requestPermission: true });
+  }, [currentUser?.id, refresh, subscribe]);
+
+  return { status, subscribe, unsubscribe, refresh, resetAll };
 }

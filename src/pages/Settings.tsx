@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { APP_VERSION, BUILD_DATE } from '@/lib/version';
-import { ArrowLeft, Moon, Sun, Monitor, Bell, Smartphone, Check, X, AlertTriangle, Send, Trash2 } from 'lucide-react';
+import { ArrowLeft, Moon, Sun, Monitor, Bell, Smartphone, Check, X, AlertTriangle, Send, Trash2, RefreshCw } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
@@ -48,8 +48,9 @@ export default function SettingsPage() {
   const [theme, setTheme] = useState<Theme>(getStoredTheme);
   const { language, setLanguage, t } = useTranslation();
   const { data: currentUser } = useCurrentUser();
-  const { status: pushStatus, subscribe, unsubscribe, refresh: refreshPush } = usePushSubscription();
+  const { status: pushStatus, subscribe, unsubscribe, refresh: refreshPush, resetAll: resetAllPush } = usePushSubscription();
   const [testSending, setTestSending] = useState(false);
+  const [resetting, setResetting] = useState(false);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -205,6 +206,35 @@ export default function SettingsPage() {
     await unsubscribe(endpoint);
     toast.success(t('settings.deviceRevoked'));
     void refetchSubs();
+  };
+
+  const handleResetSubscriptions = async () => {
+    setResetting(true);
+    try {
+      const result = await resetAllPush();
+      if (result.ok) {
+        toast.success(t('settings.resetSubscriptionsSuccess'));
+      } else {
+        const reason = 'reason' in result ? result.reason : 'unknown';
+        const msg =
+          reason === 'unsupported'
+            ? t('settings.notificationsUnsupported')
+            : reason === 'not-standalone-ios'
+            ? t('settings.iosInstallTitle')
+            : reason === 'permission-denied'
+            ? (pushStatus.permission === 'denied'
+                ? t('settings.permissionDeniedHelp')
+                : t('settings.notificationsPermissionRequired'))
+            : t('settings.resetSubscriptionsFailed');
+        toast.error(msg);
+      }
+      void refetchSubs();
+    } catch (err) {
+      console.error('Reset subscriptions failed:', err);
+      toast.error(t('settings.resetSubscriptionsFailed'));
+    } finally {
+      setResetting(false);
+    }
   };
 
   const upsertReminder = useMutation({
@@ -430,6 +460,22 @@ export default function SettingsPage() {
                   <Send className="h-4 w-4 mr-2" />
                   {t('settings.sendTestNotification')}
                 </Button>
+              )}
+
+              {/* Reset all subscriptions */}
+              {pushStatus.supported && !(pushStatus.isIOS && !pushStatus.standalone) && (
+                <div className="space-y-1">
+                  <Button
+                    onClick={handleResetSubscriptions}
+                    disabled={resetting || pushStatus.permission === 'denied'}
+                    variant="outline"
+                    className="w-full"
+                  >
+                    <RefreshCw className={cn('h-4 w-4 mr-2', resetting && 'animate-spin')} />
+                    {t('settings.resetSubscriptions')}
+                  </Button>
+                  <p className="text-xs text-muted-foreground">{t('settings.resetSubscriptionsHint')}</p>
+                </div>
               )}
 
               {/* Subscribed devices */}
