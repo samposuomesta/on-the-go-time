@@ -293,7 +293,8 @@ export async function sendWebPush(
     headers: {
       "Content-Type": "application/octet-stream",
       "Content-Encoding": "aes128gcm",
-      TTL: "86400",
+      TTL: "60",
+      Urgency: "high",
       Authorization: `vapid t=${jwt}, k=${uint8ArrayToBase64Url(rawPublic)}`,
     },
     body: ciphertext,
