@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { APP_VERSION, BUILD_DATE } from '@/lib/version';
-import { ArrowLeft, Moon, Sun, Monitor, Bell, Smartphone, Check, X, AlertTriangle, Send, Trash2 } from 'lucide-react';
+import { ArrowLeft, Moon, Sun, Monitor, Bell, Smartphone, Check, X, AlertTriangle, Send, Trash2, RefreshCw } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
@@ -48,8 +48,9 @@ export default function SettingsPage() {
   const [theme, setTheme] = useState<Theme>(getStoredTheme);
   const { language, setLanguage, t } = useTranslation();
   const { data: currentUser } = useCurrentUser();
-  const { status: pushStatus, subscribe, unsubscribe, refresh: refreshPush } = usePushSubscription();
+  const { status: pushStatus, subscribe, unsubscribe, refresh: refreshPush, resetAll: resetAllPush } = usePushSubscription();
   const [testSending, setTestSending] = useState(false);
+  const [resetting, setResetting] = useState(false);
   const queryClient = useQueryClient();
 
   useEffect(() => {
