@@ -56,6 +56,15 @@ services:
   studio:
     restart: unless-stopped
 
+  # --- Edge Functions: VAPID + cron secrets ---
+  functions:
+    restart: unless-stopped
+    environment:
+      - VAPID_PUBLIC_KEY=${VAPID_PUBLIC_KEY}
+      - VAPID_PRIVATE_KEY=${VAPID_PRIVATE_KEY}
+      - VAPID_SUBJECT=${VAPID_SUBJECT}
+      - CRON_SECRET=${CRON_SECRET}
+
   # --- Traefik reverse proxy with HTTPS ---
   traefik:
     image: traefik:v3.6
