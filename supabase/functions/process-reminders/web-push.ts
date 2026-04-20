@@ -256,6 +256,10 @@ export interface SendResult {
   status?: number;
 }
 
+function createPushDeliveryError(status: number, body: string): Error {
+  return new Error(`Push delivery failed with status ${status}${body ? `: ${body}` : ""}`);
+}
+
 export async function sendWebPush(
   subscription: PushSubscription,
   payloadString: string,
@@ -299,6 +303,8 @@ export async function sendWebPush(
     if (response.status === 410 || response.status === 404) {
       return { expired: true };
     }
+
+    throw createPushDeliveryError(response.status, body);
   }
 
   return { expired: false, status: response.status };
