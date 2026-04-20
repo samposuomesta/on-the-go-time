@@ -38,10 +38,20 @@ function lengthPrefixed(buffer: Uint8Array): Uint8Array {
   return concat(len, buffer);
 }
 
+function getVapidSubject(endpoint: string): string {
+  try {
+    const url = new URL(endpoint);
+    return `mailto:admin@${url.host}`;
+  } catch {
+    return "mailto:admin@yourdomain.com";
+  }
+}
+
 async function createVapidJwt(
   audience: string,
   privateKeyRaw: Uint8Array,
   publicKeyRaw: Uint8Array,
+  subject: string,
 ): Promise<string> {
   const header = { typ: "JWT", alg: "ES256" };
   const now = Math.floor(Date.now() / 1000);
@@ -51,7 +61,7 @@ async function createVapidJwt(
   const payload = {
     aud: audience,
     exp: now + 12 * 60 * 60,
-    sub: Deno.env.get("VAPID_SUBJECT") ?? "mailto:noreply@integral.fi",
+    sub: subject,
   };
 
   // Import private key as JWK
