@@ -307,12 +307,14 @@ export async function sendWebPush(
       "Content-Encoding": "aes128gcm",
       TTL: "60",
       Urgency: "high",
+      "Content-Length": String(ciphertext.byteLength),
       Authorization: `vapid t=${jwt}, k=${uint8ArrayToBase64Url(rawPublic)}`,
     },
     body: ciphertext,
   });
 
   const responseBody = await response.text().catch(() => "");
+  console.log("Push response:", response.status, responseBody);
   console.log(
     `[web-push] ${pushHost} → status=${response.status} body=${responseBody || "(empty)"}`,
   );
