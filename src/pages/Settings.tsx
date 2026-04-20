@@ -218,10 +218,12 @@ export default function SettingsPage() {
 
   const handleResetSubscriptions = async () => {
     setResetting(true);
+    setLastPushError(null);
     try {
       const result = await resetAllPush();
       if (result.ok) {
         toast.success(t('settings.resetSubscriptionsSuccess'));
+        setLastPushError(null);
       } else {
         const reason = 'reason' in result ? result.reason : 'unknown';
         const msg =
@@ -235,11 +237,14 @@ export default function SettingsPage() {
                 : t('settings.notificationsPermissionRequired'))
             : t('settings.resetSubscriptionsFailed');
         toast.error(msg);
+        setLastPushError(`${msg} (${reason})`);
       }
       void refetchSubs();
     } catch (err) {
       console.error('Reset subscriptions failed:', err);
+      const detail = err instanceof Error ? `${err.name}: ${err.message}` : String(err);
       toast.error(t('settings.resetSubscriptionsFailed'));
+      setLastPushError(detail);
     } finally {
       setResetting(false);
     }
