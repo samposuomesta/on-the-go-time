@@ -168,8 +168,9 @@ export default function SettingsPage() {
         pushDebug('log', 'subscribe() result:', subscriptionResult);
         if (!subscriptionResult.ok) {
           const reason = 'reason' in subscriptionResult ? subscriptionResult.reason : 'unknown';
-          pushDebug('warn', 'subscribe failed:', reason);
-          const msg =
+          const errorDetail = 'error' in subscriptionResult ? subscriptionResult.error : undefined;
+          pushDebug('error', 'subscribe failed:', reason, errorDetail ?? '');
+          const baseMsg =
             reason === 'unsupported'
               ? t('settings.notificationsUnsupported')
               : reason === 'not-standalone-ios'
@@ -181,7 +182,7 @@ export default function SettingsPage() {
               : refreshed.isIOS
               ? t('settings.iosResubscribeHelp')
               : t('settings.subscriptionFailed');
-          toast.error(msg);
+          toast.error(errorDetail ? `${baseMsg} — ${errorDetail}` : baseMsg);
           return;
         }
         await refetchSubs();
