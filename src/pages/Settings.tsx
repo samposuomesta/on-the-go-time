@@ -75,6 +75,12 @@ export default function SettingsPage() {
   };
   const clearDebugLogs = () => setDebugLogs([]);
 
+  // Forward [push] logs from the hook into the on-screen debug panel
+  useEffect(() => {
+    setPushDebugLogger((level, ...args) => pushDebug(level, ...args));
+    return () => setPushDebugLogger(null);
+  }, []);
+
   useEffect(() => {
     applyTheme(theme);
     localStorage.setItem('timetrack-theme', theme);
