@@ -296,7 +296,8 @@ export async function sendWebPush(
   // Create VAPID JWT
   const url = new URL(subscription.endpoint);
   const audience = `${url.protocol}//${url.host}`;
-  const jwt = await createVapidJwt(audience, rawPrivate, rawPublic);
+  const subject = getVapidSubject(subscription.endpoint);
+  const jwt = await createVapidJwt(audience, rawPrivate, rawPublic, subject);
 
   const pushHost = new URL(subscription.endpoint).host;
   const response = await fetch(subscription.endpoint, {
