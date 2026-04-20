@@ -138,13 +138,36 @@ export default function SettingsPage() {
 
       const { data, error } = await supabase.functions.invoke('send-test-notification');
       if (error) throw error;
-      const result = data as { sent?: number; failed?: number; expired?: number; error?: string } | null;
+      type PushDetail = {
+        endpointHost: string;
+        platform: string | null;
+        ok: boolean;
+        expired?: boolean;
+        status?: number;
+        error?: string;
+      };
+      const result = data as {
+        sent?: number;
+        failed?: number;
+        expired?: number;
+        error?: string;
+        details?: PushDetail[];
+      } | null;
       if (result?.error === 'no-subscriptions') {
         toast.error(t('settings.noSubscriptions'));
       } else if ((result?.sent ?? 0) > 0) {
         toast.success(t('settings.testSent'));
       } else {
-        toast.error(t('settings.testFailed'));
+        const firstFailure = result?.details?.find((d) => !d.ok);
+        const reasonText = firstFailure
+          ? firstFailure.expired
+            ? `expired (${firstFailure.endpointHost})`
+            : `${firstFailure.endpointHost} → ${firstFailure.error ?? `status ${firstFailure.status ?? '?'}`}`
+          : '';
+        toast.error(reasonText ? `${t('settings.testFailed')}: ${reasonText}` : t('settings.testFailed'));
+        if (firstFailure) {
+          console.error('[push] test failure detail:', firstFailure);
+        }
       }
       void refetchSubs();
     } catch (err) {
