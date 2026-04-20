@@ -136,6 +136,31 @@ export function usePushSubscription() {
     void refresh();
   }, [refresh]);
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handleAppResume = () => {
+      if (document.visibilityState && document.visibilityState !== 'visible') return;
+      void refresh();
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        void refresh();
+      }
+    };
+
+    window.addEventListener('focus', handleAppResume);
+    window.addEventListener('pageshow', handleAppResume);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener('focus', handleAppResume);
+      window.removeEventListener('pageshow', handleAppResume);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [refresh]);
+
   const subscribe = useCallback(
     async ({ requestPermission = false }: { requestPermission?: boolean } = {}): Promise<SubscribeResult> => {
       console.log('[push] subscribe() called, requestPermission=', requestPermission);
