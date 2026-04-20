@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useTranslation, Language } from '@/lib/i18n';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
-import { usePushSubscription } from '@/hooks/usePushSubscription';
+import { usePushSubscription, setPushDebugLogger } from '@/hooks/usePushSubscription';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -74,6 +74,12 @@ export default function SettingsPage() {
     else console.log(...args);
   };
   const clearDebugLogs = () => setDebugLogs([]);
+
+  // Forward [push] logs from the hook into the on-screen debug panel
+  useEffect(() => {
+    setPushDebugLogger((level, ...args) => pushDebug(level, ...args));
+    return () => setPushDebugLogger(null);
+  }, []);
 
   useEffect(() => {
     applyTheme(theme);
