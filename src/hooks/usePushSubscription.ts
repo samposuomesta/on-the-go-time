@@ -64,7 +64,7 @@ export type SubscribeReason =
 
 export type SubscribeResult =
   | { ok: true }
-  | { ok: false; reason: SubscribeReason };
+  | { ok: false; reason: SubscribeReason; error?: string };
 
 export interface PushStatus {
   supported: boolean;
@@ -250,7 +250,7 @@ export function usePushSubscription() {
 
         if (!subJson.endpoint || !subJson.keys?.p256dh || !subJson.keys?.auth) {
           console.error('[push] subscription missing fields');
-          return { ok: false, reason: 'unknown' };
+          return { ok: false, reason: 'unknown', error: 'subscription missing endpoint/keys' };
         }
 
         if (subJson.endpoint.includes('web.push.apple.com')) {
@@ -291,7 +291,12 @@ export function usePushSubscription() {
         return { ok: true };
       } catch (err) {
         console.error('[push] subscription failed:', err);
-        return { ok: false, reason: 'unknown' };
+        const errorDetail = err instanceof Error
+          ? `${err.name}: ${err.message}`
+          : typeof err === 'string'
+          ? err
+          : (() => { try { return JSON.stringify(err); } catch { return String(err); } })();
+        return { ok: false, reason: 'unknown', error: errorDetail };
       }
     },
     [currentUser?.id, refresh],
