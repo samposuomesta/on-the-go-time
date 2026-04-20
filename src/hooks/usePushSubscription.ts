@@ -4,12 +4,16 @@ import { useCurrentUser } from './useCurrentUser';
 
 let vapidPublicKeyPromise: Promise<string> | null = null;
 
-function urlBase64ToUint8Array(base64String: string): Uint8Array<ArrayBuffer> {
+function urlBase64ToUint8Array(base64String: string) {
+  // lisää padding oikein
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
-  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
-  const rawData = window.atob(base64);
-  const buffer = new ArrayBuffer(rawData.length);
-  const outputArray = new Uint8Array(buffer);
+  const base64 = (base64String + padding)
+    .replace(/-/g, '+')
+    .replace(/_/g, '/');
+
+  const rawData = atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+
   for (let i = 0; i < rawData.length; ++i) {
     outputArray[i] = rawData.charCodeAt(i);
   }
@@ -230,8 +234,12 @@ export function usePushSubscription() {
           console.warn('[push] permission not explicitly granted, but continuing for iOS');
         }
 
+        // ⚠️ TÄRKEÄ: käytä RAW avainta backendista (älä normalize sitä)
         const vapidPublicKey = await getVapidPublicKey();
         const applicationServerKey = urlBase64ToUint8Array(vapidPublicKey);
+
+        // DEBUG (pakollinen tarkistus) — pitäisi olla 65
+        console.log('[push] VAPID key length:', applicationServerKey.length);
 
         const registration = await getActiveServiceWorker();
         let subscription = await registration.pushManager.getSubscription();

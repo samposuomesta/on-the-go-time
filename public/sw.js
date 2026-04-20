@@ -1,4 +1,4 @@
-const CACHE_NAME = 'timetrack-v15';
+const CACHE_NAME = 'timetrack-v16';
 const OFFLINE_URLS = ['/', '/index.html'];
 
 self.addEventListener('install', (event) => {
