@@ -696,6 +696,8 @@ const translations = {
     'settings.iosStep3': '3. Avaa sovellus aloitusnäytöltä',
     'settings.iosStep4': '4. Palaa tähän ja napauta Ota ilmoitukset käyttöön',
     'settings.permissionDeniedHelp': 'Ilmoitukset on estetty. Salli ne selaimen tai laitteen asetuksista.',
+    'settings.subscriptionFailed': 'Tämän laitteen rekisteröinti push-ilmoituksiin epäonnistui. Kokeile alla olevaa "Nollaa ilmoitukset".',
+    'settings.iosResubscribeHelp': 'iOS menetti push-rekisteröinnin. Napauta "Nollaa ilmoitukset" rekisteröidäksesi laitteen uudelleen.',
     'theme.light': 'Vaalea',
     'theme.dark': 'Tumma',
     'theme.system': 'Järjestelmä',
