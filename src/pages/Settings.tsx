@@ -271,6 +271,7 @@ export default function SettingsPage() {
 
       if (!result.ok) {
         const reason = 'reason' in result ? result.reason : 'unknown';
+        const permissionAlreadyGranted = refreshed.permission === 'granted';
         const msg =
           reason === 'unsupported'
             ? t('settings.notificationsUnsupported')
@@ -278,6 +279,10 @@ export default function SettingsPage() {
             ? t('settings.iosInstallTitle')
             : reason === 'permission-denied' && refreshed.permission === 'denied'
             ? t('settings.permissionDeniedHelp')
+            : permissionAlreadyGranted
+            ? (refreshed.isIOS
+                ? t('settings.iosResubscribeHelp')
+                : t('settings.subscriptionFailed'))
             : t('settings.notificationsPermissionRequired');
         toast.error(msg);
         return;
