@@ -43,7 +43,8 @@ async function getVapidPublicKey(): Promise<string> {
         if (error) throw error;
         const publicKey = typeof data?.publicKey === 'string' ? data.publicKey : '';
         if (!publicKey) throw new Error('Missing VAPID public key');
-        return normalizeBase64Url(publicKey);
+        // Return key as-is without normalization
+        return publicKey;
       })
       .catch((error) => {
         vapidPublicKeyPromise = null;
