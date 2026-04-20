@@ -52,7 +52,28 @@ export default function SettingsPage() {
   const [testSending, setTestSending] = useState(false);
   const [resetting, setResetting] = useState(false);
   const [lastPushError, setLastPushError] = useState<string | null>(null);
+  const [debugLogs, setDebugLogs] = useState<{ time: string; level: 'log' | 'warn' | 'error'; msg: string }[]>([]);
   const queryClient = useQueryClient();
+
+  const pushDebug = (level: 'log' | 'warn' | 'error', ...args: unknown[]) => {
+    const time = new Date().toLocaleTimeString();
+    const msg = args
+      .map((a) => {
+        if (a instanceof Error) return `${a.name}: ${a.message}`;
+        if (typeof a === 'string') return a;
+        try {
+          return JSON.stringify(a, (_k, v) => (v instanceof Error ? `${v.name}: ${v.message}` : v));
+        } catch {
+          return String(a);
+        }
+      })
+      .join(' ');
+    setDebugLogs((prev) => [...prev.slice(-49), { time, level, msg }]);
+    if (level === 'error') console.error(...args);
+    else if (level === 'warn') console.warn(...args);
+    else console.log(...args);
+  };
+  const clearDebugLogs = () => setDebugLogs([]);
 
   useEffect(() => {
     applyTheme(theme);
@@ -133,21 +154,21 @@ export default function SettingsPage() {
 
   const handleSendTest = async () => {
     setTestSending(true);
-    console.log('[push-test] ▶️ Starting handleSendTest');
+    pushDebug('log', '▶️ Starting handleSendTest');
     try {
-      console.log('[push-test] refreshing push state...');
+      pushDebug('log', 'refreshing push state...');
       const refreshed = await refreshPush();
-      console.log('[push-test] refreshPush result:', refreshed);
+      pushDebug('log', 'refreshPush result:', refreshed);
       const canUseExistingSubscription = refreshed.hasSubscription || subscriptions.length > 0;
-      console.log('[push-test] canUseExistingSubscription:', canUseExistingSubscription, 'subscriptions in state:', subscriptions.length);
+      pushDebug('log', 'canUseExistingSubscription:', canUseExistingSubscription, 'subs in state:', subscriptions.length);
 
       if (!canUseExistingSubscription) {
-        console.log('[push-test] no subscription found, calling subscribe()...');
+        pushDebug('log', 'no subscription found, calling subscribe()...');
         const subscriptionResult = await subscribe({ requestPermission: refreshed.permission === 'default' });
-        console.log('[push-test] subscribe() result:', subscriptionResult);
+        pushDebug('log', 'subscribe() result:', subscriptionResult);
         if (!subscriptionResult.ok) {
           const reason = 'reason' in subscriptionResult ? subscriptionResult.reason : 'unknown';
-          console.warn('[push-test] subscribe failed:', reason);
+          pushDebug('warn', 'subscribe failed:', reason);
           const msg =
             reason === 'unsupported'
               ? t('settings.notificationsUnsupported')
@@ -166,16 +187,16 @@ export default function SettingsPage() {
         await refetchSubs();
       }
 
-      console.log('[push-test] fetching auth session...');
+      pushDebug('log', 'fetching auth session...');
       const { data: sessionData } = await supabase.auth.getSession();
       const accessToken = sessionData.session?.access_token;
-      console.log('[push-test] accessToken present:', !!accessToken, 'length:', accessToken?.length ?? 0);
+      pushDebug('log', 'accessToken present:', !!accessToken, 'length:', accessToken?.length ?? 0);
       if (!accessToken) {
         toast.error(`${t('settings.testFailed')}: no access token`);
         return;
       }
 
-      console.log('[push-test] 📡 calling supabase.functions.invoke("send-test-notification")...');
+      pushDebug('log', '📡 invoking send-test-notification...');
       const invokeStart = Date.now();
       const { data, error } = await supabase.functions.invoke('send-test-notification', {
         headers: {
@@ -183,13 +204,13 @@ export default function SettingsPage() {
         },
       });
       const invokeMs = Date.now() - invokeStart;
-      console.log(`[push-test] ✅ invoke returned in ${invokeMs}ms`);
-      console.log('[push-test] data:', data);
-      console.log('[push-test] error:', error);
+      pushDebug('log', `✅ invoke returned in ${invokeMs}ms`);
+      pushDebug('log', 'data:', data);
+      if (error) pushDebug('error', 'error:', error);
 
       if (error) {
         const errMsg = error instanceof Error ? error.message : JSON.stringify(error);
-        console.error('[push-test] ❌ invoke error:', errMsg, error);
+        pushDebug('error', '❌ invoke error:', errMsg);
         toast.error(`Invoke error: ${errMsg}`);
         throw error;
       }
@@ -208,17 +229,17 @@ export default function SettingsPage() {
         error?: string;
         details?: PushDetail[];
       } | null;
-      console.log('[push-test] parsed result:', result);
+      pushDebug('log', 'parsed result:', result);
 
       if (result?.error === 'no-subscriptions') {
-        console.warn('[push-test] server reports no subscriptions for this user');
+        pushDebug('warn', 'server reports no subscriptions for this user');
         toast.error(t('settings.noSubscriptions'));
       } else if ((result?.sent ?? 0) > 0) {
-        console.log(`[push-test] 🎉 sent=${result?.sent} failed=${result?.failed} expired=${result?.expired}`);
+        pushDebug('log', `🎉 sent=${result?.sent} failed=${result?.failed} expired=${result?.expired}`);
         toast.success(`${t('settings.testSent')} (sent=${result?.sent}, failed=${result?.failed ?? 0}, expired=${result?.expired ?? 0})`);
       } else {
         const firstFailure = result?.details?.find((d) => !d.ok);
-        console.error('[push-test] all sends failed. details:', result?.details);
+        pushDebug('error', 'all sends failed. details:', result?.details);
         const reasonText = firstFailure
           ? firstFailure.expired
             ? `expired (${firstFailure.endpointHost})`
@@ -229,10 +250,10 @@ export default function SettingsPage() {
       void refetchSubs();
     } catch (err) {
       const errMsg = err instanceof Error ? err.message : String(err);
-      console.error('[push-test] 💥 caught exception:', errMsg, err);
+      pushDebug('error', '💥 caught exception:', errMsg);
       toast.error(errMsg && errMsg !== 'unknown' ? `${t('settings.testFailed')}: ${errMsg}` : t('settings.testFailed'));
     } finally {
-      console.log('[push-test] 🏁 handleSendTest finished');
+      pushDebug('log', '🏁 handleSendTest finished');
       setTestSending(false);
     }
   };
@@ -504,6 +525,40 @@ export default function SettingsPage() {
                 <Send className="h-4 w-4 mr-2" />
                 {t('settings.sendTestNotification')}
               </Button>
+
+              {/* On-screen debug panel — shows the latest [push-test] events without needing Web Inspector */}
+              {debugLogs.length > 0 && (
+                <div className="rounded-lg border border-border bg-muted/40 p-2 space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                      {language === 'fi' ? 'Push-debuglokit' : 'Push debug log'}
+                    </span>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={clearDebugLogs}
+                      className="h-6 px-2 text-[10px]"
+                    >
+                      {language === 'fi' ? 'Tyhjennä' : 'Clear'}
+                    </Button>
+                  </div>
+                  <div className="max-h-64 overflow-auto font-mono text-[10px] leading-tight space-y-0.5">
+                    {debugLogs.map((entry, i) => (
+                      <div
+                        key={i}
+                        className={cn(
+                          'whitespace-pre-wrap break-all',
+                          entry.level === 'error' && 'text-destructive',
+                          entry.level === 'warn' && 'text-warning',
+                          entry.level === 'log' && 'text-foreground',
+                        )}
+                      >
+                        <span className="text-muted-foreground">{entry.time}</span> {entry.msg}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Reset all subscriptions */}
               {pushStatus.supported && !(pushStatus.isIOS && !pushStatus.standalone) && (
