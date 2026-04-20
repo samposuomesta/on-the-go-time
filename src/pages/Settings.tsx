@@ -228,9 +228,9 @@ export default function SettingsPage() {
       }
       void refetchSubs();
     } catch (err) {
-      const errMsg = err instanceof Error ? err.message : JSON.stringify(err);
+      const errMsg = err instanceof Error ? err.message : String(err);
       console.error('[push-test] 💥 caught exception:', errMsg, err);
-      toast.error(`${t('settings.testFailed')}: ${errMsg}`);
+      toast.error(errMsg && errMsg !== 'unknown' ? `${t('settings.testFailed')}: ${errMsg}` : t('settings.testFailed'));
     } finally {
       console.log('[push-test] 🏁 handleSendTest finished');
       setTestSending(false);
