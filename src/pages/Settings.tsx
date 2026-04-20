@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { APP_VERSION, BUILD_DATE } from '@/lib/version';
-import { ArrowLeft, Moon, Sun, Monitor, Bell, Smartphone, Check, X, AlertTriangle, Send, Trash2, RefreshCw } from 'lucide-react';
+import { ArrowLeft, Moon, Sun, Monitor, Bell, Smartphone, Check, X, AlertTriangle, Send, Trash2, RefreshCw, Copy } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
@@ -540,14 +540,44 @@ export default function SettingsPage() {
                     <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                       {language === 'fi' ? 'Push-debuglokit' : 'Push debug log'}
                     </span>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={clearDebugLogs}
-                      className="h-6 px-2 text-[10px]"
-                    >
-                      {language === 'fi' ? 'Tyhjennä' : 'Clear'}
-                    </Button>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={async () => {
+                          const text = debugLogs.map((e) => `${e.time} [${e.level}] ${e.msg}`).join('\n');
+                          try {
+                            if (navigator.clipboard?.writeText) {
+                              await navigator.clipboard.writeText(text);
+                            } else {
+                              const ta = document.createElement('textarea');
+                              ta.value = text;
+                              ta.style.position = 'fixed';
+                              ta.style.opacity = '0';
+                              document.body.appendChild(ta);
+                              ta.select();
+                              document.execCommand('copy');
+                              document.body.removeChild(ta);
+                            }
+                            toast.success(language === 'fi' ? 'Kopioitu' : 'Copied');
+                          } catch {
+                            toast.error(language === 'fi' ? 'Kopiointi epäonnistui' : 'Copy failed');
+                          }
+                        }}
+                        className="h-6 px-2 text-[10px]"
+                      >
+                        <Copy className="h-3 w-3 mr-1" />
+                        {language === 'fi' ? 'Kopioi' : 'Copy'}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={clearDebugLogs}
+                        className="h-6 px-2 text-[10px]"
+                      >
+                        {language === 'fi' ? 'Tyhjennä' : 'Clear'}
+                      </Button>
+                    </div>
                   </div>
                   <div className="max-h-64 overflow-auto font-mono text-[10px] leading-tight space-y-0.5">
                     {debugLogs.map((entry, i) => (
