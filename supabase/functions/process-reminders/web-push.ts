@@ -41,10 +41,13 @@ async function createVapidJwt(
 ): Promise<string> {
   const header = { typ: "JWT", alg: "ES256" };
   const now = Math.floor(Date.now() / 1000);
+  // Apple Push Service rejects exp > 24h and exp very close to 24h.
+  // Keep it well under the limit (12h) for reliability.
+  // sub MUST be a valid mailto: with a real domain — Apple validates this strictly.
   const payload = {
     aud: audience,
-    exp: now + 86400,
-    sub: "mailto:noreply@timetrack.app",
+    exp: now + 12 * 60 * 60,
+    sub: Deno.env.get("VAPID_SUBJECT") ?? "mailto:noreply@integral.fi",
   };
 
   // Import private key as JWK
