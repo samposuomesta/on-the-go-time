@@ -112,6 +112,30 @@ function readStatus(): PushStatus {
   };
 }
 
+async function getActiveServiceWorker(): Promise<ServiceWorkerRegistration> {
+  // 1. Hae kaikki rekisteröinnit
+  const regs = await navigator.serviceWorker.getRegistrations();
+
+  // 2. Poista rikkinäiset (iOS bugi)
+  for (const r of regs) {
+    if (!r.active) {
+      console.log('[push] removing inactive SW registration', r.scope);
+      await r.unregister();
+    }
+  }
+
+  // 3. Rekisteröi uudelleen
+  const reg = await navigator.serviceWorker.register('/sw.js');
+
+  // 4. ODOTA että oikeasti aktivoituu
+  await navigator.serviceWorker.ready;
+
+  // 5. iOS tarvitsee pienen delayn
+  await new Promise((res) => setTimeout(res, 300));
+
+  return reg;
+}
+
 export function usePushSubscription() {
   const { data: currentUser } = useCurrentUser();
   const [status, setStatus] = useState<PushStatus>(() => readStatus());
@@ -209,7 +233,7 @@ export function usePushSubscription() {
         const vapidPublicKey = await getVapidPublicKey();
         const applicationServerKey = urlBase64ToUint8Array(vapidPublicKey);
 
-        const registration = await navigator.serviceWorker.ready;
+        const registration = await getActiveServiceWorker();
         let subscription = await registration.pushManager.getSubscription();
 
         if (!subscription) {
