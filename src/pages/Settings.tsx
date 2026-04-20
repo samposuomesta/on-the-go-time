@@ -467,18 +467,16 @@ export default function SettingsPage() {
                 {t('settings.enableNotifications')}
               </Button>
 
-              {/* Test notification */}
-              {subscriptions.length > 0 && (
-                <Button
-                  onClick={handleSendTest}
-                  disabled={testSending}
-                  variant="outline"
-                  className="w-full"
-                >
-                  <Send className="h-4 w-4 mr-2" />
-                  {t('settings.sendTestNotification')}
-                </Button>
-              )}
+              {/* Test notification — always shown so user can diagnose missing subscription */}
+              <Button
+                onClick={handleSendTest}
+                disabled={testSending}
+                variant="outline"
+                className="w-full"
+              >
+                <Send className="h-4 w-4 mr-2" />
+                {t('settings.sendTestNotification')}
+              </Button>
 
               {/* Reset all subscriptions */}
               {pushStatus.supported && !(pushStatus.isIOS && !pushStatus.standalone) && (
