@@ -190,16 +190,19 @@ export function usePushSubscription() {
         let permission = Notification.permission;
         console.log('[push] current permission:', permission);
 
-        if (permission === 'default') {
-          if (!requestPermission) {
-            return { ok: false, reason: 'permission-denied' };
+        // iOS fallback: try to request permission anyway if not granted
+        if (permission !== 'granted') {
+          try {
+            permission = await Notification.requestPermission();
+            console.log('[push] permission after request:', permission);
+          } catch (e) {
+            console.warn('[push] permission request failed', e);
           }
-          permission = await Notification.requestPermission();
-          console.log('[push] permission after request:', permission);
         }
 
+        // Do NOT block if iOS bugs the permission status — continue to subscription anyway
         if (permission !== 'granted') {
-          return { ok: false, reason: 'permission-denied' };
+          console.warn('[push] permission not explicitly granted, but continuing for iOS');
         }
 
         const vapidPublicKey = await getVapidPublicKey();
