@@ -109,15 +109,22 @@ export default function SettingsPage() {
       void refetchSubs();
     } else {
       const reason = 'reason' in result ? result.reason : 'unknown';
+      // If permission is already granted but subscribe failed, the issue is a
+      // missing/expired push registration (common on iOS), not permissions.
+      const permissionAlreadyGranted = refreshed.permission === 'granted';
       const msg =
         reason === 'unsupported'
           ? t('settings.notificationsUnsupported')
           : reason === 'not-standalone-ios'
           ? t('settings.iosInstallTitle')
           : reason === 'permission-denied'
-          ? (pushStatus.permission === 'denied'
+          ? (refreshed.permission === 'denied'
               ? t('settings.permissionDeniedHelp')
               : t('settings.notificationsPermissionRequired'))
+          : permissionAlreadyGranted
+          ? (refreshed.isIOS
+              ? t('settings.iosResubscribeHelp')
+              : t('settings.subscriptionFailed'))
           : t('settings.notificationsPermissionRequired');
       toast.error(msg);
     }
