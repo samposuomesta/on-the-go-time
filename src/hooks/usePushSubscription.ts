@@ -324,13 +324,17 @@ export function usePushSubscription() {
 
   const resetAll = useCallback(async (): Promise<SubscribeResult> => {
     console.log('[push] resetAll() called');
-    if (!currentUser?.id) return { ok: false, reason: 'no-user' };
+    if (!currentUser?.id) {
+      console.warn('[push] reset: no current user');
+      return { ok: false, reason: 'no-user' };
+    }
     if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) {
+      console.warn('[push] reset: unsupported environment');
       return { ok: false, reason: 'unsupported' };
     }
 
+    // 1. Unsubscribe local browser subscription if present (best-effort, never fatal)
     try {
-      // 1. Unsubscribe local browser subscription if present
       const reg = await navigator.serviceWorker.ready;
       const existingSub = await reg.pushManager.getSubscription();
       if (existingSub) {
@@ -340,9 +344,15 @@ export function usePushSubscription() {
         } catch (e) {
           console.warn('[push] reset: local unsubscribe failed', e);
         }
+      } else {
+        console.log('[push] reset: no local subscription to remove');
       }
+    } catch (e) {
+      console.warn('[push] reset: serviceWorker.ready failed', e);
+    }
 
-      // 2. Delete ALL server-side subscriptions for this user
+    // 2. Delete ALL server-side subscriptions for this user (best-effort, never fatal)
+    try {
       const { error: delErr } = await supabase
         .from('push_subscriptions')
         .delete()
@@ -352,13 +362,18 @@ export function usePushSubscription() {
       } else {
         console.log('[push] reset: server subscriptions deleted');
       }
+    } catch (e) {
+      console.warn('[push] reset: server delete threw', e);
+    }
 
+    try {
       await refresh();
-    } catch (err) {
-      console.warn('[push] reset: cleanup failed', err);
+    } catch (e) {
+      console.warn('[push] reset: refresh failed', e);
     }
 
     // 3. Re-subscribe (creates fresh APNs/FCM registration)
+    console.log('[push] reset: re-subscribing');
     return subscribe({ requestPermission: true });
   }, [currentUser?.id, refresh, subscribe]);
 
