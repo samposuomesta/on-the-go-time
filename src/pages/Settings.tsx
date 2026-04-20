@@ -96,6 +96,12 @@ export default function SettingsPage() {
   });
 
   const handleEnableNotifications = async () => {
+    const refreshed = await refreshPush();
+    if (refreshed.permission === 'granted' && refreshed.hasSubscription) {
+      toast.success(t('settings.notificationsEnabled'));
+      return;
+    }
+
     const result = await subscribe({ requestPermission: true });
     if (result.ok) {
       toast.success(t('settings.notificationsEnabled'));
@@ -119,24 +125,41 @@ export default function SettingsPage() {
   const handleSendTest = async () => {
     setTestSending(true);
     try {
-      const subscriptionResult = await subscribe({ requestPermission: pushStatus.permission === 'default' });
-      if (!subscriptionResult.ok) {
-        const reason = 'reason' in subscriptionResult ? subscriptionResult.reason : 'unknown';
-        const msg =
-          reason === 'unsupported'
-            ? t('settings.notificationsUnsupported')
-            : reason === 'not-standalone-ios'
-            ? t('settings.iosInstallTitle')
-            : reason === 'permission-denied'
-            ? (pushStatus.permission === 'denied'
-                ? t('settings.permissionDeniedHelp')
-                : t('settings.notificationsPermissionRequired'))
-            : t('settings.testFailed');
-        toast.error(msg);
+      const refreshed = await refreshPush();
+      const canUseExistingSubscription = refreshed.hasSubscription || subscriptions.length > 0;
+
+      if (!canUseExistingSubscription) {
+        const subscriptionResult = await subscribe({ requestPermission: refreshed.permission === 'default' });
+        if (!subscriptionResult.ok) {
+          const reason = 'reason' in subscriptionResult ? subscriptionResult.reason : 'unknown';
+          const msg =
+            reason === 'unsupported'
+              ? t('settings.notificationsUnsupported')
+              : reason === 'not-standalone-ios'
+              ? t('settings.iosInstallTitle')
+              : reason === 'permission-denied'
+              ? (refreshed.permission === 'denied'
+                  ? t('settings.permissionDeniedHelp')
+                  : t('settings.notificationsPermissionRequired'))
+              : t('settings.testFailed');
+          toast.error(msg);
+          return;
+        }
+        await refetchSubs();
+      }
+
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData.session?.access_token;
+      if (!accessToken) {
+        toast.error(t('settings.testFailed'));
         return;
       }
 
-      const { data, error } = await supabase.functions.invoke('send-test-notification');
+      const { data, error } = await supabase.functions.invoke('send-test-notification', {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
       if (error) throw error;
       type PushDetail = {
         endpointHost: string;
@@ -205,7 +228,9 @@ export default function SettingsPage() {
     const nextEnabled = existing ? !existing.enabled : true;
 
     if (nextEnabled) {
-      const result = await subscribe({ requestPermission: true });
+      const refreshed = await refreshPush();
+      const canUseExistingSubscription = refreshed.hasSubscription || subscriptions.length > 0;
+      const result = canUseExistingSubscription ? { ok: true as const } : await subscribe({ requestPermission: true });
 
       if (!result.ok) {
         const reason = 'reason' in result ? result.reason : 'unknown';
@@ -214,9 +239,15 @@ export default function SettingsPage() {
             ? t('settings.notificationsUnsupported')
             : reason === 'not-standalone-ios'
             ? t('settings.iosInstallTitle')
+            : reason === 'permission-denied' && refreshed.permission === 'denied'
+            ? t('settings.permissionDeniedHelp')
             : t('settings.notificationsPermissionRequired');
         toast.error(msg);
         return;
+      }
+
+      if (!canUseExistingSubscription) {
+        void refetchSubs();
       }
     }
 
