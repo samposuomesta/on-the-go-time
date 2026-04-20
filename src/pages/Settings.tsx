@@ -51,6 +51,7 @@ export default function SettingsPage() {
   const { status: pushStatus, subscribe, unsubscribe, refresh: refreshPush, resetAll: resetAllPush } = usePushSubscription();
   const [testSending, setTestSending] = useState(false);
   const [resetting, setResetting] = useState(false);
+  const [lastPushError, setLastPushError] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
   useEffect(() => {
