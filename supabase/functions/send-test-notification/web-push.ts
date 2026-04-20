@@ -288,6 +288,7 @@ export async function sendWebPush(
   const audience = `${url.protocol}//${url.host}`;
   const jwt = await createVapidJwt(audience, rawPrivate, rawPublic);
 
+  const pushHost = new URL(subscription.endpoint).host;
   const response = await fetch(subscription.endpoint, {
     method: "POST",
     headers: {
@@ -300,16 +301,20 @@ export async function sendWebPush(
     body: ciphertext,
   });
 
+  const responseBody = await response.text().catch(() => "");
+  console.log(
+    `[web-push] ${pushHost} → status=${response.status} body=${responseBody || "(empty)"}`,
+  );
+
   if (!response.ok) {
-    const body = await response.text().catch(() => "");
     console.error(
-      `Push endpoint ${new URL(subscription.endpoint).host} responded ${response.status}: ${body}`,
+      `[web-push] DELIVERY FAILED ${pushHost} status=${response.status}: ${responseBody}`,
     );
     if (response.status === 410 || response.status === 404) {
       return { expired: true };
     }
 
-     throw createPushDeliveryError(response.status, body);
+     throw createPushDeliveryError(response.status, responseBody);
   }
 
   return { expired: false, status: response.status };
