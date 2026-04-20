@@ -526,6 +526,40 @@ export default function SettingsPage() {
                 {t('settings.sendTestNotification')}
               </Button>
 
+              {/* On-screen debug panel — shows the latest [push-test] events without needing Web Inspector */}
+              {debugLogs.length > 0 && (
+                <div className="rounded-lg border border-border bg-muted/40 p-2 space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                      {language === 'fi' ? 'Push-debuglokit' : 'Push debug log'}
+                    </span>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={clearDebugLogs}
+                      className="h-6 px-2 text-[10px]"
+                    >
+                      {language === 'fi' ? 'Tyhjennä' : 'Clear'}
+                    </Button>
+                  </div>
+                  <div className="max-h-64 overflow-auto font-mono text-[10px] leading-tight space-y-0.5">
+                    {debugLogs.map((entry, i) => (
+                      <div
+                        key={i}
+                        className={cn(
+                          'whitespace-pre-wrap break-all',
+                          entry.level === 'error' && 'text-destructive',
+                          entry.level === 'warn' && 'text-warning',
+                          entry.level === 'log' && 'text-foreground',
+                        )}
+                      >
+                        <span className="text-muted-foreground">{entry.time}</span> {entry.msg}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Reset all subscriptions */}
               {pushStatus.supported && !(pushStatus.isIOS && !pushStatus.standalone) && (
                 <div className="space-y-1">
