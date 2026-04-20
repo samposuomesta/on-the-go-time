@@ -4,6 +4,20 @@ import { useCurrentUser } from './useCurrentUser';
 
 let vapidPublicKeyPromise: Promise<string> | null = null;
 
+type PushDebugLevel = 'log' | 'warn' | 'error';
+let externalLogger: ((level: PushDebugLevel, ...args: unknown[]) => void) | null = null;
+export function setPushDebugLogger(fn: ((level: PushDebugLevel, ...args: unknown[]) => void) | null) {
+  externalLogger = fn;
+}
+function plog(level: PushDebugLevel, ...args: unknown[]) {
+  if (externalLogger) {
+    try { externalLogger(level, ...args); } catch { /* ignore */ }
+  }
+  if (level === 'error') console.error(...args);
+  else if (level === 'warn') console.warn(...args);
+  else console.log(...args);
+}
+
 function urlBase64ToUint8Array(base64String: string) {
   // lisää padding oikein
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
@@ -236,11 +250,11 @@ export function usePushSubscription() {
 
         // ⚠️ TÄRKEÄ: käytä RAW avainta backendista (älä normalize sitä)
         const vapidPublicKey = await getVapidPublicKey();
-        console.log(vapidPublicKey);
+        plog('log', '[push] VAPID key:', vapidPublicKey);
         const applicationServerKey = urlBase64ToUint8Array(vapidPublicKey);
 
         // DEBUG (pakollinen tarkistus) — pitäisi olla 65
-        console.log('[push] VAPID key length:', applicationServerKey.length);
+        plog('log', '[push] VAPID key length:', applicationServerKey.length);
 
         const registration = await getActiveServiceWorker();
         let subscription = await registration.pushManager.getSubscription();
