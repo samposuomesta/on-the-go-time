@@ -133,14 +133,21 @@ export default function SettingsPage() {
 
   const handleSendTest = async () => {
     setTestSending(true);
+    console.log('[push-test] ▶️ Starting handleSendTest');
     try {
+      console.log('[push-test] refreshing push state...');
       const refreshed = await refreshPush();
+      console.log('[push-test] refreshPush result:', refreshed);
       const canUseExistingSubscription = refreshed.hasSubscription || subscriptions.length > 0;
+      console.log('[push-test] canUseExistingSubscription:', canUseExistingSubscription, 'subscriptions in state:', subscriptions.length);
 
       if (!canUseExistingSubscription) {
+        console.log('[push-test] no subscription found, calling subscribe()...');
         const subscriptionResult = await subscribe({ requestPermission: refreshed.permission === 'default' });
+        console.log('[push-test] subscribe() result:', subscriptionResult);
         if (!subscriptionResult.ok) {
           const reason = 'reason' in subscriptionResult ? subscriptionResult.reason : 'unknown';
+          console.warn('[push-test] subscribe failed:', reason);
           const msg =
             reason === 'unsupported'
               ? t('settings.notificationsUnsupported')
@@ -151,25 +158,39 @@ export default function SettingsPage() {
                   ? t('settings.permissionDeniedHelp')
                   : t('settings.notificationsPermissionRequired'))
               : t('settings.testFailed');
-          toast.error(msg);
+          toast.error(`${msg} [${reason}]`);
           return;
         }
         await refetchSubs();
       }
 
+      console.log('[push-test] fetching auth session...');
       const { data: sessionData } = await supabase.auth.getSession();
       const accessToken = sessionData.session?.access_token;
+      console.log('[push-test] accessToken present:', !!accessToken, 'length:', accessToken?.length ?? 0);
       if (!accessToken) {
-        toast.error(t('settings.testFailed'));
+        toast.error(`${t('settings.testFailed')}: no access token`);
         return;
       }
 
+      console.log('[push-test] 📡 calling supabase.functions.invoke("send-test-notification")...');
+      const invokeStart = Date.now();
       const { data, error } = await supabase.functions.invoke('send-test-notification', {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
       });
-      if (error) throw error;
+      const invokeMs = Date.now() - invokeStart;
+      console.log(`[push-test] ✅ invoke returned in ${invokeMs}ms`);
+      console.log('[push-test] data:', data);
+      console.log('[push-test] error:', error);
+
+      if (error) {
+        const errMsg = error instanceof Error ? error.message : JSON.stringify(error);
+        console.error('[push-test] ❌ invoke error:', errMsg, error);
+        toast.error(`Invoke error: ${errMsg}`);
+        throw error;
+      }
       type PushDetail = {
         endpointHost: string;
         platform: string | null;
@@ -185,27 +206,31 @@ export default function SettingsPage() {
         error?: string;
         details?: PushDetail[];
       } | null;
+      console.log('[push-test] parsed result:', result);
+
       if (result?.error === 'no-subscriptions') {
+        console.warn('[push-test] server reports no subscriptions for this user');
         toast.error(t('settings.noSubscriptions'));
       } else if ((result?.sent ?? 0) > 0) {
-        toast.success(t('settings.testSent'));
+        console.log(`[push-test] 🎉 sent=${result?.sent} failed=${result?.failed} expired=${result?.expired}`);
+        toast.success(`${t('settings.testSent')} (sent=${result?.sent}, failed=${result?.failed ?? 0}, expired=${result?.expired ?? 0})`);
       } else {
         const firstFailure = result?.details?.find((d) => !d.ok);
+        console.error('[push-test] all sends failed. details:', result?.details);
         const reasonText = firstFailure
           ? firstFailure.expired
             ? `expired (${firstFailure.endpointHost})`
             : `${firstFailure.endpointHost} → ${firstFailure.error ?? `status ${firstFailure.status ?? '?'}`}`
-          : '';
-        toast.error(reasonText ? `${t('settings.testFailed')}: ${reasonText}` : t('settings.testFailed'));
-        if (firstFailure) {
-          console.error('[push] test failure detail:', firstFailure);
-        }
+          : `sent=${result?.sent ?? 0} failed=${result?.failed ?? 0} expired=${result?.expired ?? 0}`;
+        toast.error(`${t('settings.testFailed')}: ${reasonText}`);
       }
       void refetchSubs();
     } catch (err) {
-      console.error('Test send failed:', err);
-      toast.error(t('settings.testFailed'));
+      const errMsg = err instanceof Error ? err.message : JSON.stringify(err);
+      console.error('[push-test] 💥 caught exception:', errMsg, err);
+      toast.error(`${t('settings.testFailed')}: ${errMsg}`);
     } finally {
+      console.log('[push-test] 🏁 handleSendTest finished');
       setTestSending(false);
     }
   };
