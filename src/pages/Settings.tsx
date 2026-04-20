@@ -52,7 +52,28 @@ export default function SettingsPage() {
   const [testSending, setTestSending] = useState(false);
   const [resetting, setResetting] = useState(false);
   const [lastPushError, setLastPushError] = useState<string | null>(null);
+  const [debugLogs, setDebugLogs] = useState<{ time: string; level: 'log' | 'warn' | 'error'; msg: string }[]>([]);
   const queryClient = useQueryClient();
+
+  const pushDebug = (level: 'log' | 'warn' | 'error', ...args: unknown[]) => {
+    const time = new Date().toLocaleTimeString();
+    const msg = args
+      .map((a) => {
+        if (a instanceof Error) return `${a.name}: ${a.message}`;
+        if (typeof a === 'string') return a;
+        try {
+          return JSON.stringify(a, (_k, v) => (v instanceof Error ? `${v.name}: ${v.message}` : v));
+        } catch {
+          return String(a);
+        }
+      })
+      .join(' ');
+    setDebugLogs((prev) => [...prev.slice(-49), { time, level, msg }]);
+    if (level === 'error') console.error(...args);
+    else if (level === 'warn') console.warn(...args);
+    else console.log(...args);
+  };
+  const clearDebugLogs = () => setDebugLogs([]);
 
   useEffect(() => {
     applyTheme(theme);
