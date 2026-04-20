@@ -291,8 +291,14 @@ export async function sendWebPush(
     body: ciphertext,
   });
 
-  if (!response.ok && (response.status === 410 || response.status === 404)) {
-    return { expired: true };
+  if (!response.ok) {
+    const body = await response.text().catch(() => "");
+    console.error(
+      `Push endpoint ${new URL(subscription.endpoint).host} responded ${response.status}: ${body}`,
+    );
+    if (response.status === 410 || response.status === 404) {
+      return { expired: true };
+    }
   }
 
   return { expired: false, status: response.status };
