@@ -29,6 +29,14 @@ export function AddExpenseDialog({ open, onOpenChange, mode }: Props) {
   const [kilometers, setKilometers] = useState('');
   const [parkingCost, setParkingCost] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const nowLocal = () => {
+    const d = new Date();
+    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+    return d.toISOString().slice(0, 16);
+  };
+  const [vehicleType, setVehicleType] = useState<'car' | 'benefit_car' | 'trailer' | 'company_car'>('car');
+  const [tripStart, setTripStart] = useState(nowLocal());
+  const [tripEnd, setTripEnd] = useState(nowLocal());
   const [description, setDescription] = useState('');
   const [saving, setSaving] = useState(false);
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
