@@ -14,24 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      _cron_debug: {
-        Row: {
-          created_at: string | null
-          id: number
-          info: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          id?: number
-          info?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          id?: number
-          info?: string | null
-        }
-        Relationships: []
-      }
       absence_reasons: {
         Row: {
           active: boolean
