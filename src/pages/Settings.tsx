@@ -759,26 +759,19 @@ export default function SettingsPage() {
                         <Bell className="h-4 w-4 text-muted-foreground shrink-0" />
                         <span className="text-sm font-medium truncate">{t('settings.weeklyGoalReminder')}</span>
                       </div>
-                      <Switch checked={isEnabled} onCheckedChange={() => handleToggleWeekly(type, defaultTime, defaultDay)} />
-                    </div>
-                    <div className="flex items-center gap-2 ml-7">
-                      <select
-                        value={day}
-                        onChange={(e) => handleDayChange(type, parseInt(e.target.value, 10), defaultTime)}
-                        disabled={!isEnabled}
-                        className="h-8 text-xs rounded-md border border-input bg-background px-2 disabled:opacity-50"
-                      >
-                        {[1,2,3,4,5,6,0].map((d) => (
-                          <option key={d} value={d}>{t(`settings.day.${d}` as any)}</option>
-                        ))}
-                      </select>
-                      <Input
-                        type="time"
-                        value={time}
-                        onChange={(e) => handleTimeChange(type, e.target.value)}
-                        className="w-24 h-8 text-xs"
-                        disabled={!isEnabled}
-                      />
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setEditing({ type, time, day_of_week: day, showDay: true, labelKey: 'settings.weeklyGoalReminder' })}
+                          disabled={!isEnabled}
+                          className="inline-flex items-center gap-1 h-8 px-2 rounded-md border border-input bg-background text-xs disabled:opacity-50 hover:bg-muted"
+                        >
+                          <span className="font-mono">{time}</span>
+                          <span className="text-muted-foreground">· {t(`settings.day.${day}` as any)}</span>
+                          <Pencil className="h-3 w-3 text-muted-foreground" />
+                        </button>
+                        <Switch checked={isEnabled} onCheckedChange={() => handleToggleWeekly(type, defaultTime, defaultDay)} />
+                      </div>
                     </div>
                     <p className="text-xs text-muted-foreground ml-7">{t('settings.weeklyGoalHint')}</p>
                   </div>
