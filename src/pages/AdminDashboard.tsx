@@ -2699,6 +2699,8 @@ function EditCompanyDialog({ company, onSave }: { company: any; onSave: (data: a
   const [city, setCity] = useState(company.city || '');
   const [country, setCountry] = useState(company.country || '');
   const [timezone, setTimezone] = useState(company.timezone || 'Europe/Helsinki');
+  const [slackBotToken, setSlackBotToken] = useState(company.slack_bot_token || '');
+  const [slackDefaultChannel, setSlackDefaultChannel] = useState(company.slack_default_channel || '');
 
   return (
     <Dialog open={open} onOpenChange={(o) => {
@@ -2711,10 +2713,12 @@ function EditCompanyDialog({ company, onSave }: { company: any; onSave: (data: a
         setCity(company.city || '');
         setCountry(company.country || '');
         setTimezone(company.timezone || 'Europe/Helsinki');
+        setSlackBotToken(company.slack_bot_token || '');
+        setSlackDefaultChannel(company.slack_default_channel || '');
       }
     }}>
       <DialogTrigger asChild><Button size="icon" variant="ghost" className="h-8 w-8"><Pencil className="h-3.5 w-3.5" /></Button></DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader><DialogTitle className="font-display">{t("admin.editCompany")}</DialogTitle></DialogHeader>
         <div className="grid gap-4 mt-2 sm:grid-cols-2">
           <div className="space-y-1.5 sm:col-span-2"><Label>{t("admin.companyName")}</Label><Input value={name} onChange={(e) => setName(e.target.value)} /></div>
@@ -2737,6 +2741,29 @@ function EditCompanyDialog({ company, onSave }: { company: any; onSave: (data: a
           <div className="space-y-1.5"><Label>{t("admin.postalCode")}</Label><Input value={postalCode} onChange={(e) => setPostalCode(e.target.value)} /></div>
           <div className="space-y-1.5"><Label>{t("admin.city")}</Label><Input value={city} onChange={(e) => setCity(e.target.value)} /></div>
           <div className="space-y-1.5 sm:col-span-2"><Label>{t("admin.timezone")}</Label><Input value={timezone} onChange={(e) => setTimezone(e.target.value)} placeholder="Europe/Helsinki" /></div>
+
+          <div className="sm:col-span-2 pt-2 border-t border-border">
+            <h4 className="text-sm font-display font-bold mb-2">{t('admin.slackIntegration')}</h4>
+          </div>
+          <div className="space-y-1.5 sm:col-span-2">
+            <Label>{t('admin.slackBotToken')}</Label>
+            <Input
+              type="password"
+              autoComplete="off"
+              value={slackBotToken}
+              onChange={(e) => setSlackBotToken(e.target.value)}
+              placeholder="xoxb-..."
+            />
+            <p className="text-xs text-muted-foreground">{t('admin.slackBotTokenHint')}</p>
+          </div>
+          <div className="space-y-1.5 sm:col-span-2">
+            <Label>{t('admin.slackDefaultChannel')}</Label>
+            <Input
+              value={slackDefaultChannel}
+              onChange={(e) => setSlackDefaultChannel(e.target.value)}
+              placeholder="#general"
+            />
+          </div>
         </div>
         <Button className="w-full mt-2" onClick={() => {
           onSave({
@@ -2747,6 +2774,8 @@ function EditCompanyDialog({ company, onSave }: { company: any; onSave: (data: a
             city: city.trim() || null,
             country: country || null,
             timezone: timezone.trim() || 'Europe/Helsinki',
+            slack_bot_token: slackBotToken.trim() || null,
+            slack_default_channel: slackDefaultChannel.trim() || null,
           });
           setOpen(false);
         }}>{t("admin.saveChanges")}</Button>

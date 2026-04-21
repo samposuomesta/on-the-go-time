@@ -44,6 +44,7 @@ interface UserReminder {
   time: string;
   enabled: boolean;
   day_of_week: number | null;
+  send_to_slack?: boolean;
 }
 
 export default function SettingsPage() {
@@ -117,6 +118,43 @@ export default function SettingsPage() {
     },
     enabled: !!userId,
   });
+
+  // Slack User ID (stored on users.slack_user_id)
+  const [slackUserId, setSlackUserId] = useState<string>('');
+  const [slackSaving, setSlackSaving] = useState(false);
+  const { data: userSlack } = useQuery({
+    queryKey: ['user-slack-id', userId],
+    queryFn: async () => {
+      if (!userId) return null;
+      const { data, error } = await supabase
+        .from('users')
+        .select('slack_user_id')
+        .eq('id', userId)
+        .maybeSingle();
+      if (error) throw error;
+      return (data as any)?.slack_user_id as string | null;
+    },
+    enabled: !!userId,
+  });
+  useEffect(() => { setSlackUserId(userSlack ?? ''); }, [userSlack]);
+
+  const saveSlackUserId = async () => {
+    if (!userId) return;
+    setSlackSaving(true);
+    try {
+      const { error } = await supabase
+        .from('users')
+        .update({ slack_user_id: slackUserId.trim() || null } as any)
+        .eq('id', userId);
+      if (error) throw error;
+      toast.success(t('common.saved'));
+      queryClient.invalidateQueries({ queryKey: ['user-slack-id', userId] });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Save failed');
+    } finally {
+      setSlackSaving(false);
+    }
+  };
 
   const { data: subscriptions = [], refetch: refetchSubs } = useQuery({
     queryKey: ['push-subscriptions', userId],
@@ -315,10 +353,11 @@ export default function SettingsPage() {
   };
 
   const upsertReminder = useMutation({
-    mutationFn: async ({ type, enabled, time, day_of_week }: { type: string; enabled: boolean; time: string; day_of_week?: number | null }) => {
+    mutationFn: async ({ type, enabled, time, day_of_week, send_to_slack }: { type: string; enabled: boolean; time: string; day_of_week?: number | null; send_to_slack?: boolean }) => {
       if (!userId) return;
       const payload: any = { user_id: userId, type, enabled, time };
       if (day_of_week !== undefined) payload.day_of_week = day_of_week;
+      if (send_to_slack !== undefined) payload.send_to_slack = send_to_slack;
       const { error } = await supabase
         .from('user_reminders')
         .upsert(payload, { onConflict: 'user_id,type' });
@@ -388,6 +427,17 @@ export default function SettingsPage() {
       enabled: existing?.enabled ?? true,
       time: existing?.time ?? defaultTime,
       day_of_week,
+    });
+  };
+
+  const handleToggleSlack = (type: string, defaultTime: string, defaultDay?: number | null) => {
+    const existing = getReminder(type);
+    upsertReminder.mutate({
+      type,
+      enabled: existing?.enabled ?? false,
+      time: existing?.time ?? defaultTime,
+      day_of_week: defaultDay !== undefined ? (existing?.day_of_week ?? defaultDay) : undefined,
+      send_to_slack: !(existing?.send_to_slack ?? false),
     });
   };
 
@@ -699,6 +749,28 @@ export default function SettingsPage() {
                   })}
                 </div>
               )}
+            </CardContent>
+          </Card>
+        </section>
+
+        {/* Slack integration */}
+        <section>
+          <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t('settings.slackIntegration')}</Label>
+          <Card className="mt-2">
+            <CardContent className="p-4 space-y-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="slack-user-id" className="text-sm">{t('settings.slackUserId')}</Label>
+                <Input
+                  id="slack-user-id"
+                  placeholder="U01ABCDE2FG"
+                  value={slackUserId}
+                  onChange={(e) => setSlackUserId(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">{t('settings.slackUserIdHint')}</p>
+              </div>
+              <Button size="sm" onClick={saveSlackUserId} disabled={slackSaving || (slackUserId.trim() === (userSlack ?? ''))}>
+                {t('common.save')}
+              </Button>
             </CardContent>
           </Card>
         </section>

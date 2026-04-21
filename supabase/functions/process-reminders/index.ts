@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { sendWebPush } from "./web-push.ts";
+import { sendSlackMessage } from "./slack.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -17,6 +18,7 @@ interface ReminderAction {
   type: string;
   message: string;
   referenceId: string;
+  sendToSlack?: boolean;
 }
 
 function getHelsinkiDateParts(date: Date) {
@@ -96,6 +98,7 @@ Deno.serve(async (req) => {
               type: "clock_in",
               message: "⏰ Don't forget to clock in today!",
               referenceId: `clock_in_${todayStr}`,
+              sendToSlack: r.send_to_slack === true,
             });
           }
         } else if (r.type === "clock_out") {
@@ -113,6 +116,7 @@ Deno.serve(async (req) => {
               type: "clock_out",
               message: "🔔 Don't forget to clock out!",
               referenceId: `clock_out_${todayStr}`,
+              sendToSlack: r.send_to_slack === true,
             });
           }
         }
@@ -141,6 +145,7 @@ Deno.serve(async (req) => {
             type: "vacation_pending",
             message: "📋 You have pending vacation requests to review",
             referenceId: `vac_pending_${todayStr}`,
+            sendToSlack: r.send_to_slack === true,
           });
         }
       }
@@ -176,6 +181,7 @@ Deno.serve(async (req) => {
             type: "weekly_goal",
             message: "🎯 Aseta tämän viikon tavoitteet",
             referenceId: `weekly_goal_set_${isoYear}_${isoWeek}`,
+            sendToSlack: r.send_to_slack === true,
           });
         } else if (!isRated) {
           actions.push({
@@ -183,6 +189,7 @@ Deno.serve(async (req) => {
             type: "weekly_goal",
             message: "⭐ Muista arvioida viikon tavoitteet",
             referenceId: `weekly_goal_rate_${isoYear}_${isoWeek}`,
+            sendToSlack: r.send_to_slack === true,
           });
         }
       }
@@ -214,6 +221,7 @@ Deno.serve(async (req) => {
                   ? "✅ Your vacation request has been approved!"
                   : "❌ Your vacation request has been declined.",
               referenceId: refId,
+              sendToSlack: r.send_to_slack === true,
             });
           }
         }
@@ -236,8 +244,38 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Send push notifications
+    // Send push notifications + Slack
     let sent = 0;
+    let slackSent = 0;
+    let slackFailed = 0;
+
+    // Cache: company_id -> { token, channel } and user_id -> { company_id, slack_user_id }
+    const userCache = new Map<string, { company_id: string; slack_user_id: string | null } | null>();
+    const companyCache = new Map<string, { slack_bot_token: string | null; slack_default_channel: string | null } | null>();
+
+    const getUserMeta = async (userId: string) => {
+      if (userCache.has(userId)) return userCache.get(userId) ?? null;
+      const { data } = await supabase
+        .from("users")
+        .select("company_id, slack_user_id")
+        .eq("id", userId)
+        .maybeSingle();
+      const meta = data ? { company_id: data.company_id as string, slack_user_id: (data as any).slack_user_id ?? null } : null;
+      userCache.set(userId, meta);
+      return meta;
+    };
+
+    const getCompanyMeta = async (companyId: string) => {
+      if (companyCache.has(companyId)) return companyCache.get(companyId) ?? null;
+      const { data } = await supabase
+        .from("companies")
+        .select("slack_bot_token, slack_default_channel")
+        .eq("id", companyId)
+        .maybeSingle();
+      const meta = data ? { slack_bot_token: (data as any).slack_bot_token ?? null, slack_default_channel: (data as any).slack_default_channel ?? null } : null;
+      companyCache.set(companyId, meta);
+      return meta;
+    };
 
     for (const action of filteredActions) {
       const { data: subs } = await supabase
@@ -281,6 +319,27 @@ Deno.serve(async (req) => {
         }
       }
 
+      // Slack delivery (in addition to push)
+      if (action.sendToSlack) {
+        const userMeta = await getUserMeta(action.userId);
+        if (userMeta?.slack_user_id && userMeta.company_id) {
+          const companyMeta = await getCompanyMeta(userMeta.company_id);
+          if (companyMeta?.slack_bot_token) {
+            const slackResult = await sendSlackMessage(
+              companyMeta.slack_bot_token,
+              userMeta.slack_user_id,
+              action.message,
+            );
+            if (slackResult.ok) {
+              slackSent++;
+            } else {
+              slackFailed++;
+              console.warn(`Slack send failed for ${action.userId}: ${slackResult.error}`);
+            }
+          }
+        }
+      }
+
       // Log the notification
       await supabase.from("notification_log").insert({
         user_id: action.userId,
@@ -292,7 +351,13 @@ Deno.serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ processed: actions.length, sent, deduplicated: actions.length - filteredActions.length }),
+      JSON.stringify({
+        processed: actions.length,
+        sent,
+        slackSent,
+        slackFailed,
+        deduplicated: actions.length - filteredActions.length,
+      }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (error) {

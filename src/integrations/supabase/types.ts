@@ -272,6 +272,8 @@ export type Database = {
           per_diem_full: number
           per_diem_partial: number
           postal_code: string | null
+          slack_bot_token: string | null
+          slack_default_channel: string | null
           street: string | null
           timezone: string
           trailer_km_rate: number
@@ -291,6 +293,8 @@ export type Database = {
           per_diem_full?: number
           per_diem_partial?: number
           postal_code?: string | null
+          slack_bot_token?: string | null
+          slack_default_channel?: string | null
           street?: string | null
           timezone?: string
           trailer_km_rate?: number
@@ -310,6 +314,8 @@ export type Database = {
           per_diem_full?: number
           per_diem_partial?: number
           postal_code?: string | null
+          slack_bot_token?: string | null
+          slack_default_channel?: string | null
           street?: string | null
           timezone?: string
           trailer_km_rate?: number
@@ -665,6 +671,7 @@ export type Database = {
           message: string
           message_fi: string | null
           resend_after_days: number | null
+          send_to_slack: boolean
           time: string
           type: string
         }
@@ -677,6 +684,7 @@ export type Database = {
           message?: string
           message_fi?: string | null
           resend_after_days?: number | null
+          send_to_slack?: boolean
           time?: string
           type?: string
         }
@@ -689,6 +697,7 @@ export type Database = {
           message?: string
           message_fi?: string | null
           resend_after_days?: number | null
+          send_to_slack?: boolean
           time?: string
           type?: string
         }
@@ -990,6 +999,7 @@ export type Database = {
           day_of_week: number | null
           enabled: boolean
           id: string
+          send_to_slack: boolean
           time: string
           type: string
           user_id: string
@@ -999,6 +1009,7 @@ export type Database = {
           day_of_week?: number | null
           enabled?: boolean
           id?: string
+          send_to_slack?: boolean
           time?: string
           type?: string
           user_id: string
@@ -1008,6 +1019,7 @@ export type Database = {
           day_of_week?: number | null
           enabled?: boolean
           id?: string
+          send_to_slack?: boolean
           time?: string
           type?: string
           user_id?: string
@@ -1073,6 +1085,7 @@ export type Database = {
           manager_id: string | null
           name: string
           role: Database["public"]["Enums"]["user_role"]
+          slack_user_id: string | null
           timezone: string | null
         }
         Insert: {
@@ -1089,6 +1102,7 @@ export type Database = {
           manager_id?: string | null
           name: string
           role?: Database["public"]["Enums"]["user_role"]
+          slack_user_id?: string | null
           timezone?: string | null
         }
         Update: {
@@ -1105,6 +1119,7 @@ export type Database = {
           manager_id?: string | null
           name?: string
           role?: Database["public"]["Enums"]["user_role"]
+          slack_user_id?: string | null
           timezone?: string | null
         }
         Relationships: [
