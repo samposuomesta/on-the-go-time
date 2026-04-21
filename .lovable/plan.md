@@ -1,56 +1,37 @@
 
 
-## Slack App Manifest – nimi "TAika Reminders"
+## Päivitä vanhentuneet riippuvuudet
 
-Luon Slack App -manifestin Bot Token -integraatiota varten käyttäen nimeä **TAika Reminders** alkuperäisen "TimeTrack Reminders" sijaan.
+Kaikki npm-varoitukset tulevat **transitiivisista riippuvuuksista** (ei suorista). Korjataan päivittämällä yksi suora dev-riippuvuus, jonka päivitys eliminoi suurimman osan varoituksista.
 
-### Mitä tehdään
+### Diagnoosi
 
-1. **Uusi tiedosto**: `docs/slack-app-manifest.md`
-   - Valmis YAML-manifesti (kopioi & liitä Slackiin)
-   - Asennusohjeet suomeksi
-   - Bot Tokenin tallennusohje hallintapaneeliin
+| Varoitus | Lähde |
+|---|---|
+| `inflight`, `glob@7`, `rimraf@2`, `abab`, `domexception`, `whatwg-encoding`, `fstream` | **`jsdom@20`** (vuodelta 2022, vanhentunut) |
+| `lodash.isequal` | `recharts` / `react-hook-form` -ketju (ei meidän hallinnassa) |
 
-2. **Pieni UI-lisäys**: `src/pages/AdminDashboard.tsx`
-   - Linkki "Slack App -ohjeet" `slack_bot_token`-kentän alle EditCompanyDialogissa
-   - Avaa `docs/slack-app-manifest.md` uuteen välilehteen
+`jsdom` on käytössä vain testeissä (`vitest` + `@testing-library/react`). Päivitys `jsdom@20 → jsdom@25` poistaa kaikki yllä olevat varoitukset paitsi `lodash.isequal`.
 
-### Manifestin sisältö (YAML, versio 2)
+### Tehtävät muutokset
 
-```yaml
-display_information:
-  name: TAika Reminders
-  description: Sends time tracking reminders and notifications
-  background_color: "#1f2937"
-features:
-  bot_user:
-    display_name: TAika Reminders
-    always_online: true
-oauth_config:
-  scopes:
-    bot:
-      - chat:write
-      - chat:write.customize
-      - im:write
-      - users:read
-      - users:read.email
-settings:
-  org_deploy_enabled: false
-  socket_mode_enabled: false
-  token_rotation_enabled: false
-```
+**`package.json`** – devDependencies:
+- `"jsdom": "^20.0.3"` → `"jsdom": "^25.0.1"`
 
-### Asennusohje (sisältyy dokumenttiin)
+Ei muita muutoksia. Vitestin `environment: "jsdom"` -konfiguraatio toimii sellaisenaan jsdom 25:n kanssa.
 
-1. Avaa `https://api.slack.com/apps` → **Create New App** → **From an app manifest**
-2. Valitse workspace → liitä YAML → **Create**
-3. **Install to Workspace** → hyväksy oikeudet
-4. **OAuth & Permissions** → kopioi **Bot User OAuth Token** (`xoxb-…`)
-5. Hallintapaneeli → Yritykset → Muokkaa → liitä **Slack Bot Token** + aseta **Default Channel** (esim. `#general`)
-6. Käyttäjät syöttävät **Slack User ID:n** Asetuksissa (Slack: profiili → ⋯ → *Copy member ID*)
+### Mitä EI päivitetä ja miksi
 
-### Muokattavat tiedostot
+- **`lodash.isequal`** – tulee kolmannen osapuolen kirjastoista (`recharts`/`react-hook-form`). Pelkkä varoitus, ei tietoturvariski. Häviää kun nuo kirjastot päivittyvät major-versioon (esim. recharts v3), mikä vaatii oman testaus­kierroksensa eikä liity tähän pyyntöön.
+- **`exceljs`** (pulls `fstream`) – käytössä employee-importissa. Uusin `exceljs@4.4` on jo asennettu; `fstream` häviää vasta exceljs:n seuraavassa majorissa (ei vielä julkaistu).
 
-- **Uusi**: `docs/slack-app-manifest.md`
-- **Muokataan**: `src/pages/AdminDashboard.tsx` (ohjelinkki tokenin alle)
+### Verifiointi päivityksen jälkeen
+
+1. `npm install` – varoitusten määrä pienenee 9 → 1 (vain `lodash.isequal` jää)
+2. `npm run test` – varmistaa että jsdom 25 toimii olemassa olevien testien kanssa
+3. `npm run build` – varmistaa että build menee läpi
+
+### Versiopäivitys
+
+`src/lib/version.ts`: `26.3.42` → `26.3.43`
 
