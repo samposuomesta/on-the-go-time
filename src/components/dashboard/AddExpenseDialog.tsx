@@ -11,6 +11,7 @@ import { useProjects } from '@/hooks/useProjects';
 import { useTranslation } from '@/lib/i18n';
 import { toast } from 'sonner';
 import { Camera, X } from 'lucide-react';
+import { DateTimePickerInput } from '@/components/ui/datetime-picker-input';
 
 interface Props {
   open: boolean;
@@ -190,11 +191,11 @@ export function AddExpenseDialog({ open, onOpenChange, mode }: Props) {
               </div>
               <div>
                 <Label>{t('expense.tripStart')}</Label>
-                <Input type="datetime-local" step="600" value={tripStart} onChange={e => setTripStart(e.target.value)} />
+                <DateTimePickerInput value={tripStart} onChange={setTripStart} minuteStep={10} />
               </div>
               <div>
                 <Label>{t('expense.tripEnd')}</Label>
-                <Input type="datetime-local" step="600" value={tripEnd} onChange={e => setTripEnd(e.target.value)} />
+                <DateTimePickerInput value={tripEnd} onChange={setTripEnd} minuteStep={10} />
               </div>
               {vehicleType !== 'company_car' && (
                 <div>
