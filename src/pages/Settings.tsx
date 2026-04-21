@@ -119,6 +119,43 @@ export default function SettingsPage() {
     enabled: !!userId,
   });
 
+  // Slack User ID (stored on users.slack_user_id)
+  const [slackUserId, setSlackUserId] = useState<string>('');
+  const [slackSaving, setSlackSaving] = useState(false);
+  const { data: userSlack } = useQuery({
+    queryKey: ['user-slack-id', userId],
+    queryFn: async () => {
+      if (!userId) return null;
+      const { data, error } = await supabase
+        .from('users')
+        .select('slack_user_id')
+        .eq('id', userId)
+        .maybeSingle();
+      if (error) throw error;
+      return (data as any)?.slack_user_id as string | null;
+    },
+    enabled: !!userId,
+  });
+  useEffect(() => { setSlackUserId(userSlack ?? ''); }, [userSlack]);
+
+  const saveSlackUserId = async () => {
+    if (!userId) return;
+    setSlackSaving(true);
+    try {
+      const { error } = await supabase
+        .from('users')
+        .update({ slack_user_id: slackUserId.trim() || null } as any)
+        .eq('id', userId);
+      if (error) throw error;
+      toast.success(t('common.saved'));
+      queryClient.invalidateQueries({ queryKey: ['user-slack-id', userId] });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Save failed');
+    } finally {
+      setSlackSaving(false);
+    }
+  };
+
   const { data: subscriptions = [], refetch: refetchSubs } = useQuery({
     queryKey: ['push-subscriptions', userId],
     queryFn: async () => {
