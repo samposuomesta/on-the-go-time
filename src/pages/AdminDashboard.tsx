@@ -7,6 +7,7 @@ import {
   CalendarDays, Plus, Pencil, Bell, Building2, Trash2, CheckCircle2, XCircle, X, BarChart3, CalendarIcon, FileText, Download, Upload, Mail, Key, Target
 } from 'lucide-react';
 import { WeeklyGoalsAdminPanel } from '@/components/admin/WeeklyGoalsAdminPanel';
+import { ImportPanel } from '@/components/admin/ImportPanel';
 import { Link, Navigate } from 'react-router-dom';
 import { useAdminData } from '@/hooks/useAdminData';
 import { exportAdminWorkingHoursCSV, exportAdminTravelExpensesCSV, exportAdminProjectHoursCSV, exportAuditTrailCSV, exportProjectManagementCSV } from '@/lib/csv-export';
@@ -49,6 +50,7 @@ const navItemDefs = [
   { key: 'companies', labelKey: 'admin.companies', icon: Building2, descKey: 'admin.companiesDesc' },
   { key: 'reports', labelKey: 'admin.reports', icon: Download, descKey: 'admin.reportsDesc' },
   { key: 'api-keys', labelKey: 'apiKeys.navLabel', icon: Key, descKey: 'apiKeys.navDesc' },
+  { key: 'import', labelKey: 'admin.import', icon: Upload, descKey: 'admin.importDesc' },
   { key: 'audit', labelKey: 'admin.audit', icon: FileText, descKey: 'admin.auditDesc' },
 ] as const;
 
@@ -284,6 +286,7 @@ function AdminContent({ activeTab, admin, canSeeUser, isManager }: { activeTab: 
     
     case 'reminders': return <RemindersPanel admin={admin} />;
     case 'reports': return <ReportsPanel admin={admin} canSeeUser={canSeeUser} />;
+    case 'import': return isManager ? null : <ImportPanel />;
     case 'audit': return isManager ? null : <AuditTrailPanel admin={admin} />;
     case 'api-keys': return isManager ? null : <ApiKeysPanel />;
     default: return null;
