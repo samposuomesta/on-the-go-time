@@ -16,7 +16,7 @@ import { Plus, Trash2, Edit, Users, Loader2, Target, BarChart3, User as UserIcon
 import { toast } from 'sonner';
 import { useTranslation } from '@/lib/i18n';
 import { RATING_CLASSES } from '@/types/weekly-goals';
-import { exportWeeklyGoalsCSV } from '@/lib/csv-export';
+import { exportWeeklyGoalsCSV } from '../../lib/csv-export';
 import { cn } from '@/lib/utils';
 
 interface Team { id: string; name: string; description: string | null; }
