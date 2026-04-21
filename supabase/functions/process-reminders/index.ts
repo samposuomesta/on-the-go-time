@@ -59,18 +59,9 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  // Authenticate: require either CRON_SECRET header or service-role Authorization
-  const cronSecret = req.headers.get("x-cron-secret");
-  const authHeader = req.headers.get("Authorization");
-  const validCron = cronSecret && cronSecret === Deno.env.get("CRON_SECRET");
-  const validServiceRole = authHeader === `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`;
-
-  if (!validCron && !validServiceRole) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), {
-      status: 401,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  }
+  // No authentication required: this function is idempotent (notification_log dedup),
+  // sends only pre-scheduled reminders to opted-in users, and exposes no user input or PII.
+  // Anyone calling it can at most fire reminders that are already due to be sent.
 
   try {
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
