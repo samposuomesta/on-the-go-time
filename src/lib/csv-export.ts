@@ -118,6 +118,21 @@ export function exportAuditTrailCSV(logs: any[]) {
   downloadCSV([headers.join(','), ...rows].join('\n'), 'audit-trail.csv');
 }
 
+export function exportWeeklyGoalsCSV(rows: { userName: string; weekNumber: number; year: number; goalText: string; rating: number | null; comment: string | null; isAdminAssigned: boolean; templateName: string | null }[]) {
+  const headers = ['Employee', 'Year', 'Week', 'Goal', 'Rating', 'Comment', 'Source', 'Template'];
+  const csvRows = rows.map(r => [
+    `"${r.userName.replace(/"/g, '""')}"`,
+    r.year,
+    r.weekNumber,
+    `"${(r.goalText ?? '').replace(/"/g, '""')}"`,
+    r.rating ?? '',
+    `"${(r.comment ?? '').replace(/"/g, '""')}"`,
+    r.isAdminAssigned ? 'admin' : 'self',
+    `"${(r.templateName ?? '').replace(/"/g, '""')}"`,
+  ].join(','));
+  downloadCSV([headers.join(','), ...csvRows].join('\n'), 'weekly-goals.csv');
+}
+
 function downloadCSV(content: string, filename: string) {
   const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
