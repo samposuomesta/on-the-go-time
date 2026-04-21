@@ -44,6 +44,7 @@ interface UserReminder {
   time: string;
   enabled: boolean;
   day_of_week: number | null;
+  send_to_slack?: boolean;
 }
 
 export default function SettingsPage() {
@@ -315,10 +316,11 @@ export default function SettingsPage() {
   };
 
   const upsertReminder = useMutation({
-    mutationFn: async ({ type, enabled, time, day_of_week }: { type: string; enabled: boolean; time: string; day_of_week?: number | null }) => {
+    mutationFn: async ({ type, enabled, time, day_of_week, send_to_slack }: { type: string; enabled: boolean; time: string; day_of_week?: number | null; send_to_slack?: boolean }) => {
       if (!userId) return;
       const payload: any = { user_id: userId, type, enabled, time };
       if (day_of_week !== undefined) payload.day_of_week = day_of_week;
+      if (send_to_slack !== undefined) payload.send_to_slack = send_to_slack;
       const { error } = await supabase
         .from('user_reminders')
         .upsert(payload, { onConflict: 'user_id,type' });
