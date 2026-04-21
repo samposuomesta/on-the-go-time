@@ -219,64 +219,94 @@ export type Database = {
           action: string
           changed_by: string | null
           company_id: string | null
+          company_timezone: string | null
           created_at: string
           id: string
           new_data: Json | null
           old_data: Json | null
           record_id: string | null
           table_name: string
+          user_timezone: string | null
         }
         Insert: {
           action: string
           changed_by?: string | null
           company_id?: string | null
+          company_timezone?: string | null
           created_at?: string
           id?: string
           new_data?: Json | null
           old_data?: Json | null
           record_id?: string | null
           table_name: string
+          user_timezone?: string | null
         }
         Update: {
           action?: string
           changed_by?: string | null
           company_id?: string | null
+          company_timezone?: string | null
           created_at?: string
           id?: string
           new_data?: Json | null
           old_data?: Json | null
           record_id?: string | null
           table_name?: string
+          user_timezone?: string | null
         }
         Relationships: []
       }
       companies: {
         Row: {
           address: string | null
+          car_km_rate: number
+          city: string | null
           company_id_code: string | null
           country: string | null
           created_at: string
           id: string
           km_rate: number
           name: string
+          per_diem_full: number
+          per_diem_partial: number
+          postal_code: string | null
+          street: string | null
+          timezone: string
+          trailer_km_rate: number
         }
         Insert: {
           address?: string | null
+          car_km_rate?: number
+          city?: string | null
           company_id_code?: string | null
           country?: string | null
           created_at?: string
           id?: string
           km_rate?: number
           name: string
+          per_diem_full?: number
+          per_diem_partial?: number
+          postal_code?: string | null
+          street?: string | null
+          timezone?: string
+          trailer_km_rate?: number
         }
         Update: {
           address?: string | null
+          car_km_rate?: number
+          city?: string | null
           company_id_code?: string | null
           country?: string | null
           created_at?: string
           id?: string
           km_rate?: number
           name?: string
+          per_diem_full?: number
+          per_diem_partial?: number
+          postal_code?: string | null
+          street?: string | null
+          timezone?: string
+          trailer_km_rate?: number
         }
         Relationships: []
       }
@@ -750,6 +780,7 @@ export type Database = {
       time_entries: {
         Row: {
           break_minutes: number | null
+          company_timezone: string | null
           created_at: string
           end_lat: number | null
           end_lng: number | null
@@ -769,6 +800,7 @@ export type Database = {
         }
         Insert: {
           break_minutes?: number | null
+          company_timezone?: string | null
           created_at?: string
           end_lat?: number | null
           end_lng?: number | null
@@ -788,6 +820,7 @@ export type Database = {
         }
         Update: {
           break_minutes?: number | null
+          company_timezone?: string | null
           created_at?: string
           end_lat?: number | null
           end_lng?: number | null
@@ -832,6 +865,7 @@ export type Database = {
           id: string
           kilometers: number | null
           parking_cost: number | null
+          per_diem: Database["public"]["Enums"]["per_diem_type"]
           project_id: string | null
           receipt_image: string | null
           route: string | null
@@ -840,6 +874,7 @@ export type Database = {
           synced_at: string | null
           title: string | null
           user_id: string
+          vehicle_type: Database["public"]["Enums"]["vehicle_type"]
         }
         Insert: {
           created_at?: string
@@ -850,6 +885,7 @@ export type Database = {
           id?: string
           kilometers?: number | null
           parking_cost?: number | null
+          per_diem?: Database["public"]["Enums"]["per_diem_type"]
           project_id?: string | null
           receipt_image?: string | null
           route?: string | null
@@ -858,6 +894,7 @@ export type Database = {
           synced_at?: string | null
           title?: string | null
           user_id: string
+          vehicle_type?: Database["public"]["Enums"]["vehicle_type"]
         }
         Update: {
           created_at?: string
@@ -868,6 +905,7 @@ export type Database = {
           id?: string
           kilometers?: number | null
           parking_cost?: number | null
+          per_diem?: Database["public"]["Enums"]["per_diem_type"]
           project_id?: string | null
           receipt_image?: string | null
           route?: string | null
@@ -876,6 +914,7 @@ export type Database = {
           synced_at?: string | null
           title?: string | null
           user_id?: string
+          vehicle_type?: Database["public"]["Enums"]["vehicle_type"]
         }
         Relationships: [
           {
@@ -1279,8 +1318,10 @@ export type Database = {
         | "vacation"
         | "sick"
         | "adjustment"
+      per_diem_type: "none" | "partial" | "full"
       request_status: "pending" | "approved" | "rejected"
       user_role: "employee" | "manager" | "admin"
+      vehicle_type: "car" | "trailer" | "none"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1416,8 +1457,10 @@ export const Constants = {
         "sick",
         "adjustment",
       ],
+      per_diem_type: ["none", "partial", "full"],
       request_status: ["pending", "approved", "rejected"],
       user_role: ["employee", "manager", "admin"],
+      vehicle_type: ["car", "trailer", "none"],
     },
   },
 } as const
