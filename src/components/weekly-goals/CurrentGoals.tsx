@@ -2,7 +2,14 @@ import { Target, Clock, CheckCircle, CalendarClock, Star } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { WeeklyGoals, RATING_CLASSES, RATING_LABELS_EN, RATING_LABELS_FI } from '@/types/weekly-goals';
+import {
+  WeeklyGoals,
+  RATING_CLASSES,
+  RATING_LABELS_EN,
+  RATING_LABELS_FI,
+  GOAL_CATEGORY_LABELS_EN,
+  GOAL_CATEGORY_LABELS_FI,
+} from '@/types/weekly-goals';
 import { useTranslation } from '@/lib/i18n';
 
 interface Props {
@@ -14,6 +21,7 @@ interface Props {
 export const CurrentGoals = ({ weeklyGoals, isFutureWeek = false, onTriggerRating }: Props) => {
   const { t, language } = useTranslation();
   const labels = language === 'fi' ? RATING_LABELS_FI : RATING_LABELS_EN;
+  const categoryLabels = language === 'fi' ? GOAL_CATEGORY_LABELS_FI : GOAL_CATEGORY_LABELS_EN;
   const showRateButton = !isFutureWeek && !weeklyGoals.isRated && onTriggerRating;
 
   return (
@@ -73,6 +81,9 @@ export const CurrentGoals = ({ weeklyGoals, isFutureWeek = false, onTriggerRatin
                 {index + 1}
               </div>
               <div className="flex-1 min-w-0">
+                <Badge variant="outline" className="mb-1.5 text-xs font-normal">
+                  {categoryLabels[goal.category]}
+                </Badge>
                 <p className="text-foreground leading-relaxed break-words">{goal.text}</p>
                 {goal.comment && (
                   <p className="text-sm text-muted-foreground mt-1 italic break-words">"{goal.comment}"</p>

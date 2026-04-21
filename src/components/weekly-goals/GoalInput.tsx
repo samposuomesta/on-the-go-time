@@ -3,30 +3,55 @@ import { Plus, Target, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useTranslation } from '@/lib/i18n';
+import {
+  GoalCategory,
+  GOAL_CATEGORIES,
+  GOAL_CATEGORY_LABELS_EN,
+  GOAL_CATEGORY_LABELS_FI,
+} from '@/types/weekly-goals';
 
 interface GoalInputProps {
-  onSubmit: (goals: string[]) => void;
+  onSubmit: (goals: { text: string; category: GoalCategory }[]) => void;
   targetWeek: number;
 }
 
-export const GoalInput = ({ onSubmit, targetWeek }: GoalInputProps) => {
-  const { t } = useTranslation();
-  const [goals, setGoals] = useState<string[]>(['', '', '']);
+interface DraftGoal {
+  text: string;
+  category: GoalCategory;
+}
 
-  const handleGoalChange = (index: number, value: string) => {
+const EMPTY: DraftGoal[] = [
+  { text: '', category: 'other' },
+  { text: '', category: 'other' },
+  { text: '', category: 'other' },
+];
+
+export const GoalInput = ({ onSubmit, targetWeek }: GoalInputProps) => {
+  const { t, language } = useTranslation();
+  const categoryLabels = language === 'fi' ? GOAL_CATEGORY_LABELS_FI : GOAL_CATEGORY_LABELS_EN;
+  const [goals, setGoals] = useState<DraftGoal[]>(EMPTY);
+
+  const handleTextChange = (index: number, value: string) => {
     if (value.length > 140) return;
     const next = [...goals];
-    next[index] = value;
+    next[index] = { ...next[index], text: value };
     setGoals(next);
   };
 
-  const canSubmit = goals.every((g) => g.trim().length > 0);
+  const handleCategoryChange = (index: number, value: GoalCategory) => {
+    const next = [...goals];
+    next[index] = { ...next[index], category: value };
+    setGoals(next);
+  };
+
+  const canSubmit = goals.every((g) => g.text.trim().length > 0);
 
   const handleSubmit = () => {
     if (!canSubmit) return;
     onSubmit(goals);
-    setGoals(['', '', '']);
+    setGoals(EMPTY);
   };
 
   return (
@@ -49,27 +74,42 @@ export const GoalInput = ({ onSubmit, targetWeek }: GoalInputProps) => {
           <div key={index} className="flex items-start gap-3">
             <div
               className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm font-semibold ${
-                goal.trim().length > 0
+                goal.text.trim().length > 0
                   ? 'bg-success/15 text-success'
                   : 'bg-muted text-muted-foreground'
               }`}
             >
-              {goal.trim().length > 0 ? <CheckCircle2 className="w-4 h-4" /> : index + 1}
+              {goal.text.trim().length > 0 ? <CheckCircle2 className="w-4 h-4" /> : index + 1}
             </div>
             <div className="flex-1 space-y-2">
+              <Select
+                value={goal.category}
+                onValueChange={(v) => handleCategoryChange(index, v as GoalCategory)}
+              >
+                <SelectTrigger className="h-9">
+                  <SelectValue placeholder={t('weeklyGoals.category')} />
+                </SelectTrigger>
+                <SelectContent>
+                  {GOAL_CATEGORIES.map((c) => (
+                    <SelectItem key={c} value={c}>
+                      {categoryLabels[c]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <Textarea
                 placeholder={`${t('weeklyGoals.goal')} ${index + 1}…`}
-                value={goal}
-                onChange={(e) => handleGoalChange(index, e.target.value)}
+                value={goal.text}
+                onChange={(e) => handleTextChange(index, e.target.value)}
                 className="min-h-[80px] resize-none"
               />
               <div className="flex justify-end">
                 <span
                   className={`text-xs ${
-                    goal.length >= 120 ? 'text-warning' : 'text-muted-foreground'
+                    goal.text.length >= 120 ? 'text-warning' : 'text-muted-foreground'
                   }`}
                 >
-                  {goal.length}/140
+                  {goal.text.length}/140
                 </span>
               </div>
             </div>

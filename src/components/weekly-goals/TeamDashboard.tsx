@@ -1,6 +1,14 @@
 import { Users, TrendingUp, CalendarX } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { TeamMemberWeeklyGoals, RATING_CLASSES, RATING_LABELS_EN, RATING_LABELS_FI } from '@/types/weekly-goals';
+import { Badge } from '@/components/ui/badge';
+import {
+  TeamMemberWeeklyGoals,
+  RATING_CLASSES,
+  RATING_LABELS_EN,
+  RATING_LABELS_FI,
+  GOAL_CATEGORY_LABELS_EN,
+  GOAL_CATEGORY_LABELS_FI,
+} from '@/types/weekly-goals';
 import { useTranslation } from '@/lib/i18n';
 
 interface Props {
@@ -12,6 +20,7 @@ interface Props {
 export const TeamDashboard = ({ teamGoals, currentWeek, selectedWeek }: Props) => {
   const { t, language } = useTranslation();
   const labels = language === 'fi' ? RATING_LABELS_FI : RATING_LABELS_EN;
+  const categoryLabels = language === 'fi' ? GOAL_CATEGORY_LABELS_FI : GOAL_CATEGORY_LABELS_EN;
 
   const ratedGoals = teamGoals.filter((m) => m.isRated).flatMap((m) => m.goals).filter((g) => g.rating);
   const stats = ratedGoals.length
@@ -122,7 +131,12 @@ export const TeamDashboard = ({ teamGoals, currentWeek, selectedWeek }: Props) =
                   <div className="w-6 h-6 rounded text-xs flex items-center justify-center bg-muted text-muted-foreground font-medium shrink-0 mt-0.5">
                     {idx + 1}
                   </div>
-                  <span className="flex-1 text-sm break-words">{goal.text}</span>
+                  <div className="flex-1 min-w-0">
+                    <Badge variant="outline" className="mb-1 text-[10px] font-normal h-5 px-1.5">
+                      {categoryLabels[goal.category]}
+                    </Badge>
+                    <div className="text-sm break-words">{goal.text}</div>
+                  </div>
                   {goal.rating ? (
                     <div className="flex items-center gap-2 shrink-0 mt-0.5">
                       <div className={`px-2 py-0.5 rounded-md text-sm font-semibold border ${RATING_CLASSES[goal.rating]}`}>
