@@ -190,11 +190,11 @@ export function AddExpenseDialog({ open, onOpenChange, mode }: Props) {
               </div>
               <div>
                 <Label>{t('expense.tripStart')}</Label>
-                <Input type="datetime-local" value={tripStart} onChange={e => setTripStart(e.target.value)} />
+                <Input type="datetime-local" step="600" value={tripStart} onChange={e => setTripStart(e.target.value)} />
               </div>
               <div>
                 <Label>{t('expense.tripEnd')}</Label>
-                <Input type="datetime-local" value={tripEnd} onChange={e => setTripEnd(e.target.value)} />
+                <Input type="datetime-local" step="600" value={tripEnd} onChange={e => setTripEnd(e.target.value)} />
               </div>
               {vehicleType !== 'company_car' && (
                 <div>
