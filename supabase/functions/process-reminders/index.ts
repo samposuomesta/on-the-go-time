@@ -98,6 +98,7 @@ Deno.serve(async (req) => {
               type: "clock_in",
               message: "⏰ Don't forget to clock in today!",
               referenceId: `clock_in_${todayStr}`,
+              sendToSlack: r.send_to_slack === true,
             });
           }
         } else if (r.type === "clock_out") {
@@ -115,6 +116,7 @@ Deno.serve(async (req) => {
               type: "clock_out",
               message: "🔔 Don't forget to clock out!",
               referenceId: `clock_out_${todayStr}`,
+              sendToSlack: r.send_to_slack === true,
             });
           }
         }
@@ -143,6 +145,7 @@ Deno.serve(async (req) => {
             type: "vacation_pending",
             message: "📋 You have pending vacation requests to review",
             referenceId: `vac_pending_${todayStr}`,
+            sendToSlack: r.send_to_slack === true,
           });
         }
       }
@@ -178,6 +181,7 @@ Deno.serve(async (req) => {
             type: "weekly_goal",
             message: "🎯 Aseta tämän viikon tavoitteet",
             referenceId: `weekly_goal_set_${isoYear}_${isoWeek}`,
+            sendToSlack: r.send_to_slack === true,
           });
         } else if (!isRated) {
           actions.push({
@@ -185,6 +189,7 @@ Deno.serve(async (req) => {
             type: "weekly_goal",
             message: "⭐ Muista arvioida viikon tavoitteet",
             referenceId: `weekly_goal_rate_${isoYear}_${isoWeek}`,
+            sendToSlack: r.send_to_slack === true,
           });
         }
       }
@@ -216,6 +221,7 @@ Deno.serve(async (req) => {
                   ? "✅ Your vacation request has been approved!"
                   : "❌ Your vacation request has been declined.",
               referenceId: refId,
+              sendToSlack: r.send_to_slack === true,
             });
           }
         }
