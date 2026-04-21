@@ -100,17 +100,28 @@ export function AddExpenseDialog({ open, onOpenChange, mode }: Props) {
       }
     }
 
+    const isKm = mode === 'kilometers';
+    const tripStartIso = isKm && tripStart ? new Date(tripStart).toISOString() : null;
+    const tripEndIso = isKm && tripEnd ? new Date(tripEnd).toISOString() : null;
+    const effectiveDate = isKm && tripStart ? tripStart.slice(0, 10) : date;
+    const km = isKm ? parseFloat(kilometers.replace(',', '.')) || 0 : 0;
+    // 'company_car' = no compensation: store 0 km regardless of input
+    const kmStored = isKm && vehicleType === 'company_car' ? 0 : km;
+
     const { error } = await supabase.from('travel_expenses').insert({
       user_id: userId,
       project_id: projectId || null,
       title: mode === 'receipt' ? title.trim() : null,
       customer_name: (mode === 'kilometers' || mode === 'parking') ? (customerName || null) : null,
-      route: mode === 'kilometers' ? (route || null) : null,
-      date,
-      kilometers: mode === 'kilometers' ? parseFloat(kilometers.replace(',', '.')) || 0 : 0,
+      route: isKm ? (route || null) : null,
+      date: effectiveDate,
+      kilometers: kmStored,
       parking_cost: mode === 'parking' ? parseFloat(parkingCost.replace(',', '.')) || 0 : 0,
       description: description || null,
       receipt_image: receiptUrl,
+      vehicle_type: isKm ? vehicleType : 'none',
+      trip_start: tripStartIso,
+      trip_end: tripEndIso,
     } as any);
     setSaving(false);
     if (error) {
@@ -121,6 +132,8 @@ export function AddExpenseDialog({ open, onOpenChange, mode }: Props) {
     onOpenChange(false);
     setKilometers(''); setParkingCost(''); setDescription(''); setTitle('');
     setCustomerName(''); setRoute('');
+    setVehicleType('car');
+    setTripStart(nowLocal()); setTripEnd(nowLocal());
     clearReceipt();
   };
 
