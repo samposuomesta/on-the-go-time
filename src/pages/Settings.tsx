@@ -97,6 +97,12 @@ export default function SettingsPage() {
 
   const userId = currentUser?.id;
 
+  // Edit-time dialog state — time/day are committed only on explicit Save
+  const [editing, setEditing] = useState<
+    | { type: string; time: string; day_of_week: number | null; showDay: boolean; labelKey: string }
+    | null
+  >(null);
+
   const { data: reminders = [] } = useQuery<UserReminder[]>({
     queryKey: ['user-reminders', userId],
     queryFn: async () => {
