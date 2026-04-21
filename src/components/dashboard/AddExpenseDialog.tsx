@@ -168,16 +168,40 @@ export function AddExpenseDialog({ open, onOpenChange, mode }: Props) {
               </div>
             </>
           )}
-          <div>
-            <Label>{t('expense.date')}</Label>
-            <Input type="date" value={date} onChange={e => setDate(e.target.value)} />
-          </div>
+          {mode !== 'kilometers' && (
+            <div>
+              <Label>{t('expense.date')}</Label>
+              <Input type="date" value={date} onChange={e => setDate(e.target.value)} />
+            </div>
+          )}
           {mode === 'kilometers' && (
             <>
               <div>
-                <Label>{t('expense.kilometers')} *</Label>
-                <Input type="text" inputMode="decimal" value={kilometers} onChange={e => setKilometers(e.target.value)} placeholder="0" />
+                <Label>{t('expense.vehicleType')}</Label>
+                <Select value={vehicleType} onValueChange={(v) => setVehicleType(v as any)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="car">{t('expense.vehicle.car')}</SelectItem>
+                    <SelectItem value="benefit_car">{t('expense.vehicle.benefit_car')}</SelectItem>
+                    <SelectItem value="trailer">{t('expense.vehicle.trailer')}</SelectItem>
+                    <SelectItem value="company_car">{t('expense.vehicle.company_car')}</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
+              <div>
+                <Label>{t('expense.tripStart')}</Label>
+                <Input type="datetime-local" value={tripStart} onChange={e => setTripStart(e.target.value)} />
+              </div>
+              <div>
+                <Label>{t('expense.tripEnd')}</Label>
+                <Input type="datetime-local" value={tripEnd} onChange={e => setTripEnd(e.target.value)} />
+              </div>
+              {vehicleType !== 'company_car' && (
+                <div>
+                  <Label>{t('expense.kilometers')} *</Label>
+                  <Input type="text" inputMode="decimal" value={kilometers} onChange={e => setKilometers(e.target.value)} placeholder="0" />
+                </div>
+              )}
               <div>
                 <Label>{t('expense.route')}</Label>
                 <Input value={route} onChange={e => setRoute(e.target.value)} placeholder={t('expense.routePlaceholder')} />
