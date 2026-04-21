@@ -42,6 +42,7 @@ interface UserReminder {
   type: string;
   time: string;
   enabled: boolean;
+  day_of_week: number | null;
 }
 
 export default function SettingsPage() {
@@ -306,11 +307,13 @@ export default function SettingsPage() {
   };
 
   const upsertReminder = useMutation({
-    mutationFn: async ({ type, enabled, time }: { type: string; enabled: boolean; time: string }) => {
+    mutationFn: async ({ type, enabled, time, day_of_week }: { type: string; enabled: boolean; time: string; day_of_week?: number | null }) => {
       if (!userId) return;
+      const payload: any = { user_id: userId, type, enabled, time };
+      if (day_of_week !== undefined) payload.day_of_week = day_of_week;
       const { error } = await supabase
         .from('user_reminders')
-        .upsert({ user_id: userId, type, enabled, time }, { onConflict: 'user_id,type' });
+        .upsert(payload, { onConflict: 'user_id,type' });
       if (error) throw error;
     },
     onSuccess: () => {
@@ -367,6 +370,39 @@ export default function SettingsPage() {
       type,
       enabled: existing?.enabled ?? true,
       time,
+    });
+  };
+
+  const handleDayChange = (type: string, day_of_week: number, defaultTime: string) => {
+    const existing = getReminder(type);
+    upsertReminder.mutate({
+      type,
+      enabled: existing?.enabled ?? true,
+      time: existing?.time ?? defaultTime,
+      day_of_week,
+    });
+  };
+
+  const handleToggleWeekly = async (type: string, defaultTime: string, defaultDay: number) => {
+    const existing = getReminder(type);
+    const nextEnabled = existing ? !existing.enabled : true;
+    if (nextEnabled) {
+      const refreshed = await refreshPush();
+      const canUseExistingSubscription = refreshed.hasSubscription || subscriptions.length > 0;
+      if (!canUseExistingSubscription) {
+        const result = await subscribe({ requestPermission: true });
+        if (!result.ok) {
+          toast.error(t('settings.notificationsPermissionRequired'));
+          return;
+        }
+        void refetchSubs();
+      }
+    }
+    upsertReminder.mutate({
+      type,
+      enabled: nextEnabled,
+      time: existing?.time ?? defaultTime,
+      day_of_week: existing?.day_of_week ?? defaultDay,
     });
   };
 
@@ -690,6 +726,55 @@ export default function SettingsPage() {
                   </div>
                 );
               })}
+            </CardContent>
+          </Card>
+        </section>
+
+        {/* Weekly Goal Reminders */}
+        <section>
+          <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t('settings.weeklyGoalReminders')}</Label>
+          <Card className="mt-2">
+            <CardContent className="p-4 space-y-3">
+              {(() => {
+                const type = 'weekly_goal';
+                const defaultTime = '15:00';
+                const defaultDay = 5; // Friday
+                const reminder = getReminder(type);
+                const isEnabled = reminder?.enabled ?? false;
+                const time = reminder?.time ?? defaultTime;
+                const day = reminder?.day_of_week ?? defaultDay;
+                return (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
+                        <Bell className="h-4 w-4 text-muted-foreground shrink-0" />
+                        <span className="text-sm font-medium truncate">{t('settings.weeklyGoalReminder')}</span>
+                      </div>
+                      <Switch checked={isEnabled} onCheckedChange={() => handleToggleWeekly(type, defaultTime, defaultDay)} />
+                    </div>
+                    <div className="flex items-center gap-2 ml-7">
+                      <select
+                        value={day}
+                        onChange={(e) => handleDayChange(type, parseInt(e.target.value, 10), defaultTime)}
+                        disabled={!isEnabled}
+                        className="h-8 text-xs rounded-md border border-input bg-background px-2 disabled:opacity-50"
+                      >
+                        {[1,2,3,4,5,6,0].map((d) => (
+                          <option key={d} value={d}>{t(`settings.day.${d}` as any)}</option>
+                        ))}
+                      </select>
+                      <Input
+                        type="time"
+                        value={time}
+                        onChange={(e) => handleTimeChange(type, e.target.value)}
+                        className="w-24 h-8 text-xs"
+                        disabled={!isEnabled}
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground ml-7">{t('settings.weeklyGoalHint')}</p>
+                  </div>
+                );
+              })()}
             </CardContent>
           </Card>
         </section>

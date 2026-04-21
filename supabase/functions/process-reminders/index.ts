@@ -27,16 +27,31 @@ function getHelsinkiDateParts(date: Date) {
     day: "2-digit",
     hour: "2-digit",
     minute: "2-digit",
+    weekday: "short",
     hour12: false,
   });
 
   const parts = formatter.formatToParts(date);
   const get = (type: Intl.DateTimeFormatPartTypes) => parts.find((part) => part.type === type)?.value ?? "00";
+  const weekdayMap: Record<string, number> = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
+  const weekdayStr = parts.find((p) => p.type === "weekday")?.value ?? "Mon";
 
   return {
     currentTime: `${get("hour")}:${get("minute")}`,
     todayStr: `${get("year")}-${get("month")}-${get("day")}`,
+    dayOfWeek: weekdayMap[weekdayStr] ?? 1,
   };
+}
+
+function getISOWeekNumber(date: Date): { week: number; year: number } {
+  // Helsinki-zoned ISO week
+  const helsinki = new Date(date.toLocaleString("en-US", { timeZone: "Europe/Helsinki" }));
+  const d = new Date(Date.UTC(helsinki.getFullYear(), helsinki.getMonth(), helsinki.getDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  const week = Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+  return { week, year: d.getUTCFullYear() };
 }
 
 Deno.serve(async (req) => {
@@ -61,7 +76,8 @@ Deno.serve(async (req) => {
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
     const now = new Date();
-    const { currentTime, todayStr } = getHelsinkiDateParts(now);
+    const { currentTime, todayStr, dayOfWeek } = getHelsinkiDateParts(now);
+    const { week: isoWeek, year: isoYear } = getISOWeekNumber(now);
 
     const actions: ReminderAction[] = [];
 
@@ -134,6 +150,48 @@ Deno.serve(async (req) => {
             type: "vacation_pending",
             message: "📋 You have pending vacation requests to review",
             referenceId: `vac_pending_${todayStr}`,
+          });
+        }
+      }
+    }
+
+    // 2b. Weekly goal reminders (per-user weekday + time)
+    const { data: weeklyGoalReminders } = await supabase
+      .from("user_reminders")
+      .select("*")
+      .eq("enabled", true)
+      .eq("type", "weekly_goal")
+      .eq("time", currentTime)
+      .eq("day_of_week", dayOfWeek);
+
+    if (weeklyGoalReminders) {
+      for (const r of weeklyGoalReminders) {
+        // Check if user has set + rated current week's goals
+        const { data: weekGoals } = await supabase
+          .from("weekly_goals")
+          .select("id, rated_at")
+          .eq("user_id", r.user_id)
+          .eq("week_number", isoWeek)
+          .eq("year", isoYear)
+          .eq("is_admin_assigned", false)
+          .limit(1);
+
+        const hasGoals = weekGoals && weekGoals.length > 0;
+        const isRated = hasGoals && weekGoals[0].rated_at !== null;
+
+        if (!hasGoals) {
+          actions.push({
+            userId: r.user_id,
+            type: "weekly_goal",
+            message: "🎯 Aseta tämän viikon tavoitteet",
+            referenceId: `weekly_goal_set_${isoYear}_${isoWeek}`,
+          });
+        } else if (!isRated) {
+          actions.push({
+            userId: r.user_id,
+            type: "weekly_goal",
+            message: "⭐ Muista arvioida viikon tavoitteet",
+            referenceId: `weekly_goal_rate_${isoYear}_${isoWeek}`,
           });
         }
       }
