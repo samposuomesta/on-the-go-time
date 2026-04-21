@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { APP_VERSION, BUILD_DATE } from '@/lib/version';
-import { ArrowLeft, Moon, Sun, Monitor, Bell, Smartphone, Check, X, AlertTriangle, Send, Trash2, RefreshCw, Copy } from 'lucide-react';
+import { ArrowLeft, Moon, Sun, Monitor, Bell, Smartphone, Check, X, AlertTriangle, Send, Trash2, RefreshCw, Copy, Pencil } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import { useTranslation, Language } from '@/lib/i18n';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
@@ -95,6 +96,12 @@ export default function SettingsPage() {
   }, [theme]);
 
   const userId = currentUser?.id;
+
+  // Edit-time dialog state — time/day are committed only on explicit Save
+  const [editing, setEditing] = useState<
+    | { type: string; time: string; day_of_week: number | null; showDay: boolean; labelKey: string }
+    | null
+  >(null);
 
   const { data: reminders = [] } = useQuery<UserReminder[]>({
     queryKey: ['user-reminders', userId],
@@ -711,13 +718,15 @@ export default function SettingsPage() {
                       <span className="text-sm font-medium truncate">{t(labelKey)}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Input
-                        type="time"
-                        value={time}
-                        onChange={(e) => handleTimeChange(type, e.target.value)}
-                        className="w-24 h-8 text-xs"
+                      <button
+                        type="button"
+                        onClick={() => setEditing({ type, time, day_of_week: null, showDay: false, labelKey })}
                         disabled={!isEnabled}
-                      />
+                        className="inline-flex items-center gap-1 h-8 px-2 rounded-md border border-input bg-background text-xs font-mono disabled:opacity-50 hover:bg-muted"
+                      >
+                        {time}
+                        <Pencil className="h-3 w-3 text-muted-foreground" />
+                      </button>
                       <Switch
                         checked={isEnabled}
                         onCheckedChange={() => handleToggle(type, defaultTime)}
@@ -750,26 +759,19 @@ export default function SettingsPage() {
                         <Bell className="h-4 w-4 text-muted-foreground shrink-0" />
                         <span className="text-sm font-medium truncate">{t('settings.weeklyGoalReminder')}</span>
                       </div>
-                      <Switch checked={isEnabled} onCheckedChange={() => handleToggleWeekly(type, defaultTime, defaultDay)} />
-                    </div>
-                    <div className="flex items-center gap-2 ml-7">
-                      <select
-                        value={day}
-                        onChange={(e) => handleDayChange(type, parseInt(e.target.value, 10), defaultTime)}
-                        disabled={!isEnabled}
-                        className="h-8 text-xs rounded-md border border-input bg-background px-2 disabled:opacity-50"
-                      >
-                        {[1,2,3,4,5,6,0].map((d) => (
-                          <option key={d} value={d}>{t(`settings.day.${d}` as any)}</option>
-                        ))}
-                      </select>
-                      <Input
-                        type="time"
-                        value={time}
-                        onChange={(e) => handleTimeChange(type, e.target.value)}
-                        className="w-24 h-8 text-xs"
-                        disabled={!isEnabled}
-                      />
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setEditing({ type, time, day_of_week: day, showDay: true, labelKey: 'settings.weeklyGoalReminder' })}
+                          disabled={!isEnabled}
+                          className="inline-flex items-center gap-1 h-8 px-2 rounded-md border border-input bg-background text-xs disabled:opacity-50 hover:bg-muted"
+                        >
+                          <span className="font-mono">{time}</span>
+                          <span className="text-muted-foreground">· {t(`settings.day.${day}` as any)}</span>
+                          <Pencil className="h-3 w-3 text-muted-foreground" />
+                        </button>
+                        <Switch checked={isEnabled} onCheckedChange={() => handleToggleWeekly(type, defaultTime, defaultDay)} />
+                      </div>
                     </div>
                     <p className="text-xs text-muted-foreground ml-7">{t('settings.weeklyGoalHint')}</p>
                   </div>
@@ -796,13 +798,15 @@ export default function SettingsPage() {
                         <span className="text-sm font-medium truncate">{t(labelKey)}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Input
-                          type="time"
-                          value={time}
-                          onChange={(e) => handleTimeChange(type, e.target.value)}
-                          className="w-24 h-8 text-xs"
+                        <button
+                          type="button"
+                          onClick={() => setEditing({ type, time, day_of_week: null, showDay: false, labelKey })}
                           disabled={!isEnabled}
-                        />
+                          className="inline-flex items-center gap-1 h-8 px-2 rounded-md border border-input bg-background text-xs font-mono disabled:opacity-50 hover:bg-muted"
+                        >
+                          {time}
+                          <Pencil className="h-3 w-3 text-muted-foreground" />
+                        </button>
                         <Switch
                           checked={isEnabled}
                           onCheckedChange={() => handleToggle(type, defaultTime)}
@@ -836,6 +840,64 @@ export default function SettingsPage() {
           </Card>
         </section>
       </main>
+
+      {/* Edit reminder dialog — time/day are persisted only when Save is pressed */}
+      <Dialog open={!!editing} onOpenChange={(open) => { if (!open) setEditing(null); }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>{editing ? t(editing.labelKey as any) : ''}</DialogTitle>
+          </DialogHeader>
+          {editing && (
+            <div className="space-y-4 py-2">
+              <div className="space-y-2">
+                <Label className="text-xs text-muted-foreground">{t('settings.reminderTime')}</Label>
+                <Input
+                  type="time"
+                  value={editing.time}
+                  onChange={(e) => setEditing({ ...editing, time: e.target.value })}
+                  className="h-10"
+                />
+              </div>
+              {editing.showDay && (
+                <div className="space-y-2">
+                  <Label className="text-xs text-muted-foreground">{language === 'fi' ? 'Viikonpäivä' : 'Day of week'}</Label>
+                  <select
+                    value={editing.day_of_week ?? 5}
+                    onChange={(e) => setEditing({ ...editing, day_of_week: parseInt(e.target.value, 10) })}
+                    className="w-full h-10 text-sm rounded-md border border-input bg-background px-2"
+                  >
+                    {[1,2,3,4,5,6,0].map((d) => (
+                      <option key={d} value={d}>{t(`settings.day.${d}` as any)}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </div>
+          )}
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setEditing(null)}>
+              {t('common.cancel')}
+            </Button>
+            <Button
+              className="bg-success hover:bg-success/90 text-success-foreground"
+              onClick={() => {
+                if (!editing) return;
+                const existing = getReminder(editing.type);
+                upsertReminder.mutate({
+                  type: editing.type,
+                  enabled: existing?.enabled ?? true,
+                  time: editing.time,
+                  ...(editing.showDay ? { day_of_week: editing.day_of_week } : {}),
+                });
+                setEditing(null);
+              }}
+            >
+              <Check className="h-4 w-4 mr-2" />
+              {t('common.save')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
