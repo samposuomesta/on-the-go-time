@@ -263,6 +263,7 @@ export type Database = {
           car_km_rate: number
           city: string | null
           company_id_code: string | null
+          compensation_updated_at: string | null
           country: string | null
           created_at: string
           id: string
@@ -281,6 +282,7 @@ export type Database = {
           car_km_rate?: number
           city?: string | null
           company_id_code?: string | null
+          compensation_updated_at?: string | null
           country?: string | null
           created_at?: string
           id?: string
@@ -299,6 +301,7 @@ export type Database = {
           car_km_rate?: number
           city?: string | null
           company_id_code?: string | null
+          compensation_updated_at?: string | null
           country?: string | null
           created_at?: string
           id?: string
