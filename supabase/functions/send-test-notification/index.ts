@@ -87,7 +87,7 @@ Deno.serve(async (req) => {
 
     if (!subs || subs.length === 0) {
       return new Response(
-        JSON.stringify({ error: "no-subscriptions", sent: 0, failed: 0, expired: 0 }),
+        JSON.stringify({ error: "no-subscriptions", sent: 0, failed: 0, expired: 0, slack }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
