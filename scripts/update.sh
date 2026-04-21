@@ -105,10 +105,13 @@ else
       continue
     fi
     echo "    - $version ... applying"
-    # Run migration + record version atomically
-    PGPASSWORD="$POSTGRES_PASSWORD" "${PSQL_CMD[@]}" --single-transaction \
-      -f "$mig_file" \
-      -c "INSERT INTO public.schema_migrations (version) VALUES ('$version');"
+    # Run migration WITHOUT --single-transaction so statements like
+    # `ALTER TYPE ... ADD VALUE` (which cannot run inside a transaction block)
+    # work correctly. ON_ERROR_STOP=1 ensures we abort on the first error,
+    # and we only record the version after the migration succeeds.
+    PGPASSWORD="$POSTGRES_PASSWORD" "${PSQL_CMD[@]}" -f "$mig_file"
+    PGPASSWORD="$POSTGRES_PASSWORD" "${PSQL_CMD[@]}" -q -c \
+      "INSERT INTO public.schema_migrations (version) VALUES ('$version');"
     MIGRATIONS_APPLIED=$((MIGRATIONS_APPLIED + 1))
     echo "    - $version ... applied ✓"
   done
