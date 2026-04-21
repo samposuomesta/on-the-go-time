@@ -55,6 +55,7 @@ export default function SettingsPage() {
   const [resetting, setResetting] = useState(false);
   const [lastPushError, setLastPushError] = useState<string | null>(null);
   const [debugLogs, setDebugLogs] = useState<{ time: string; level: 'log' | 'warn' | 'error'; msg: string }[]>([]);
+  const [checkingUpdate, setCheckingUpdate] = useState(false);
   const queryClient = useQueryClient();
 
   const pushDebug = (level: 'log' | 'warn' | 'error', ...args: unknown[]) => {
