@@ -879,6 +879,8 @@ export type Database = {
           sync_status: string | null
           synced_at: string | null
           title: string | null
+          trip_end: string | null
+          trip_start: string | null
           user_id: string
           vehicle_type: Database["public"]["Enums"]["vehicle_type"]
         }
@@ -899,6 +901,8 @@ export type Database = {
           sync_status?: string | null
           synced_at?: string | null
           title?: string | null
+          trip_end?: string | null
+          trip_start?: string | null
           user_id: string
           vehicle_type?: Database["public"]["Enums"]["vehicle_type"]
         }
@@ -919,6 +923,8 @@ export type Database = {
           sync_status?: string | null
           synced_at?: string | null
           title?: string | null
+          trip_end?: string | null
+          trip_start?: string | null
           user_id?: string
           vehicle_type?: Database["public"]["Enums"]["vehicle_type"]
         }
@@ -1327,7 +1333,7 @@ export type Database = {
       per_diem_type: "none" | "partial" | "full"
       request_status: "pending" | "approved" | "rejected"
       user_role: "employee" | "manager" | "admin"
-      vehicle_type: "car" | "trailer" | "none"
+      vehicle_type: "car" | "trailer" | "none" | "benefit_car" | "company_car"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1466,7 +1472,7 @@ export const Constants = {
       per_diem_type: ["none", "partial", "full"],
       request_status: ["pending", "approved", "rejected"],
       user_role: ["employee", "manager", "admin"],
-      vehicle_type: ["car", "trailer", "none"],
+      vehicle_type: ["car", "trailer", "none", "benefit_car", "company_car"],
     },
   },
 } as const

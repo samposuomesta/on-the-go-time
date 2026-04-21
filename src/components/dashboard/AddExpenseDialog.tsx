@@ -29,6 +29,14 @@ export function AddExpenseDialog({ open, onOpenChange, mode }: Props) {
   const [kilometers, setKilometers] = useState('');
   const [parkingCost, setParkingCost] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const nowLocal = () => {
+    const d = new Date();
+    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+    return d.toISOString().slice(0, 16);
+  };
+  const [vehicleType, setVehicleType] = useState<'car' | 'benefit_car' | 'trailer' | 'company_car'>('car');
+  const [tripStart, setTripStart] = useState(nowLocal());
+  const [tripEnd, setTripEnd] = useState(nowLocal());
   const [description, setDescription] = useState('');
   const [saving, setSaving] = useState(false);
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
@@ -92,17 +100,28 @@ export function AddExpenseDialog({ open, onOpenChange, mode }: Props) {
       }
     }
 
+    const isKm = mode === 'kilometers';
+    const tripStartIso = isKm && tripStart ? new Date(tripStart).toISOString() : null;
+    const tripEndIso = isKm && tripEnd ? new Date(tripEnd).toISOString() : null;
+    const effectiveDate = isKm && tripStart ? tripStart.slice(0, 10) : date;
+    const km = isKm ? parseFloat(kilometers.replace(',', '.')) || 0 : 0;
+    // 'company_car' = no compensation: store 0 km regardless of input
+    const kmStored = isKm && vehicleType === 'company_car' ? 0 : km;
+
     const { error } = await supabase.from('travel_expenses').insert({
       user_id: userId,
       project_id: projectId || null,
       title: mode === 'receipt' ? title.trim() : null,
       customer_name: (mode === 'kilometers' || mode === 'parking') ? (customerName || null) : null,
-      route: mode === 'kilometers' ? (route || null) : null,
-      date,
-      kilometers: mode === 'kilometers' ? parseFloat(kilometers.replace(',', '.')) || 0 : 0,
+      route: isKm ? (route || null) : null,
+      date: effectiveDate,
+      kilometers: kmStored,
       parking_cost: mode === 'parking' ? parseFloat(parkingCost.replace(',', '.')) || 0 : 0,
       description: description || null,
       receipt_image: receiptUrl,
+      vehicle_type: isKm ? vehicleType : 'none',
+      trip_start: tripStartIso,
+      trip_end: tripEndIso,
     } as any);
     setSaving(false);
     if (error) {
@@ -113,6 +132,8 @@ export function AddExpenseDialog({ open, onOpenChange, mode }: Props) {
     onOpenChange(false);
     setKilometers(''); setParkingCost(''); setDescription(''); setTitle('');
     setCustomerName(''); setRoute('');
+    setVehicleType('car');
+    setTripStart(nowLocal()); setTripEnd(nowLocal());
     clearReceipt();
   };
 
@@ -147,16 +168,40 @@ export function AddExpenseDialog({ open, onOpenChange, mode }: Props) {
               </div>
             </>
           )}
-          <div>
-            <Label>{t('expense.date')}</Label>
-            <Input type="date" value={date} onChange={e => setDate(e.target.value)} />
-          </div>
+          {mode !== 'kilometers' && (
+            <div>
+              <Label>{t('expense.date')}</Label>
+              <Input type="date" value={date} onChange={e => setDate(e.target.value)} />
+            </div>
+          )}
           {mode === 'kilometers' && (
             <>
               <div>
-                <Label>{t('expense.kilometers')} *</Label>
-                <Input type="text" inputMode="decimal" value={kilometers} onChange={e => setKilometers(e.target.value)} placeholder="0" />
+                <Label>{t('expense.vehicleType')}</Label>
+                <Select value={vehicleType} onValueChange={(v) => setVehicleType(v as any)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="car">{t('expense.vehicle.car')}</SelectItem>
+                    <SelectItem value="benefit_car">{t('expense.vehicle.benefit_car')}</SelectItem>
+                    <SelectItem value="trailer">{t('expense.vehicle.trailer')}</SelectItem>
+                    <SelectItem value="company_car">{t('expense.vehicle.company_car')}</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
+              <div>
+                <Label>{t('expense.tripStart')}</Label>
+                <Input type="datetime-local" value={tripStart} onChange={e => setTripStart(e.target.value)} />
+              </div>
+              <div>
+                <Label>{t('expense.tripEnd')}</Label>
+                <Input type="datetime-local" value={tripEnd} onChange={e => setTripEnd(e.target.value)} />
+              </div>
+              {vehicleType !== 'company_car' && (
+                <div>
+                  <Label>{t('expense.kilometers')} *</Label>
+                  <Input type="text" inputMode="decimal" value={kilometers} onChange={e => setKilometers(e.target.value)} placeholder="0" />
+                </div>
+              )}
               <div>
                 <Label>{t('expense.route')}</Label>
                 <Input value={route} onChange={e => setRoute(e.target.value)} placeholder={t('expense.routePlaceholder')} />
