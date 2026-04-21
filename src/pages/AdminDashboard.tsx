@@ -2756,11 +2756,9 @@ function EditCompanyDialog({ company, onSave }: { company: any; onSave: (data: a
             />
             <p className="text-xs text-muted-foreground">{t('admin.slackBotTokenHint')}</p>
             <a
-              href="https://github.com/"
-              onClick={(e) => {
-                e.preventDefault();
-                window.open('/docs/slack-app-manifest.md', '_blank', 'noopener,noreferrer');
-              }}
+              href="/slack-app-manifest.md"
+              target="_blank"
+              rel="noopener noreferrer"
               className="text-xs text-primary hover:underline inline-block"
             >
               📘 Slack App -ohjeet (manifesti & asennus)
