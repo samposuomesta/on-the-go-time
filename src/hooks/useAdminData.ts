@@ -380,7 +380,7 @@ export function useAdminData() {
   });
 
   const createCompany = useMutation({
-    mutationFn: async (data: { name: string; km_rate: number }) => {
+    mutationFn: async (data: any) => {
       const { error } = await supabase.from('companies').insert(data);
       if (error) throw error;
     },
@@ -388,7 +388,7 @@ export function useAdminData() {
   });
 
   const updateCompany = useMutation({
-    mutationFn: async ({ id, ...data }: { id: string; name?: string; km_rate?: number; company_id_code?: string | null; address?: string | null; country?: string | null }) => {
+    mutationFn: async ({ id, ...data }: { id: string } & Record<string, any>) => {
       const { error } = await supabase.from('companies').update(data as any).eq('id', id);
       if (error) throw error;
     },
