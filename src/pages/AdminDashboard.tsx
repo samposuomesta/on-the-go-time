@@ -2041,10 +2041,12 @@ function ProjectManagementPanel({ admin }: { admin: any }) {
 /* ===== COMPANIES ===== */
 
 function CompaniesPanel({ admin }: { admin: any }) {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
+  const dateLocale = useDateLocale();
   const companies = admin.companies.data ?? [];
   const primary = companies[0]; // single-tenant view: admin sees own company
   const [carRate, setCarRate] = useState<string>('');
+  const [benefitCarRate, setBenefitCarRate] = useState<string>('');
   const [trailerRate, setTrailerRate] = useState<string>('');
   const [perDiemPartial, setPerDiemPartial] = useState<string>('');
   const [perDiemFull, setPerDiemFull] = useState<string>('');
@@ -2052,22 +2054,32 @@ function CompaniesPanel({ admin }: { admin: any }) {
   useEffect(() => {
     if (!primary) return;
     setCarRate(String(primary.car_km_rate ?? '0.55'));
+    setBenefitCarRate(String(primary.benefit_car_km_rate ?? '0.12'));
     setTrailerRate(String(primary.trailer_km_rate ?? '0.09'));
     setPerDiemPartial(String(primary.per_diem_partial ?? '25'));
     setPerDiemFull(String(primary.per_diem_full ?? '54'));
-  }, [primary?.id, primary?.car_km_rate, primary?.trailer_km_rate, primary?.per_diem_partial, primary?.per_diem_full]);
+  }, [primary?.id, primary?.car_km_rate, (primary as any)?.benefit_car_km_rate, primary?.trailer_km_rate, primary?.per_diem_partial, primary?.per_diem_full]);
 
   const saveCompensation = () => {
     if (!primary) return;
     admin.updateCompany.mutate({
       id: primary.id,
       car_km_rate: parseFloat(carRate.replace(',', '.')) || 0.55,
+      benefit_car_km_rate: parseFloat(benefitCarRate.replace(',', '.')) || 0.12,
       trailer_km_rate: parseFloat(trailerRate.replace(',', '.')) || 0.09,
       per_diem_partial: parseFloat(perDiemPartial.replace(',', '.')) || 25,
       per_diem_full: parseFloat(perDiemFull.replace(',', '.')) || 54,
+      compensation_updated_at: new Date().toISOString(),
     });
     toast.success(t('common.updated'));
   };
+
+  const lastSavedAt = (primary as any)?.compensation_updated_at
+    ? new Date((primary as any).compensation_updated_at)
+    : null;
+  const lastSavedLabel = lastSavedAt
+    ? format(lastSavedAt, language === 'fi' ? 'd.M.yyyy HH:mm' : 'PPp', { locale: dateLocale })
+    : t('admin.neverSaved');
 
   return (
     <div className="space-y-4">
@@ -2078,13 +2090,17 @@ function CompaniesPanel({ admin }: { admin: any }) {
               <h3 className="font-display font-bold">{t('admin.compensationSettings')}</h3>
               <p className="text-xs text-muted-foreground">{t('admin.compensationSettingsDesc')}</p>
             </div>
-            <div className="grid gap-3 sm:grid-cols-4">
+            <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-5">
               <div className="space-y-1.5"><Label className="text-xs">{t('admin.carKmRate')}</Label><Input type="text" inputMode="decimal" value={carRate} onChange={(e) => setCarRate(e.target.value)} /></div>
+              <div className="space-y-1.5"><Label className="text-xs">{t('admin.benefitCarKmRate')}</Label><Input type="text" inputMode="decimal" value={benefitCarRate} onChange={(e) => setBenefitCarRate(e.target.value)} /></div>
               <div className="space-y-1.5"><Label className="text-xs">{t('admin.trailerKmRate')}</Label><Input type="text" inputMode="decimal" value={trailerRate} onChange={(e) => setTrailerRate(e.target.value)} /></div>
               <div className="space-y-1.5"><Label className="text-xs">{t('admin.perDiemPartial')}</Label><Input type="text" inputMode="decimal" value={perDiemPartial} onChange={(e) => setPerDiemPartial(e.target.value)} /></div>
               <div className="space-y-1.5"><Label className="text-xs">{t('admin.perDiemFull')}</Label><Input type="text" inputMode="decimal" value={perDiemFull} onChange={(e) => setPerDiemFull(e.target.value)} /></div>
             </div>
-            <Button size="sm" onClick={saveCompensation}>{t('common.save')}</Button>
+            <div className="flex flex-wrap items-center gap-3">
+              <Button size="sm" onClick={saveCompensation}>{t('common.save')}</Button>
+              <span className="text-xs text-muted-foreground">{t('admin.lastSaved')}: {lastSavedLabel}</span>
+            </div>
           </CardContent>
         </Card>
       )}
