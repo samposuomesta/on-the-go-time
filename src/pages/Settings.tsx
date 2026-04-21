@@ -824,9 +824,48 @@ export default function SettingsPage() {
           <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t('settings.about')}</Label>
           <Card className="mt-2">
             <CardContent className="p-4 space-y-2">
-              <div className="flex justify-between text-sm">
+              <div className="flex justify-between items-center text-sm gap-2">
                 <span className="text-muted-foreground">{t('settings.version')}</span>
-                <span className="font-medium font-display">{APP_VERSION}</span>
+                <div className="flex items-center gap-2">
+                  <span className="font-medium font-display">{APP_VERSION}</span>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      if (checkingUpdate) return;
+                      setCheckingUpdate(true);
+                      try {
+                        if (!('serviceWorker' in navigator)) {
+                          toast({ title: t('settings.updateCheckFailed') });
+                          return;
+                        }
+                        const reg = await navigator.serviceWorker.getRegistration();
+                        if (!reg) {
+                          toast({ title: t('settings.updateCheckFailed') });
+                          return;
+                        }
+                        await reg.update();
+                        await new Promise((r) => setTimeout(r, 1500));
+                        const fresh = await navigator.serviceWorker.getRegistration();
+                        const waiting = fresh?.waiting;
+                        if (waiting) {
+                          toast({ title: t('settings.updateAvailable') });
+                          waiting.postMessage({ type: 'SKIP_WAITING' });
+                        } else {
+                          toast({ title: t('settings.upToDate') });
+                        }
+                      } catch {
+                        toast({ title: t('settings.updateCheckFailed') });
+                      } finally {
+                        setCheckingUpdate(false);
+                      }
+                    }}
+                    className="text-primary hover:underline disabled:opacity-50 inline-flex items-center gap-1"
+                    disabled={checkingUpdate}
+                  >
+                    <RefreshCw className={`h-3 w-3 ${checkingUpdate ? 'animate-spin' : ''}`} />
+                    {checkingUpdate ? t('settings.checkingUpdates') : t('settings.checkForUpdates')}
+                  </button>
+                </div>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">{t('settings.platform')}</span>
