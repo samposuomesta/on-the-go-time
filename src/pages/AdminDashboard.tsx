@@ -2043,8 +2043,52 @@ function ProjectManagementPanel({ admin }: { admin: any }) {
 function CompaniesPanel({ admin }: { admin: any }) {
   const { t } = useTranslation();
   const companies = admin.companies.data ?? [];
+  const primary = companies[0]; // single-tenant view: admin sees own company
+  const [carRate, setCarRate] = useState<string>('');
+  const [trailerRate, setTrailerRate] = useState<string>('');
+  const [perDiemPartial, setPerDiemPartial] = useState<string>('');
+  const [perDiemFull, setPerDiemFull] = useState<string>('');
+
+  useEffect(() => {
+    if (!primary) return;
+    setCarRate(String(primary.car_km_rate ?? '0.55'));
+    setTrailerRate(String(primary.trailer_km_rate ?? '0.09'));
+    setPerDiemPartial(String(primary.per_diem_partial ?? '25'));
+    setPerDiemFull(String(primary.per_diem_full ?? '54'));
+  }, [primary?.id, primary?.car_km_rate, primary?.trailer_km_rate, primary?.per_diem_partial, primary?.per_diem_full]);
+
+  const saveCompensation = () => {
+    if (!primary) return;
+    admin.updateCompany.mutate({
+      id: primary.id,
+      car_km_rate: parseFloat(carRate.replace(',', '.')) || 0.55,
+      trailer_km_rate: parseFloat(trailerRate.replace(',', '.')) || 0.09,
+      per_diem_partial: parseFloat(perDiemPartial.replace(',', '.')) || 25,
+      per_diem_full: parseFloat(perDiemFull.replace(',', '.')) || 54,
+    });
+    toast.success(t('common.updated'));
+  };
+
   return (
     <div className="space-y-4">
+      {primary && (
+        <Card>
+          <CardContent className="p-4 space-y-3">
+            <div>
+              <h3 className="font-display font-bold">{t('admin.compensationSettings')}</h3>
+              <p className="text-xs text-muted-foreground">{t('admin.compensationSettingsDesc')}</p>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-4">
+              <div className="space-y-1.5"><Label className="text-xs">{t('admin.carKmRate')}</Label><Input type="text" inputMode="decimal" value={carRate} onChange={(e) => setCarRate(e.target.value)} /></div>
+              <div className="space-y-1.5"><Label className="text-xs">{t('admin.trailerKmRate')}</Label><Input type="text" inputMode="decimal" value={trailerRate} onChange={(e) => setTrailerRate(e.target.value)} /></div>
+              <div className="space-y-1.5"><Label className="text-xs">{t('admin.perDiemPartial')}</Label><Input type="text" inputMode="decimal" value={perDiemPartial} onChange={(e) => setPerDiemPartial(e.target.value)} /></div>
+              <div className="space-y-1.5"><Label className="text-xs">{t('admin.perDiemFull')}</Label><Input type="text" inputMode="decimal" value={perDiemFull} onChange={(e) => setPerDiemFull(e.target.value)} /></div>
+            </div>
+            <Button size="sm" onClick={saveCompensation}>{t('common.save')}</Button>
+          </CardContent>
+        </Card>
+      )}
+
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-display font-bold">{t('admin.companiesTitle')}</h2>
@@ -2060,31 +2104,30 @@ function CompaniesPanel({ admin }: { admin: any }) {
                 <TableRow className="bg-muted/50">
                   <TableHead className="font-semibold">{t("common.name")}</TableHead>
                   <TableHead className="font-semibold">{t("admin.companyId")}</TableHead>
-                   <TableHead className="font-semibold">{t("admin.addressLabel")}</TableHead>
-                   <TableHead className="font-semibold">{t("admin.country")}</TableHead>
-                   <TableHead className="font-semibold">{t("admin.kmRateLabel")}</TableHead>
+                  <TableHead className="font-semibold">{t("admin.addressLabel")}</TableHead>
+                  <TableHead className="font-semibold">{t("admin.country")}</TableHead>
+                  <TableHead className="font-semibold">{t("admin.timezone")}</TableHead>
                   <TableHead className="w-[60px]"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {companies.length === 0 ? (
                   <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-12">{t('admin.noCompanies')}</TableCell></TableRow>
-                ) : companies.map((c: any) => (
-                  <TableRow key={c.id} className="hover:bg-muted/30">
-                    <TableCell className="font-medium">{c.name}</TableCell>
-                    <TableCell className="font-mono text-sm text-muted-foreground">{c.company_id_code || '—'}</TableCell>
-                    <TableCell className="text-muted-foreground max-w-[200px] truncate">{c.address || '—'}</TableCell>
-                    <TableCell>
-                      {c.country ? (
-                        <Badge variant="outline" className="text-xs">{c.country}</Badge>
-                      ) : '—'}
-                    </TableCell>
-                    <TableCell>€{Number(c.km_rate).toFixed(2)}/km</TableCell>
-                    <TableCell>
-                      <EditCompanyDialog company={c} onSave={(data) => { admin.updateCompany.mutate({ id: c.id, ...data }); toast.success(t('common.updated')); }} />
-                    </TableCell>
-                  </TableRow>
-                ))}
+                ) : companies.map((c: any) => {
+                  const addressParts = [c.street, c.postal_code, c.city].filter(Boolean).join(', ') || c.address || '—';
+                  return (
+                    <TableRow key={c.id} className="hover:bg-muted/30">
+                      <TableCell className="font-medium">{c.name}</TableCell>
+                      <TableCell className="font-mono text-sm text-muted-foreground">{c.company_id_code || '—'}</TableCell>
+                      <TableCell className="text-muted-foreground max-w-[240px] truncate">{addressParts}</TableCell>
+                      <TableCell>{c.country ? (<Badge variant="outline" className="text-xs">{c.country}</Badge>) : '—'}</TableCell>
+                      <TableCell className="text-xs text-muted-foreground">{c.timezone || 'Europe/Helsinki'}</TableCell>
+                      <TableCell>
+                        <EditCompanyDialog company={c} onSave={(data) => { admin.updateCompany.mutate({ id: c.id, ...data }); toast.success(t('common.updated')); }} />
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </div>
