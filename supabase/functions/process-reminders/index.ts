@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { sendWebPush } from "./web-push.ts";
+import { sendSlackMessage } from "./slack.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -17,6 +18,7 @@ interface ReminderAction {
   type: string;
   message: string;
   referenceId: string;
+  sendToSlack?: boolean;
 }
 
 function getHelsinkiDateParts(date: Date) {
