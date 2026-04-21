@@ -798,13 +798,15 @@ export default function SettingsPage() {
                         <span className="text-sm font-medium truncate">{t(labelKey)}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Input
-                          type="time"
-                          value={time}
-                          onChange={(e) => handleTimeChange(type, e.target.value)}
-                          className="w-24 h-8 text-xs"
+                        <button
+                          type="button"
+                          onClick={() => setEditing({ type, time, day_of_week: null, showDay: false, labelKey })}
                           disabled={!isEnabled}
-                        />
+                          className="inline-flex items-center gap-1 h-8 px-2 rounded-md border border-input bg-background text-xs font-mono disabled:opacity-50 hover:bg-muted"
+                        >
+                          {time}
+                          <Pencil className="h-3 w-3 text-muted-foreground" />
+                        </button>
                         <Switch
                           checked={isEnabled}
                           onCheckedChange={() => handleToggle(type, defaultTime)}
