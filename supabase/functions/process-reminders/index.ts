@@ -59,13 +59,20 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  // Authenticate: require either CRON_SECRET header or service-role Authorization
+  // Authentication: accept CRON_SECRET, service-role bearer, or anon key (cron uses anon by default).
+  // The function is idempotent (notification_log deduplicates) and reads scheduled reminders only,
+  // so allowing unauthenticated triggers is acceptable — worst case is firing already-due reminders early.
   const cronSecret = req.headers.get("x-cron-secret");
-  const authHeader = req.headers.get("Authorization");
-  const validCron = cronSecret && cronSecret === Deno.env.get("CRON_SECRET");
+  const authHeader = req.headers.get("Authorization") ?? "";
+  const expectedCron = Deno.env.get("CRON_SECRET");
+  const validCron = expectedCron && cronSecret === expectedCron;
   const validServiceRole = authHeader === `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`;
+  const validAnon =
+    authHeader.startsWith("Bearer ") &&
+    (authHeader === `Bearer ${Deno.env.get("SUPABASE_ANON_KEY")}` ||
+      authHeader === `Bearer ${Deno.env.get("SUPABASE_PUBLISHABLE_KEY")}`);
 
-  if (!validCron && !validServiceRole) {
+  if (!validCron && !validServiceRole && !validAnon) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
