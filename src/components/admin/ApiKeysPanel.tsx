@@ -19,7 +19,7 @@ import { format } from 'date-fns';
 
 const ALL_RESOURCES = [
   'time_entries', 'absences', 'travel_expenses', 'vacation_requests',
-  'project_hours', 'projects', 'absence_reasons', 'changes',
+  'project_hours', 'projects', 'absence_reasons', 'weekly_goals', 'changes',
 ];
 
 async function sha256(text: string): Promise<string> {
@@ -290,7 +290,7 @@ export function ApiKeysPanel() {
 
 const GET_ENDPOINTS = [
   '/time-entries', '/absences', '/travel-expenses', '/vacation-requests',
-  '/project-hours', '/projects', '/absence-reasons', '/changes',
+  '/project-hours', '/projects', '/absence-reasons', '/weekly-goals', '/changes',
 ];
 const POST_ENDPOINTS = ['/time-entries', '/project-hours'];
 
