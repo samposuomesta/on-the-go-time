@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { 
   Play, Square, Clock, Car, ParkingCircle, Camera, 
   Thermometer, UserX, Menu, CalendarDays, FileText, 
-  BarChart3, Receipt, Settings, LogOut, AlertTriangle, Shield
+  BarChart3, Receipt, Settings, LogOut, AlertTriangle, Shield, Target
 } from 'lucide-react';
 import {
   AlertDialog,
@@ -110,6 +110,7 @@ export function Dashboard() {
             </SheetHeader>
             <nav className="mt-6 space-y-1">
               {[
+                { icon: Target, label: t('menu.weeklyGoals'), path: '/weekly-goals' },
                 { icon: FileText, label: t('menu.myEntries'), path: '/my-entries' },
                 { icon: BarChart3, label: t('menu.myStatistics'), path: '/my-statistics' },
                 { icon: Receipt, label: t('menu.travelExpenses'), path: '/travel-expenses' },

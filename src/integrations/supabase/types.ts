@@ -280,6 +280,86 @@ export type Database = {
         }
         Relationships: []
       }
+      goal_templates: {
+        Row: {
+          company_id: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "goal_templates_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "goal_templates_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      goals: {
+        Row: {
+          comment: string | null
+          created_at: string
+          id: string
+          rating: number | null
+          text: string
+          updated_at: string
+          weekly_goal_id: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          rating?: number | null
+          text: string
+          updated_at?: string
+          weekly_goal_id: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          rating?: number | null
+          text?: string
+          updated_at?: string
+          weekly_goal_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "goals_weekly_goal_id_fkey"
+            columns: ["weekly_goal_id"]
+            isOneToOne: false
+            referencedRelation: "weekly_goals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       idempotency_keys: {
         Row: {
           api_key_id: string
@@ -583,6 +663,90 @@ export type Database = {
           },
         ]
       }
+      scheduled_goals: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          template_id: string
+          user_id: string
+          week_number: number
+          year: number
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          template_id: string
+          user_id: string
+          week_number: number
+          year: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          template_id?: string
+          user_id?: string
+          week_number?: number
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scheduled_goals_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scheduled_goals_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "goal_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scheduled_goals_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      teams: {
+        Row: {
+          company_id: string
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teams_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       time_entries: {
         Row: {
           break_minutes: number | null
@@ -769,6 +933,7 @@ export type Database = {
       user_reminders: {
         Row: {
           created_at: string
+          day_of_week: number | null
           enabled: boolean
           id: string
           time: string
@@ -777,6 +942,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          day_of_week?: number | null
           enabled?: boolean
           id?: string
           time?: string
@@ -785,6 +951,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          day_of_week?: number | null
           enabled?: boolean
           id?: string
           time?: string
@@ -794,6 +961,42 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "user_reminders_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_teams: {
+        Row: {
+          created_at: string
+          id: string
+          team_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          team_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          team_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_teams_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_teams_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"
@@ -914,6 +1117,70 @@ export type Database = {
           },
         ]
       }
+      weekly_goals: {
+        Row: {
+          created_at: string
+          id: string
+          is_admin_assigned: boolean
+          rated_at: string | null
+          team_id: string | null
+          template_id: string | null
+          template_name: string | null
+          updated_at: string
+          user_id: string
+          week_number: number
+          year: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_admin_assigned?: boolean
+          rated_at?: string | null
+          team_id?: string | null
+          template_id?: string | null
+          template_name?: string | null
+          updated_at?: string
+          user_id: string
+          week_number: number
+          year: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_admin_assigned?: boolean
+          rated_at?: string | null
+          team_id?: string | null
+          template_id?: string | null
+          template_name?: string | null
+          updated_at?: string
+          user_id?: string
+          week_number?: number
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "weekly_goals_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "weekly_goals_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "goal_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "weekly_goals_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       work_bank_transactions: {
         Row: {
           created_at: string
@@ -995,10 +1262,14 @@ export type Database = {
       auth_user_company_id: { Args: never; Returns: string }
       auth_user_id: { Args: never; Returns: string }
       auth_user_role: { Args: never; Returns: string }
+      is_member_of_team: { Args: { _team_id: string }; Returns: boolean }
       is_same_company_user: {
         Args: { _target_user_id: string }
         Returns: boolean
       }
+      is_team_in_my_company: { Args: { _team_id: string }; Returns: boolean }
+      user_shares_team_with_me: { Args: { _user_id: string }; Returns: boolean }
+      weekly_goal_owner: { Args: { _wg_id: string }; Returns: string }
     }
     Enums: {
       absence_type: "sick" | "absence"
