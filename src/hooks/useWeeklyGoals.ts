@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Goal, WeeklyGoals, TeamMemberWeeklyGoals } from '@/types/weekly-goals';
+import { Goal, WeeklyGoals, TeamMemberWeeklyGoals, GoalCategory } from '@/types/weekly-goals';
 import { supabase } from '@/integrations/supabase/client';
 import { useUserId } from '@/contexts/AuthContext';
 
@@ -34,7 +34,7 @@ export const useWeeklyGoals = () => {
     try {
       const { data: weeklyData, error } = await supabase
         .from('weekly_goals')
-        .select('id, week_number, year, rated_at, is_admin_assigned, template_name, template_id, created_at, goals(id, text, rating, comment, created_at)')
+        .select('id, week_number, year, rated_at, is_admin_assigned, template_name, template_id, created_at, goals(id, text, category, rating, comment, created_at)')
         .eq('user_id', userId)
         .order('year', { ascending: false })
         .order('week_number', { ascending: false });
@@ -48,6 +48,7 @@ export const useWeeklyGoals = () => {
         goals: (wg.goals ?? []).map((g: any) => ({
           id: g.id,
           text: g.text,
+          category: (g.category ?? 'other') as GoalCategory,
           rating: g.rating as 1 | 2 | 3 | 4 | undefined,
           comment: g.comment || undefined,
           createdAt: new Date(g.created_at),
@@ -88,7 +89,7 @@ export const useWeeklyGoals = () => {
           const [{ data: teamGoalsData }, { data: profiles }] = await Promise.all([
             supabase
               .from('weekly_goals')
-              .select('id, user_id, week_number, year, rated_at, is_admin_assigned, template_name, created_at, goals(id, text, rating, comment, created_at)')
+              .select('id, user_id, week_number, year, rated_at, is_admin_assigned, template_name, created_at, goals(id, text, category, rating, comment, created_at)')
               .in('user_id', teammateIds)
               .order('week_number', { ascending: false }),
             supabase.from('users').select('id, name').in('id', teammateIds),
@@ -102,6 +103,7 @@ export const useWeeklyGoals = () => {
             goals: (wg.goals ?? []).map((g: any) => ({
               id: g.id,
               text: g.text,
+              category: (g.category ?? 'other') as GoalCategory,
               rating: g.rating as 1 | 2 | 3 | 4 | undefined,
               comment: g.comment || undefined,
               createdAt: new Date(g.created_at),
@@ -131,7 +133,10 @@ export const useWeeklyGoals = () => {
     fetchGoals();
   }, [fetchGoals]);
 
-  const createWeeklyGoals = async (goals: string[], weekOffset: number = 0) => {
+  const createWeeklyGoals = async (
+    goals: { text: string; category: GoalCategory }[],
+    weekOffset: number = 0
+  ) => {
     if (!userId) return;
     const targetWeek = currentWeek + weekOffset;
     const targetYear = targetWeek > 52 ? currentYear + 1 : currentYear;
@@ -143,7 +148,9 @@ export const useWeeklyGoals = () => {
         .select()
         .single();
       if (wErr) throw wErr;
-      const toInsert = goals.filter((g) => g.trim().length > 0).map((text) => ({ weekly_goal_id: weekly.id, text }));
+      const toInsert = goals
+        .filter((g) => g.text.trim().length > 0)
+        .map((g) => ({ weekly_goal_id: weekly.id, text: g.text, category: g.category }));
       const { error: gErr } = await supabase.from('goals').insert(toInsert);
       if (gErr) throw gErr;
       fetchGoals();

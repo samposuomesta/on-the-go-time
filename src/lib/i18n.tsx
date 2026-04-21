@@ -161,6 +161,7 @@ const translations = {
     'weeklyGoals.templateHistory': 'Template history',
     'weeklyGoals.noGoalsThisWeek': 'You did not set goals for this week',
     'weeklyGoals.noGoalsScheduled': 'No goals scheduled for this week yet',
+    'weeklyGoals.category': 'Category',
 
     // Settings — weekly goal reminder
     'settings.weeklyGoalReminders': 'Weekly Goal Reminders',
@@ -916,6 +917,7 @@ const translations = {
     'weeklyGoals.templateHistory': 'Tavoitepohjien historia',
     'weeklyGoals.noGoalsThisWeek': 'Et asettanut tavoitteita tälle viikolle',
     'weeklyGoals.noGoalsScheduled': 'Tälle viikolle ei ole vielä ajoitettu tavoitteita',
+    'weeklyGoals.category': 'Kategoria',
 
     // Settings — weekly goal reminder (FI)
     'settings.weeklyGoalReminders': 'Viikkotavoite-muistutukset',

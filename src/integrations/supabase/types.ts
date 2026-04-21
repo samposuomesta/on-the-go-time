@@ -360,6 +360,7 @@ export type Database = {
       }
       goals: {
         Row: {
+          category: Database["public"]["Enums"]["goal_category"]
           comment: string | null
           created_at: string
           id: string
@@ -369,6 +370,7 @@ export type Database = {
           weekly_goal_id: string
         }
         Insert: {
+          category?: Database["public"]["Enums"]["goal_category"]
           comment?: string | null
           created_at?: string
           id?: string
@@ -378,6 +380,7 @@ export type Database = {
           weekly_goal_id: string
         }
         Update: {
+          category?: Database["public"]["Enums"]["goal_category"]
           comment?: string | null
           created_at?: string
           id?: string
@@ -1330,6 +1333,13 @@ export type Database = {
         | "vacation"
         | "sick"
         | "adjustment"
+      goal_category:
+        | "customers_sales"
+        | "management"
+        | "hr"
+        | "production"
+        | "skills"
+        | "other"
       per_diem_type: "none" | "partial" | "full"
       request_status: "pending" | "approved" | "rejected"
       user_role: "employee" | "manager" | "admin"
@@ -1468,6 +1478,14 @@ export const Constants = {
         "vacation",
         "sick",
         "adjustment",
+      ],
+      goal_category: [
+        "customers_sales",
+        "management",
+        "hr",
+        "production",
+        "skills",
+        "other",
       ],
       per_diem_type: ["none", "partial", "full"],
       request_status: ["pending", "approved", "rejected"],

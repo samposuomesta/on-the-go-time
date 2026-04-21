@@ -2,8 +2,16 @@ import { useState } from 'react';
 import { Star, CheckCircle2, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { WeeklyGoals, RATING_CLASSES, RATING_LABELS_EN, RATING_LABELS_FI } from '@/types/weekly-goals';
+import {
+  WeeklyGoals,
+  RATING_CLASSES,
+  RATING_LABELS_EN,
+  RATING_LABELS_FI,
+  GOAL_CATEGORY_LABELS_EN,
+  GOAL_CATEGORY_LABELS_FI,
+} from '@/types/weekly-goals';
 import { useTranslation } from '@/lib/i18n';
 
 interface Props {
@@ -16,6 +24,7 @@ interface Props {
 export const RatingModal = ({ open, onOpenChange, weeklyGoals, onSubmit }: Props) => {
   const { t, language } = useTranslation();
   const labels = language === 'fi' ? RATING_LABELS_FI : RATING_LABELS_EN;
+  const categoryLabels = language === 'fi' ? GOAL_CATEGORY_LABELS_FI : GOAL_CATEGORY_LABELS_EN;
   const [ratings, setRatings] = useState<Record<string, 1 | 2 | 3 | 4>>({});
   const [comments, setComments] = useState<Record<string, string>>({});
   const [showOptional, setShowOptional] = useState<Record<string, boolean>>({});
@@ -52,10 +61,15 @@ export const RatingModal = ({ open, onOpenChange, weeklyGoals, onSubmit }: Props
             return (
               <div key={goal.id} className="p-4 rounded-xl bg-muted/30 border border-border/50">
                 <div className="flex items-start gap-3 mb-4">
-                  <div className="w-7 h-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center text-sm font-semibold">
+                  <div className="w-7 h-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center text-sm font-semibold shrink-0">
                     {index + 1}
                   </div>
-                  <p className="flex-1 text-foreground">{goal.text}</p>
+                  <div className="flex-1 min-w-0">
+                    <Badge variant="outline" className="mb-1 text-xs font-normal">
+                      {categoryLabels[goal.category]}
+                    </Badge>
+                    <p className="text-foreground break-words">{goal.text}</p>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-4 gap-1.5 sm:gap-2">

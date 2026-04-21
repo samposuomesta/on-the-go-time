@@ -1,6 +1,42 @@
+export type GoalCategory =
+  | 'customers_sales'
+  | 'management'
+  | 'hr'
+  | 'production'
+  | 'skills'
+  | 'other';
+
+export const GOAL_CATEGORIES: GoalCategory[] = [
+  'customers_sales',
+  'management',
+  'hr',
+  'production',
+  'skills',
+  'other',
+];
+
+export const GOAL_CATEGORY_LABELS_EN: Record<GoalCategory, string> = {
+  customers_sales: 'Customers & sales',
+  management: 'Management',
+  hr: 'HR',
+  production: 'Production',
+  skills: 'Skills',
+  other: 'Other',
+};
+
+export const GOAL_CATEGORY_LABELS_FI: Record<GoalCategory, string> = {
+  customers_sales: 'Asiakkaat ja myynti',
+  management: 'Hallinta',
+  hr: 'HR',
+  production: 'Tuotanto',
+  skills: 'Osaaminen',
+  other: 'Muut',
+};
+
 export interface Goal {
   id: string;
   text: string;
+  category: GoalCategory;
   rating?: 1 | 2 | 3 | 4;
   comment?: string;
   createdAt: Date;
