@@ -1,0 +1,1 @@
+ALTER TABLE public.companies ADD COLUMN IF NOT EXISTS benefit_car_km_rate numeric NOT NULL DEFAULT 0.12;

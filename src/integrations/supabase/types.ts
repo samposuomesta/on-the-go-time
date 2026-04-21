@@ -259,9 +259,11 @@ export type Database = {
       companies: {
         Row: {
           address: string | null
+          benefit_car_km_rate: number
           car_km_rate: number
           city: string | null
           company_id_code: string | null
+          compensation_updated_at: string | null
           country: string | null
           created_at: string
           id: string
@@ -276,9 +278,11 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          benefit_car_km_rate?: number
           car_km_rate?: number
           city?: string | null
           company_id_code?: string | null
+          compensation_updated_at?: string | null
           country?: string | null
           created_at?: string
           id?: string
@@ -293,9 +297,11 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          benefit_car_km_rate?: number
           car_km_rate?: number
           city?: string | null
           company_id_code?: string | null
+          compensation_updated_at?: string | null
           country?: string | null
           created_at?: string
           id?: string
