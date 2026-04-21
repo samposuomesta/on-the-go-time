@@ -9,6 +9,7 @@ import { UpdatePrompt } from "@/components/UpdatePrompt";
 import { AuthProvider, useAuthContext } from "@/contexts/AuthContext";
 import Index from "./pages/Index.tsx";
 import MyEntries from "./pages/MyEntries.tsx";
+import WeeklyGoals from "./pages/WeeklyGoals.tsx";
 import VacationRequests from "./pages/VacationRequests.tsx";
 import AdminDashboard from "./pages/AdminDashboard.tsx";
 import AdminVacationApprovals from "./pages/AdminVacationApprovals.tsx";
@@ -38,6 +39,7 @@ function AuthRoutes() {
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
       <Route path="/my-entries" element={<ProtectedRoute><MyEntries /></ProtectedRoute>} />
+      <Route path="/weekly-goals" element={<ProtectedRoute><WeeklyGoals /></ProtectedRoute>} />
       <Route path="/vacation-requests" element={<ProtectedRoute><VacationRequests /></ProtectedRoute>} />
       <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
       <Route path="/admin/vacation-approvals" element={<ProtectedRoute><AdminVacationApprovals /></ProtectedRoute>} />

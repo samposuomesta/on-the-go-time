@@ -4,8 +4,9 @@ import { format, parseISO, differenceInBusinessDays, differenceInHours, differen
 import { useDateLocale } from '@/lib/date-locale';
 import {
   ArrowLeft, Users, Briefcase, Car, Clock, CalendarOff,
-  CalendarDays, Plus, Pencil, Bell, Building2, Trash2, CheckCircle2, XCircle, X, BarChart3, CalendarIcon, FileText, Download, Upload, Mail, Key
+  CalendarDays, Plus, Pencil, Bell, Building2, Trash2, CheckCircle2, XCircle, X, BarChart3, CalendarIcon, FileText, Download, Upload, Mail, Key, Target
 } from 'lucide-react';
+import { WeeklyGoalsAdminPanel } from '@/components/admin/WeeklyGoalsAdminPanel';
 import { Link, Navigate } from 'react-router-dom';
 import { useAdminData } from '@/hooks/useAdminData';
 import { exportAdminWorkingHoursCSV, exportAdminTravelExpensesCSV, exportAdminProjectHoursCSV, exportAuditTrailCSV, exportProjectManagementCSV } from '@/lib/csv-export';
@@ -40,6 +41,7 @@ const navItemDefs = [
   { key: 'vacation-approvals', labelKey: 'admin.vacationApprovals', icon: CalendarDays, descKey: 'admin.vacationApprovalsDesc' },
   { key: 'absences', labelKey: 'admin.absences', icon: CalendarOff, descKey: 'admin.absencesDesc' },
   { key: 'projects', labelKey: 'admin.projects', icon: Briefcase, descKey: 'admin.projectsDesc' },
+  { key: 'weekly-goals', labelKey: 'admin.weeklyGoals', icon: Target, descKey: 'admin.weeklyGoalsDesc' },
   { key: 'project-management', labelKey: 'admin.projectManagement', icon: BarChart3, descKey: 'admin.projectManagementDesc' },
   
   { key: 'reminders', labelKey: 'admin.reminders', icon: Bell, descKey: 'admin.remindersDesc' },
@@ -274,6 +276,7 @@ function AdminContent({ activeTab, admin, canSeeUser, isManager }: { activeTab: 
     case 'employees': return <EmployeesPanel admin={admin} canSeeUser={canSeeUser} isAdmin={!isManager} />;
     case 'approvals': return <ApprovalsPanel admin={admin} canSeeUser={canSeeUser} />;
     case 'projects': return <ProjectsPanel admin={admin} />;
+    case 'weekly-goals': return <WeeklyGoalsAdminPanel />;
     case 'project-management': return <ProjectManagementPanel admin={admin} />;
     case 'absences': return <AbsencesPanel admin={admin} canSeeUser={canSeeUser} />;
     case 'vacation-approvals': return <VacationApprovalsPanel admin={admin} canSeeUser={canSeeUser} />;
