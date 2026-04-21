@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { sendWebPush } from "./web-push.ts";
+import { sendSlackMessage } from "./slack.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -42,10 +43,10 @@ Deno.serve(async (req) => {
     // Service-role client for DB writes
     const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-    // Map auth user → app user (public.users)
+    // Map auth user → app user (public.users) including Slack info
     const { data: appUser, error: appUserErr } = await admin
       .from("users")
-      .select("id")
+      .select("id, company_id, slack_user_id")
       .eq("email", userData.user.email!)
       .single();
 
@@ -54,6 +55,28 @@ Deno.serve(async (req) => {
         status: 404,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    // Try Slack delivery in parallel (best-effort, only if configured)
+    let slack: { attempted: boolean; ok?: boolean; error?: string } = { attempted: false };
+    const slackUserId = (appUser as any).slack_user_id as string | null;
+    if (slackUserId && (appUser as any).company_id) {
+      const { data: company } = await admin
+        .from("companies")
+        .select("slack_bot_token")
+        .eq("id", (appUser as any).company_id)
+        .maybeSingle();
+      const token = (company as any)?.slack_bot_token as string | null;
+      if (token) {
+        slack = { attempted: true };
+        const result = await sendSlackMessage(
+          token,
+          slackUserId,
+          "🧪 TimeTrack Slack test message — if you see this, Slack delivery works!",
+        );
+        slack.ok = result.ok;
+        if (!result.ok) slack.error = result.error;
+      }
     }
 
     // Load caller's own subscriptions only
@@ -132,7 +155,7 @@ Deno.serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ sent, failed, expired, total: subs.length, details }),
+      JSON.stringify({ sent, failed, expired, total: subs.length, details, slack }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (error) {
