@@ -393,6 +393,17 @@ export default function SettingsPage() {
     });
   };
 
+  const handleToggleSlack = (type: string, defaultTime: string, defaultDay?: number | null) => {
+    const existing = getReminder(type);
+    upsertReminder.mutate({
+      type,
+      enabled: existing?.enabled ?? false,
+      time: existing?.time ?? defaultTime,
+      day_of_week: defaultDay !== undefined ? (existing?.day_of_week ?? defaultDay) : undefined,
+      send_to_slack: !(existing?.send_to_slack ?? false),
+    });
+  };
+
   const handleToggleWeekly = async (type: string, defaultTime: string, defaultDay: number) => {
     const existing = getReminder(type);
     const nextEnabled = existing ? !existing.enabled : true;
