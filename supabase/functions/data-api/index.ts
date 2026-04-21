@@ -426,6 +426,68 @@ async function queryDirectCompany(
   return { data: data || [], next_cursor: nextCursor };
 }
 
+// Query weekly_goals with embedded goals, scoped to company users
+async function queryWeeklyGoals(
+  db: any,
+  companyId: string,
+  params: Record<string, string>,
+  limit: number,
+  cursorCreatedAt: string | null,
+  cursorId: string | null
+) {
+  const { data: companyUsers } = await db
+    .from("users")
+    .select("id")
+    .eq("company_id", companyId);
+
+  if (!companyUsers || companyUsers.length === 0) {
+    return { data: [], next_cursor: null };
+  }
+
+  const userIds = companyUsers.map((u: any) => u.id);
+
+  let query = db
+    .from("weekly_goals")
+    .select(
+      "id, user_id, week_number, year, is_admin_assigned, template_name, template_id, team_id, rated_at, created_at, updated_at, goals(id, text, category, rating, comment, created_at, updated_at)"
+    )
+    .in("user_id", userIds);
+
+  if (params.user_email) {
+    const userId = await resolveUserEmail(db, companyId, params.user_email);
+    if (!userId) {
+      throw { status: 404, code: "USER_NOT_FOUND", message: `User '${params.user_email}' not found in company.` };
+    }
+    query = query.eq("user_id", userId);
+  }
+
+  if (params.year) query = query.eq("year", parseInt(params.year));
+  if (params.week_number) query = query.eq("week_number", parseInt(params.week_number));
+  if (params.is_admin_assigned !== undefined) {
+    query = query.eq("is_admin_assigned", params.is_admin_assigned === "true");
+  }
+  if (params.rated === "true") query = query.not("rated_at", "is", null);
+  if (params.rated === "false") query = query.is("rated_at", null);
+
+  if (cursorCreatedAt && cursorId) {
+    query = query.or(
+      `created_at.gt.${cursorCreatedAt},and(created_at.eq.${cursorCreatedAt},id.gt.${cursorId})`
+    );
+  }
+
+  query = query.order("created_at", { ascending: true }).order("id", { ascending: true }).limit(limit);
+
+  const { data, error } = await query;
+  if (error) throw mapPgError(error);
+
+  const nextCursor =
+    data && data.length === limit
+      ? { created_at: data[data.length - 1].created_at, id: data[data.length - 1].id }
+      : null;
+
+  return { data: data || [], next_cursor: nextCursor };
+}
+
 // /changes endpoint – queries audit_log
 async function queryChanges(
   db: any,
