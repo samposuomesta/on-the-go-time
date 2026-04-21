@@ -836,12 +836,12 @@ export default function SettingsPage() {
                       setCheckingUpdate(true);
                       try {
                         if (!('serviceWorker' in navigator)) {
-                          toast({ title: t('settings.updateCheckFailed') });
+                          toast.error(t('settings.updateCheckFailed'));
                           return;
                         }
                         const reg = await navigator.serviceWorker.getRegistration();
                         if (!reg) {
-                          toast({ title: t('settings.updateCheckFailed') });
+                          toast.error(t('settings.updateCheckFailed'));
                           return;
                         }
                         await reg.update();
@@ -849,13 +849,13 @@ export default function SettingsPage() {
                         const fresh = await navigator.serviceWorker.getRegistration();
                         const waiting = fresh?.waiting;
                         if (waiting) {
-                          toast({ title: t('settings.updateAvailable') });
+                          toast.success(t('settings.updateAvailable'));
                           waiting.postMessage({ type: 'SKIP_WAITING' });
                         } else {
-                          toast({ title: t('settings.upToDate') });
+                          toast.success(t('settings.upToDate'));
                         }
                       } catch {
-                        toast({ title: t('settings.updateCheckFailed') });
+                        toast.error(t('settings.updateCheckFailed'));
                       } finally {
                         setCheckingUpdate(false);
                       }
