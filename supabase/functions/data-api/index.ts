@@ -386,12 +386,24 @@ async function queryWithCompanyUsers(
   const { data, error } = await query;
   if (error) throw mapPgError(error);
 
+  // Inject user_email right after user_id in each row
+  const enriched = (data || []).map((row: any) => {
+    const out: Record<string, any> = {};
+    for (const [k, v] of Object.entries(row)) {
+      out[k] = v;
+      if (k === "user_id") {
+        out.user_email = emailById.get(row.user_id as string) ?? null;
+      }
+    }
+    return out;
+  });
+
   const nextCursor =
-    data && data.length === limit
-      ? { created_at: data[data.length - 1].created_at, id: data[data.length - 1].id }
+    enriched.length === limit
+      ? { created_at: enriched[enriched.length - 1].created_at, id: enriched[enriched.length - 1].id }
       : null;
 
-  return { data: data || [], next_cursor: nextCursor };
+  return { data: enriched, next_cursor: nextCursor };
 }
 
 // Query tables with direct company_id column
