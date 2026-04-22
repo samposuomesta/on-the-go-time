@@ -339,10 +339,10 @@ async function queryWithCompanyUsers(
   cursorId: string | null,
   opts: { dateField: string; filters: string[] }
 ) {
-  // Get company user IDs
+  // Get company user IDs + emails
   const { data: companyUsers } = await db
     .from("users")
-    .select("id")
+    .select("id, email")
     .eq("company_id", companyId);
 
   if (!companyUsers || companyUsers.length === 0) {
@@ -350,6 +350,9 @@ async function queryWithCompanyUsers(
   }
 
   const userIds = companyUsers.map((u: any) => u.id);
+  const emailById = new Map<string, string>(
+    companyUsers.map((u: any) => [u.id, u.email])
+  );
 
   let query = db.from(table).select("*").in("user_id", userIds);
 
