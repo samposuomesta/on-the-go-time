@@ -38,10 +38,32 @@ function getHelsinkiDateParts(date: Date) {
   const weekdayMap: Record<string, number> = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
   const weekdayStr = parts.find((p) => p.type === "weekday")?.value ?? "Mon";
 
+  // Helsinki day window expressed in UTC ISO strings, so we can compare against
+  // timestamptz columns (start_time) without timezone confusion.
+  // Europe/Helsinki = UTC+2 (winter) or UTC+3 (summer DST). We compute the offset
+  // dynamically from the formatted parts vs UTC.
+  const helsinkiHour = parseInt(get("hour"), 10);
+  const utcHour = date.getUTCHours();
+  const utcMinute = date.getUTCMinutes();
+  const helsinkiMinute = parseInt(get("minute"), 10);
+  // Compute offset in minutes: (helsinki - utc) mod 1440
+  let offsetMinutes = (helsinkiHour * 60 + helsinkiMinute) - (utcHour * 60 + utcMinute);
+  if (offsetMinutes < -720) offsetMinutes += 1440;
+  if (offsetMinutes > 720) offsetMinutes -= 1440;
+  const offsetHours = Math.floor(offsetMinutes / 60);
+  const offsetMins = offsetMinutes % 60;
+  const sign = offsetMinutes >= 0 ? "+" : "-";
+  const offsetStr = `${sign}${String(Math.abs(offsetHours)).padStart(2, "0")}:${String(Math.abs(offsetMins)).padStart(2, "0")}`;
+
+  const todayStr = `${get("year")}-${get("month")}-${get("day")}`;
+
   return {
     currentTime: `${get("hour")}:${get("minute")}`,
-    todayStr: `${get("year")}-${get("month")}-${get("day")}`,
+    todayStr,
     dayOfWeek: weekdayMap[weekdayStr] ?? 1,
+    // ISO timestamps with explicit offset, safe for timestamptz comparison
+    dayStartUtc: `${todayStr}T00:00:00${offsetStr}`,
+    dayEndUtc: `${todayStr}T23:59:59${offsetStr}`,
   };
 }
 
@@ -69,7 +91,7 @@ Deno.serve(async (req) => {
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
     const now = new Date();
-    const { currentTime, todayStr, dayOfWeek } = getHelsinkiDateParts(now);
+    const { currentTime, todayStr, dayOfWeek, dayStartUtc, dayEndUtc } = getHelsinkiDateParts(now);
     const { week: isoWeek, year: isoYear } = getISOWeekNumber(now);
 
     const actions: ReminderAction[] = [];
@@ -88,8 +110,8 @@ Deno.serve(async (req) => {
             .from("time_entries")
             .select("id")
             .eq("user_id", r.user_id)
-            .gte("start_time", `${todayStr}T00:00:00`)
-            .lte("start_time", `${todayStr}T23:59:59`)
+            .gte("start_time", dayStartUtc)
+            .lte("start_time", dayEndUtc)
             .limit(1);
 
           if (!entries || entries.length === 0) {
@@ -107,7 +129,7 @@ Deno.serve(async (req) => {
             .select("id")
             .eq("user_id", r.user_id)
             .is("end_time", null)
-            .gte("start_time", `${todayStr}T00:00:00`)
+            .gte("start_time", dayStartUtc)
             .limit(1);
 
           if (openEntries && openEntries.length > 0) {
