@@ -2187,8 +2187,11 @@ cp docker/docker-compose.override.yml /opt/timetrack/supabase-docker/docker/dock
 
 # 6. Re-deploy edge functions if changed
 cp -r supabase/functions/create-auth-user /opt/timetrack/supabase-docker/docker/volumes/functions/
+cp -r supabase/functions/delete-auth-user /opt/timetrack/supabase-docker/docker/volumes/functions/
 cp -r supabase/functions/data-api /opt/timetrack/supabase-docker/docker/volumes/functions/
 cp -r supabase/functions/process-reminders /opt/timetrack/supabase-docker/docker/volumes/functions/
+cp -r supabase/functions/push-public-key /opt/timetrack/supabase-docker/docker/volumes/functions/
+cp -r supabase/functions/send-test-notification /opt/timetrack/supabase-docker/docker/volumes/functions/
 
 # 7. Restart affected services
 cd /opt/timetrack/supabase-docker/docker
