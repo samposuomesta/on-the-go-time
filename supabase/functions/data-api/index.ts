@@ -506,6 +506,98 @@ async function queryWeeklyGoals(
   return { data: data || [], next_cursor: nextCursor };
 }
 
+// /vacation-days endpoint – computes per-user vacation day usage from approved vacation_requests.
+// Excludes weekends and Finnish public holidays.
+async function queryVacationDays(
+  db: any,
+  companyId: string,
+  params: Record<string, string>
+) {
+  // Determine year (defaults to current calendar year)
+  const year = params.year ? parseInt(params.year) : new Date().getFullYear();
+  if (Number.isNaN(year) || year < 1970 || year > 2100) {
+    throw { status: 400, code: "VALIDATION_ERROR", message: "Invalid 'year' parameter." };
+  }
+
+  const yearStart = `${year}-01-01`;
+  const yearEnd = `${year}-12-31`;
+
+  // Load company users (optionally filtered by user_email)
+  let usersQuery = db
+    .from("users")
+    .select("id, email, name, employee_number, annual_vacation_days")
+    .eq("company_id", companyId);
+
+  if (params.user_email) {
+    const userId = await resolveUserEmail(db, companyId, params.user_email);
+    if (!userId) {
+      throw {
+        status: 404,
+        code: "USER_NOT_FOUND",
+        message: `User '${params.user_email}' not found in company.`,
+      };
+    }
+    usersQuery = usersQuery.eq("id", userId);
+  }
+
+  const { data: users, error: usersErr } = await usersQuery;
+  if (usersErr) throw mapPgError(usersErr);
+  if (!users || users.length === 0) {
+    return { data: [], year };
+  }
+
+  const userIds = users.map((u: any) => u.id);
+
+  // Fetch approved vacation requests overlapping the target year
+  const { data: requests, error: reqErr } = await db
+    .from("vacation_requests")
+    .select("user_id, start_date, end_date")
+    .eq("status", "approved")
+    .in("user_id", userIds)
+    .lte("start_date", yearEnd)
+    .gte("end_date", yearStart);
+
+  if (reqErr) throw mapPgError(reqErr);
+
+  // Tally workdays per user (Mon–Fri, excluding Finnish holidays), clipped to the requested year
+  const usedByUser = new Map<string, number>();
+  for (const req of requests || []) {
+    const startStr = req.start_date < yearStart ? yearStart : req.start_date;
+    const endStr = req.end_date > yearEnd ? yearEnd : req.end_date;
+
+    const start = new Date(startStr + "T00:00:00Z");
+    const end = new Date(endStr + "T00:00:00Z");
+
+    let workdays = 0;
+    for (let d = new Date(start); d <= end; d.setUTCDate(d.getUTCDate() + 1)) {
+      const dow = d.getUTCDay(); // 0 = Sun, 6 = Sat
+      if (dow === 0 || dow === 6) continue;
+      const iso = d.toISOString().slice(0, 10);
+      if (isFinnishHoliday(iso)) continue;
+      workdays++;
+    }
+
+    usedByUser.set(req.user_id, (usedByUser.get(req.user_id) ?? 0) + workdays);
+  }
+
+  const data = users.map((u: any) => {
+    const used = usedByUser.get(u.id) ?? 0;
+    const annual = u.annual_vacation_days ?? 0;
+    return {
+      user_id: u.id,
+      user_email: u.email,
+      name: u.name,
+      employee_number: u.employee_number,
+      year,
+      annual_vacation_days: annual,
+      used_days: used,
+      remaining_days: annual - used,
+    };
+  });
+
+  return { data, year };
+}
+
 // /changes endpoint – queries audit_log
 async function queryChanges(
   db: any,
