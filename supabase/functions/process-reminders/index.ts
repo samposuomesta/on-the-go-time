@@ -215,8 +215,8 @@ Deno.serve(async (req) => {
       }
     }
 
-    // 2b. Weekly goal reminders (per-user weekday + time) — skip on weekends
-    const { data: weeklyGoalReminders } = isWeekend ? { data: [] as any[] } : await supabase
+    // 2b. Weekly goal reminders (per-user weekday + time) — skip on weekends and holidays
+    const { data: weeklyGoalReminders } = skipWorkdayReminders ? { data: [] as any[] } : await supabase
       .from("user_reminders")
       .select("*")
       .eq("enabled", true)
