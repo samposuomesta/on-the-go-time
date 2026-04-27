@@ -283,9 +283,13 @@ Admin näkee koko yrityksen tiedot. **Admin-paneeli** sisältää välilehdet:
   työpäivä ja 30 min lounas.
 - **API-avaimet** – luo X-API-Key -avaimia ulkoiselle integraatiolle. Avaimet
   tukevat lukuoperaatioita (`/v1/time-entries`, `/v1/project-hours`,
-  `/v1/travel-expenses`, `/v1/vacation-requests`, `/v1/absences`),
-  kursoripohjaista sivutusta ja `Idempotency-Key`-otsikkoa (7 päivää).
-  Vastaus sisältää `user_id`-kentän jälkeen `user_email`-kentän.
+  `/v1/travel-expenses`, `/v1/vacation-requests`, `/v1/absences`,
+  `/v1/vacation-days`), kursoripohjaista sivutusta ja `Idempotency-Key`-otsikkoa
+  (7 päivää). Vastaus sisältää `user_id`-kentän jälkeen `user_email`-kentän.
+  - `/v1/vacation-days` palauttaa käyttäjäkohtaisesti vuosittaisen
+    lomakiintiön, käytetyt päivät (vain hyväksytyt lomapyynnöt, viikonloput
+    ja Suomen arkipyhät pois lukien) ja jäljellä olevat päivät. Parametrit:
+    `year` (oletus kuluva vuosi) ja `user_email` (valinnainen rajaus).
 
 ### Yrityksen asetukset
 
