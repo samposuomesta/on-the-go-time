@@ -1838,17 +1838,23 @@ Copy both keys into your edge function environment variables.
 
 > **Prerequisites:** Supabase services running (step 8), Edge functions deployed (step 11), `CRON_SECRET` set in edge function environment (step 11).
 
-The `process-reminders` edge function must be triggered periodically (every 5 minutes recommended).
+The `process-reminders` edge function must be triggered every minute. The function itself is idempotent (uses `notification_log` for deduplication) and only sends notifications to users whose personal `time` setting matches the current minute (Helsinki time). It automatically skips:
+
+- Saturdays and Sundays (clock_in/out, weekly_goal, vacation_pending)
+- Finnish public holidays (clock_in/out, weekly_goal)
+- Days the user is on approved vacation, sick leave, or other absence (clock_in/out, weekly_goal)
+
+Vacation status reminders (approved/rejected) are always sent at the requested time, even on weekends.
 
 > **Important:** The Nginx config (step 13) blocks external access to `/functions/v1/process-reminders`. The cron job runs on localhost and is allowed through.
 
-### Option A: System cron (recommended)
+### Option A: System cron
 
 ```bash
 crontab -e
 
-# Add this line (uses localhost to bypass Nginx external block):
-*/5 * * * * curl -s -X POST \
+# Add this line — runs every minute (uses localhost to bypass Nginx external block):
+* * * * * curl -s -X POST \
   "http://localhost:8000/functions/v1/process-reminders" \
   -H "x-cron-secret: <YOUR_CRON_SECRET>" \
   -H "Content-Type: application/json" \
@@ -1863,16 +1869,16 @@ crontab -l
 ```
 **Expected output:**
 ```
-*/5 * * * * curl -s -X POST "http://localhost:8000/functions/v1/process-reminders" ...
+* * * * * curl -s -X POST "http://localhost:8000/functions/v1/process-reminders" ...
 ```
 
-### Option B: pg_cron (if enabled in your Supabase setup)
+### Option B: pg_cron (recommended on self-hosted Supabase)
 
 ```sql
--- In PostgreSQL (requires pg_cron extension)
+-- In PostgreSQL (requires pg_cron extension, enabled by default in Supabase)
 SELECT cron.schedule(
-  'process-reminders',
-  '*/5 * * * *',
+  'process-reminders-every-minute',
+  '* * * * *',
   $$
   SELECT net.http_post(
     url := 'http://kong:8000/functions/v1/process-reminders',
@@ -1883,6 +1889,22 @@ SELECT cron.schedule(
   );
   $$
 );
+```
+
+> **Important:** On a self-hosted instance pg_cron MUST call `http://kong:8000/...` (the internal Docker hostname). Do **not** use the public domain or a Lovable Cloud URL — the database container cannot resolve external hostnames reliably and the call will fail silently.
+
+**Verify pg_cron job and recent runs:**
+
+```bash
+docker compose exec -T db psql -U postgres -d postgres -c "
+SELECT jobname, schedule, active FROM cron.job;
+
+SELECT jrd.jobid, j.jobname, jrd.status, jrd.return_message,
+       to_char(jrd.start_time AT TIME ZONE 'Europe/Helsinki', 'HH24:MI:SS') AS started
+FROM cron.job_run_details jrd
+LEFT JOIN cron.job j ON j.jobid = jrd.jobid
+ORDER BY jrd.start_time DESC LIMIT 10;
+"
 ```
 
 ---
