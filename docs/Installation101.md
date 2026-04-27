@@ -1234,8 +1234,11 @@ export SUPABASE_DB_URL="postgresql://postgres:<POSTGRES_PASSWORD>@localhost:5433
 
 # Deploy functions
 supabase functions deploy create-auth-user --project-ref local
+supabase functions deploy delete-auth-user --project-ref local
 supabase functions deploy data-api --project-ref local
 supabase functions deploy process-reminders --project-ref local
+supabase functions deploy push-public-key --project-ref local
+supabase functions deploy send-test-notification --project-ref local
 ```
 
 ### Set Edge Function secrets
