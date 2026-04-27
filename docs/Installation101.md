@@ -1262,9 +1262,12 @@ SUPABASE_SERVICE_ROLE_KEY=<YOUR_SERVICE_ROLE_KEY>
 CRON_SECRET=<YOUR_CRON_SECRET>
 
 # VAPID keys for Web Push notifications.
-# See step 16 for how to generate these.
+# See step 20 for how to generate these.
 VAPID_PUBLIC_KEY=<YOUR_VAPID_PUBLIC_KEY>
 VAPID_PRIVATE_KEY=<YOUR_VAPID_PRIVATE_KEY>
+# Required by web-push spec — a mailto: or https:// identifying the sender.
+# Used by browser push services for abuse contact.
+VAPID_SUBJECT=mailto:admin@yourdomain.com
 ```
 
 ### Verify edge functions are responding
