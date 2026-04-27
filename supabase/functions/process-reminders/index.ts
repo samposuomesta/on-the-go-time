@@ -142,6 +142,8 @@ Deno.serve(async (req) => {
 
     if (userReminders) {
       for (const r of userReminders) {
+        if (await isUserAbsentToday(r.user_id)) continue;
+
         if (r.type === "clock_in") {
           const { data: entries } = await supabase
             .from("time_entries")
@@ -182,8 +184,8 @@ Deno.serve(async (req) => {
       }
     }
 
-    // 2. Vacation pending reminders (for managers)
-    const { data: vacPendingReminders } = await supabase
+    // 2. Vacation pending reminders (for managers) — skip on weekends
+    const { data: vacPendingReminders } = isWeekend ? { data: [] as any[] } : await supabase
       .from("user_reminders")
       .select("*")
       .eq("enabled", true)
