@@ -136,8 +136,8 @@ Deno.serve(async (req) => {
 
     const actions: ReminderAction[] = [];
 
-    // 1. Clock-in / clock-out personal reminders (skip on weekends and when user is absent)
-    const { data: userReminders } = isWeekend ? { data: [] as any[] } : await supabase
+    // 1. Clock-in / clock-out personal reminders (skip on weekends, holidays, and when user is absent)
+    const { data: userReminders } = skipWorkdayReminders ? { data: [] as any[] } : await supabase
       .from("user_reminders")
       .select("*")
       .eq("enabled", true)
