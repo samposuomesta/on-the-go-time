@@ -95,8 +95,10 @@ Deno.serve(async (req) => {
     const { currentTime, todayStr, dayOfWeek, dayStartUtc, dayEndUtc } = getHelsinkiDateParts(now);
     const { week: isoWeek, year: isoYear } = getISOWeekNumber(now);
 
-    // Weekend check: dayOfWeek 0 = Sunday, 6 = Saturday (Helsinki time)
+    // Weekend / Finnish public holiday check (Helsinki time)
     const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+    const isHoliday = isFinnishHoliday(todayStr);
+    const skipWorkdayReminders = isWeekend || isHoliday;
 
     // Cache for "is user on absence/vacation today?" lookups
     const absenceCache = new Map<string, boolean>();
