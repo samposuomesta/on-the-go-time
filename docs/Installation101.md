@@ -2473,8 +2473,8 @@ Use this to track your progress:
 - [ ] **Step 13:** Traefik dynamic config (`frontend.yml`) created with actual domain
 - [ ] **Step 13:** HTTPS working (`curl -sI https://yourdomain.com/`)
 - [ ] **Step 14:** fail2ban active, Studio restricted to localhost
-- [ ] **Step 17:** VAPID keys generated and set
-- [ ] **Step 18:** Cron job for process-reminders set (every 5 min)
+- [ ] **Step 17:** VAPID keys + `VAPID_SUBJECT` generated and set
+- [ ] **Step 18:** Cron job for process-reminders set (every minute)
 - [ ] **Step 19:** `receipts` storage bucket created
 - [ ] **Step 21:** Health check script working
 - [ ] **Step 22:** Backup cron configured (daily at 2 AM)
