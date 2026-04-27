@@ -1,6 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { sendWebPush } from "./web-push.ts";
 import { sendSlackMessage } from "./slack.ts";
+import { isFinnishHoliday } from "./finnish-holidays.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
