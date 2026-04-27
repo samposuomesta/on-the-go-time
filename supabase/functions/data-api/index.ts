@@ -310,6 +310,8 @@ async function handleGet(
       return queryDirectCompany(db, companyId, "absence_reasons", params, limit, cursorCreatedAt, cursorId);
     case "weekly-goals":
       return queryWeeklyGoals(db, companyId, params, limit, cursorCreatedAt, cursorId);
+    case "vacation-days":
+      return queryVacationDays(db, companyId, params);
     case "changes":
       return queryChanges(db, companyId, params, limit, cursorCreatedAt, cursorId);
     default:
