@@ -1,6 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { sendWebPush } from "./web-push.ts";
 import { sendSlackMessage } from "./slack.ts";
+import { isFinnishHoliday } from "./finnish-holidays.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -94,8 +95,10 @@ Deno.serve(async (req) => {
     const { currentTime, todayStr, dayOfWeek, dayStartUtc, dayEndUtc } = getHelsinkiDateParts(now);
     const { week: isoWeek, year: isoYear } = getISOWeekNumber(now);
 
-    // Weekend check: dayOfWeek 0 = Sunday, 6 = Saturday (Helsinki time)
+    // Weekend / Finnish public holiday check (Helsinki time)
     const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+    const isHoliday = isFinnishHoliday(todayStr);
+    const skipWorkdayReminders = isWeekend || isHoliday;
 
     // Cache for "is user on absence/vacation today?" lookups
     const absenceCache = new Map<string, boolean>();
@@ -133,8 +136,8 @@ Deno.serve(async (req) => {
 
     const actions: ReminderAction[] = [];
 
-    // 1. Clock-in / clock-out personal reminders (skip on weekends and when user is absent)
-    const { data: userReminders } = isWeekend ? { data: [] as any[] } : await supabase
+    // 1. Clock-in / clock-out personal reminders (skip on weekends, holidays, and when user is absent)
+    const { data: userReminders } = skipWorkdayReminders ? { data: [] as any[] } : await supabase
       .from("user_reminders")
       .select("*")
       .eq("enabled", true)
@@ -212,8 +215,8 @@ Deno.serve(async (req) => {
       }
     }
 
-    // 2b. Weekly goal reminders (per-user weekday + time) — skip on weekends
-    const { data: weeklyGoalReminders } = isWeekend ? { data: [] as any[] } : await supabase
+    // 2b. Weekly goal reminders (per-user weekday + time) — skip on weekends and holidays
+    const { data: weeklyGoalReminders } = skipWorkdayReminders ? { data: [] as any[] } : await supabase
       .from("user_reminders")
       .select("*")
       .eq("enabled", true)
