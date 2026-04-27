@@ -2,7 +2,7 @@
 
 > **Target OS:** Ubuntu 24.04 LTS  
 > **Stack:** Docker, Supabase Self-Hosted, Traefik, Nginx, Node.js 24+  
-> **Last updated:** 2026-04-01
+> **Last updated:** 2026-04-27
 
 ---
 
@@ -1160,13 +1160,16 @@ After completing SSL setup (step 13), log in at `https://timetrack.yourdomain.co
 
 > **Prerequisites:** Supabase services running (step 8), TimeTrack app cloned (step 9).
 
-The application uses 3 Edge Functions:
+The application uses 6 Edge Functions:
 
 | Function | Purpose | Trigger |
 |----------|---------|---------|
 | `create-auth-user` | Admin creates auth accounts for employees | Called from Admin UI |
-| `data-api` | External REST API with API key auth | Called by external systems |
-| `process-reminders` | Push notification reminders | Cron job (step 18) |
+| `delete-auth-user` | Admin deletes auth accounts | Called from Admin UI |
+| `data-api` | External REST API with API key auth (responses include `user_email` next to `user_id` for time-entries, project-hours, travel-expenses, vacation-requests, absences) | Called by external systems |
+| `process-reminders` | Push & Slack notification reminders. Skips weekends, Finnish public holidays, and users marked absent for that day | Cron job (step 18) |
+| `push-public-key` | Returns the VAPID public key to the frontend so browsers can subscribe to Web Push | Called by frontend on app start |
+| `send-test-notification` | Sends a test push + Slack message to verify a user's setup | Called from Settings UI |
 
 ### Option A: Mount via volume (recommended for `supabase-docker`)
 
@@ -1182,8 +1185,11 @@ FUNCTIONS_DIR="/opt/timetrack/supabase-docker/docker/volumes/functions"
 mkdir -p "$FUNCTIONS_DIR"
 
 cp -r supabase/functions/create-auth-user "$FUNCTIONS_DIR/"
+cp -r supabase/functions/delete-auth-user "$FUNCTIONS_DIR/"
 cp -r supabase/functions/data-api "$FUNCTIONS_DIR/"
 cp -r supabase/functions/process-reminders "$FUNCTIONS_DIR/"
+cp -r supabase/functions/push-public-key "$FUNCTIONS_DIR/"
+cp -r supabase/functions/send-test-notification "$FUNCTIONS_DIR/"
 ```
 
 **Verify files were copied:**
@@ -1194,7 +1200,10 @@ ls -la "$FUNCTIONS_DIR"/
 ```
 drwxr-xr-x 2 timetrack timetrack 4096 ... create-auth-user
 drwxr-xr-x 2 timetrack timetrack 4096 ... data-api
+drwxr-xr-x 2 timetrack timetrack 4096 ... delete-auth-user
 drwxr-xr-x 2 timetrack timetrack 4096 ... process-reminders
+drwxr-xr-x 2 timetrack timetrack 4096 ... push-public-key
+drwxr-xr-x 2 timetrack timetrack 4096 ... send-test-notification
 ```
 
 📂 **Supabase dir** (`/opt/timetrack/supabase-docker/docker`)
@@ -1225,8 +1234,11 @@ export SUPABASE_DB_URL="postgresql://postgres:<POSTGRES_PASSWORD>@localhost:5433
 
 # Deploy functions
 supabase functions deploy create-auth-user --project-ref local
+supabase functions deploy delete-auth-user --project-ref local
 supabase functions deploy data-api --project-ref local
 supabase functions deploy process-reminders --project-ref local
+supabase functions deploy push-public-key --project-ref local
+supabase functions deploy send-test-notification --project-ref local
 ```
 
 ### Set Edge Function secrets
@@ -1250,9 +1262,12 @@ SUPABASE_SERVICE_ROLE_KEY=<YOUR_SERVICE_ROLE_KEY>
 CRON_SECRET=<YOUR_CRON_SECRET>
 
 # VAPID keys for Web Push notifications.
-# See step 16 for how to generate these.
+# See step 20 for how to generate these.
 VAPID_PUBLIC_KEY=<YOUR_VAPID_PUBLIC_KEY>
 VAPID_PRIVATE_KEY=<YOUR_VAPID_PRIVATE_KEY>
+# Required by web-push spec — a mailto: or https:// identifying the sender.
+# Used by browser push services for abuse contact.
+VAPID_SUBJECT=mailto:admin@yourdomain.com
 ```
 
 ### Verify edge functions are responding
@@ -1791,6 +1806,20 @@ plugins: [react()],
 | `CRON_SECRET` | Docker `.env` / Edge runtime | Auth token for cron-triggered functions |
 | `VAPID_PUBLIC_KEY` | Docker `.env` / Edge runtime + frontend | Web Push public key |
 | `VAPID_PRIVATE_KEY` | Docker `.env` / Edge runtime | Web Push private key (never in frontend!) |
+| `VAPID_SUBJECT` | Docker `.env` / Edge runtime | `mailto:` or `https:` identifier required by web-push |
+
+### Slack integration (optional)
+
+The `process-reminders` and `send-test-notification` functions can deliver
+messages to Slack as well as push. Configuration is **per company**, stored
+in the `companies` table:
+
+- `slack_bot_token` — Slack Bot User OAuth Token (`xoxb-...`)
+- `slack_default_channel` — fallback channel id
+
+Per-user Slack ID is stored in `users.slack_user_id`. See
+`docs/slack-app-manifest.md` for the Slack App manifest used to provision the
+bot. No additional environment variables are required.
 
 ### Generate new VAPID keys
 
@@ -1823,17 +1852,23 @@ Copy both keys into your edge function environment variables.
 
 > **Prerequisites:** Supabase services running (step 8), Edge functions deployed (step 11), `CRON_SECRET` set in edge function environment (step 11).
 
-The `process-reminders` edge function must be triggered periodically (every 5 minutes recommended).
+The `process-reminders` edge function must be triggered every minute. The function itself is idempotent (uses `notification_log` for deduplication) and only sends notifications to users whose personal `time` setting matches the current minute (Helsinki time). It automatically skips:
+
+- Saturdays and Sundays (clock_in/out, weekly_goal, vacation_pending)
+- Finnish public holidays (clock_in/out, weekly_goal)
+- Days the user is on approved vacation, sick leave, or other absence (clock_in/out, weekly_goal)
+
+Vacation status reminders (approved/rejected) are always sent at the requested time, even on weekends.
 
 > **Important:** The Nginx config (step 13) blocks external access to `/functions/v1/process-reminders`. The cron job runs on localhost and is allowed through.
 
-### Option A: System cron (recommended)
+### Option A: System cron
 
 ```bash
 crontab -e
 
-# Add this line (uses localhost to bypass Nginx external block):
-*/5 * * * * curl -s -X POST \
+# Add this line — runs every minute (uses localhost to bypass Nginx external block):
+* * * * * curl -s -X POST \
   "http://localhost:8000/functions/v1/process-reminders" \
   -H "x-cron-secret: <YOUR_CRON_SECRET>" \
   -H "Content-Type: application/json" \
@@ -1848,16 +1883,16 @@ crontab -l
 ```
 **Expected output:**
 ```
-*/5 * * * * curl -s -X POST "http://localhost:8000/functions/v1/process-reminders" ...
+* * * * * curl -s -X POST "http://localhost:8000/functions/v1/process-reminders" ...
 ```
 
-### Option B: pg_cron (if enabled in your Supabase setup)
+### Option B: pg_cron (recommended on self-hosted Supabase)
 
 ```sql
--- In PostgreSQL (requires pg_cron extension)
+-- In PostgreSQL (requires pg_cron extension, enabled by default in Supabase)
 SELECT cron.schedule(
-  'process-reminders',
-  '*/5 * * * *',
+  'process-reminders-every-minute',
+  '* * * * *',
   $$
   SELECT net.http_post(
     url := 'http://kong:8000/functions/v1/process-reminders',
@@ -1868,6 +1903,22 @@ SELECT cron.schedule(
   );
   $$
 );
+```
+
+> **Important:** On a self-hosted instance pg_cron MUST call `http://kong:8000/...` (the internal Docker hostname). Do **not** use the public domain or a Lovable Cloud URL — the database container cannot resolve external hostnames reliably and the call will fail silently.
+
+**Verify pg_cron job and recent runs:**
+
+```bash
+docker compose exec -T db psql -U postgres -d postgres -c "
+SELECT jobname, schedule, active FROM cron.job;
+
+SELECT jrd.jobid, j.jobname, jrd.status, jrd.return_message,
+       to_char(jrd.start_time AT TIME ZONE 'Europe/Helsinki', 'HH24:MI:SS') AS started
+FROM cron.job_run_details jrd
+LEFT JOIN cron.job j ON j.jobid = jrd.jobid
+ORDER BY jrd.start_time DESC LIMIT 10;
+"
 ```
 
 ---
@@ -2150,8 +2201,11 @@ cp docker/docker-compose.override.yml /opt/timetrack/supabase-docker/docker/dock
 
 # 6. Re-deploy edge functions if changed
 cp -r supabase/functions/create-auth-user /opt/timetrack/supabase-docker/docker/volumes/functions/
+cp -r supabase/functions/delete-auth-user /opt/timetrack/supabase-docker/docker/volumes/functions/
 cp -r supabase/functions/data-api /opt/timetrack/supabase-docker/docker/volumes/functions/
 cp -r supabase/functions/process-reminders /opt/timetrack/supabase-docker/docker/volumes/functions/
+cp -r supabase/functions/push-public-key /opt/timetrack/supabase-docker/docker/volumes/functions/
+cp -r supabase/functions/send-test-notification /opt/timetrack/supabase-docker/docker/volumes/functions/
 
 # 7. Restart affected services
 cd /opt/timetrack/supabase-docker/docker
@@ -2383,8 +2437,11 @@ Access permission for `local/supabase-storage/receipts` is set to `download`
 │       └── volumes/
 │           └── functions/        # Edge functions (mounted volume)
 │               ├── create-auth-user/
+│               ├── delete-auth-user/
 │               ├── data-api/
-│               └── process-reminders/
+│               ├── process-reminders/
+│               ├── push-public-key/
+│               └── send-test-notification/
 ├── traefik-config/               # Traefik dynamic config (NOT in git — server-only)
 │   └── frontend.yml              # Routes root domain → Nginx on host:3000
 ├── app/                          # TimeTrack frontend (git repo)
@@ -2433,8 +2490,8 @@ Use this to track your progress:
 - [ ] **Step 13:** Traefik dynamic config (`frontend.yml`) created with actual domain
 - [ ] **Step 13:** HTTPS working (`curl -sI https://yourdomain.com/`)
 - [ ] **Step 14:** fail2ban active, Studio restricted to localhost
-- [ ] **Step 17:** VAPID keys generated and set
-- [ ] **Step 18:** Cron job for process-reminders set (every 5 min)
+- [ ] **Step 17:** VAPID keys + `VAPID_SUBJECT` generated and set
+- [ ] **Step 18:** Cron job for process-reminders set (every minute)
 - [ ] **Step 19:** `receipts` storage bucket created
 - [ ] **Step 21:** Health check script working
 - [ ] **Step 22:** Backup cron configured (daily at 2 AM)
