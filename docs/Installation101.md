@@ -2,7 +2,7 @@
 
 > **Target OS:** Ubuntu 24.04 LTS  
 > **Stack:** Docker, Supabase Self-Hosted, Traefik, Nginx, Node.js 24+  
-> **Last updated:** 2026-04-01
+> **Last updated:** 2026-04-27
 
 ---
 
