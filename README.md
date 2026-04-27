@@ -19,6 +19,10 @@ Moderni työajanseurantasovellus yrityksille. Sisältää kellokorttikirjaukset,
 - **Backend:** Lovable Cloud (Supabase) – tietokanta, autentikointi, Edge Functions
 - **PWA:** Service Worker, offline-tuki
 
+## Käyttöohje
+
+Loppukäyttäjän suomenkielinen käyttöohje: **[docs/Käyttöohje.md](docs/Käyttöohje.md)**
+
 ## Asennus (on-premise)
 
 Katso yksityiskohtaiset asennusohjeet: **[docs/Installation101.md](docs/Installation101.md)**
