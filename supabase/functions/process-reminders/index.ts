@@ -94,10 +94,47 @@ Deno.serve(async (req) => {
     const { currentTime, todayStr, dayOfWeek, dayStartUtc, dayEndUtc } = getHelsinkiDateParts(now);
     const { week: isoWeek, year: isoYear } = getISOWeekNumber(now);
 
+    // Weekend check: dayOfWeek 0 = Sunday, 6 = Saturday (Helsinki time)
+    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+
+    // Cache for "is user on absence/vacation today?" lookups
+    const absenceCache = new Map<string, boolean>();
+    const isUserAbsentToday = async (userId: string): Promise<boolean> => {
+      if (absenceCache.has(userId)) return absenceCache.get(userId)!;
+
+      // Approved vacation covering today
+      const { data: vacs } = await supabase
+        .from("vacation_requests")
+        .select("id")
+        .eq("user_id", userId)
+        .eq("status", "approved")
+        .lte("start_date", todayStr)
+        .gte("end_date", todayStr)
+        .limit(1);
+
+      let absent = !!(vacs && vacs.length > 0);
+
+      // Sick leave / other absences covering today
+      if (!absent) {
+        const { data: abs } = await supabase
+          .from("absences")
+          .select("id")
+          .eq("user_id", userId)
+          .eq("status", "approved")
+          .lte("start_date", todayStr)
+          .gte("end_date", todayStr)
+          .limit(1);
+        absent = !!(abs && abs.length > 0);
+      }
+
+      absenceCache.set(userId, absent);
+      return absent;
+    };
+
     const actions: ReminderAction[] = [];
 
-    // 1. Clock-in / clock-out personal reminders
-    const { data: userReminders } = await supabase
+    // 1. Clock-in / clock-out personal reminders (skip on weekends and when user is absent)
+    const { data: userReminders } = isWeekend ? { data: [] as any[] } : await supabase
       .from("user_reminders")
       .select("*")
       .eq("enabled", true)
