@@ -1806,6 +1806,20 @@ plugins: [react()],
 | `CRON_SECRET` | Docker `.env` / Edge runtime | Auth token for cron-triggered functions |
 | `VAPID_PUBLIC_KEY` | Docker `.env` / Edge runtime + frontend | Web Push public key |
 | `VAPID_PRIVATE_KEY` | Docker `.env` / Edge runtime | Web Push private key (never in frontend!) |
+| `VAPID_SUBJECT` | Docker `.env` / Edge runtime | `mailto:` or `https:` identifier required by web-push |
+
+### Slack integration (optional)
+
+The `process-reminders` and `send-test-notification` functions can deliver
+messages to Slack as well as push. Configuration is **per company**, stored
+in the `companies` table:
+
+- `slack_bot_token` — Slack Bot User OAuth Token (`xoxb-...`)
+- `slack_default_channel` — fallback channel id
+
+Per-user Slack ID is stored in `users.slack_user_id`. See
+`docs/slack-app-manifest.md` for the Slack App manifest used to provision the
+bot. No additional environment variables are required.
 
 ### Generate new VAPID keys
 
