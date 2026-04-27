@@ -2423,8 +2423,11 @@ Access permission for `local/supabase-storage/receipts` is set to `download`
 │       └── volumes/
 │           └── functions/        # Edge functions (mounted volume)
 │               ├── create-auth-user/
+│               ├── delete-auth-user/
 │               ├── data-api/
-│               └── process-reminders/
+│               ├── process-reminders/
+│               ├── push-public-key/
+│               └── send-test-notification/
 ├── traefik-config/               # Traefik dynamic config (NOT in git — server-only)
 │   └── frontend.yml              # Routes root domain → Nginx on host:3000
 ├── app/                          # TimeTrack frontend (git repo)
