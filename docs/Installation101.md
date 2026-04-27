@@ -1160,13 +1160,16 @@ After completing SSL setup (step 13), log in at `https://timetrack.yourdomain.co
 
 > **Prerequisites:** Supabase services running (step 8), TimeTrack app cloned (step 9).
 
-The application uses 3 Edge Functions:
+The application uses 6 Edge Functions:
 
 | Function | Purpose | Trigger |
 |----------|---------|---------|
 | `create-auth-user` | Admin creates auth accounts for employees | Called from Admin UI |
-| `data-api` | External REST API with API key auth | Called by external systems |
-| `process-reminders` | Push notification reminders | Cron job (step 18) |
+| `delete-auth-user` | Admin deletes auth accounts | Called from Admin UI |
+| `data-api` | External REST API with API key auth (responses include `user_email` next to `user_id` for time-entries, project-hours, travel-expenses, vacation-requests, absences) | Called by external systems |
+| `process-reminders` | Push & Slack notification reminders. Skips weekends, Finnish public holidays, and users marked absent for that day | Cron job (step 18) |
+| `push-public-key` | Returns the VAPID public key to the frontend so browsers can subscribe to Web Push | Called by frontend on app start |
+| `send-test-notification` | Sends a test push + Slack message to verify a user's setup | Called from Settings UI |
 
 ### Option A: Mount via volume (recommended for `supabase-docker`)
 
@@ -1182,8 +1185,11 @@ FUNCTIONS_DIR="/opt/timetrack/supabase-docker/docker/volumes/functions"
 mkdir -p "$FUNCTIONS_DIR"
 
 cp -r supabase/functions/create-auth-user "$FUNCTIONS_DIR/"
+cp -r supabase/functions/delete-auth-user "$FUNCTIONS_DIR/"
 cp -r supabase/functions/data-api "$FUNCTIONS_DIR/"
 cp -r supabase/functions/process-reminders "$FUNCTIONS_DIR/"
+cp -r supabase/functions/push-public-key "$FUNCTIONS_DIR/"
+cp -r supabase/functions/send-test-notification "$FUNCTIONS_DIR/"
 ```
 
 **Verify files were copied:**
@@ -1194,7 +1200,10 @@ ls -la "$FUNCTIONS_DIR"/
 ```
 drwxr-xr-x 2 timetrack timetrack 4096 ... create-auth-user
 drwxr-xr-x 2 timetrack timetrack 4096 ... data-api
+drwxr-xr-x 2 timetrack timetrack 4096 ... delete-auth-user
 drwxr-xr-x 2 timetrack timetrack 4096 ... process-reminders
+drwxr-xr-x 2 timetrack timetrack 4096 ... push-public-key
+drwxr-xr-x 2 timetrack timetrack 4096 ... send-test-notification
 ```
 
 📂 **Supabase dir** (`/opt/timetrack/supabase-docker/docker`)
