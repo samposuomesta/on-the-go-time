@@ -1,37 +1,79 @@
+# Pilviresurssien tehostus – rajattu toteutus
 
+Toteutetaan vain käyttäjän valitsemat kohdat 1 ja 5. Muut aiemman suunnitelman kohdat jätetään tekemättä.
 
-## Päivitä vanhentuneet riippuvuudet
+## 1. `process-reminders` cron-aikataulun keventäminen
 
-Kaikki npm-varoitukset tulevat **transitiivisista riippuvuuksista** (ei suorista). Korjataan päivittämällä yksi suora dev-riippuvuus, jonka päivitys eliminoi suurimman osan varoituksista.
+Nykyinen aikataulu: `* * * * *` (joka minuutti, 24/7) → ~43 200 ajoa/kk.
 
-### Diagnoosi
+Uusi aikataulu:
+- **ma–pe**: joka 3. minuutti (`*/3 * * * 1-5`)
+- **la–su**: joka 60. minuutti (`0 * * * 0,6`)
 
-| Varoitus | Lähde |
-|---|---|
-| `inflight`, `glob@7`, `rimraf@2`, `abab`, `domexception`, `whatwg-encoding`, `fstream` | **`jsdom@20`** (vuodelta 2022, vanhentunut) |
-| `lodash.isequal` | `recharts` / `react-hook-form` -ketju (ei meidän hallinnassa) |
+Yhteensä ~10 700 ajoa/kk → noin **75 % vähemmän** ajokertoja.
 
-`jsdom` on käytössä vain testeissä (`vitest` + `@testing-library/react`). Päivitys `jsdom@20 → jsdom@25` poistaa kaikki yllä olevat varoitukset paitsi `lodash.isequal`.
+**Huomio muistutusten ajoituksesta:** käyttäjä asettaa muistutuksen `HH:MM`-tarkkuudella, mutta funktio vertaa täsmällisesti `time = currentTime`. 3 min raster tarkoittaa että muistutus, jonka käyttäjä on asettanut esim. klo 08:31, **ei laukea koskaan** koska cron osuu vain minuutteihin 00, 03, 06, ...
 
-### Tehtävät muutokset
+Ratkaisu: muutetaan `process-reminders/index.ts` käyttämään aikaikkunaa eikä tarkkaa täsmäystä:
+- Lasketaan ajan `currentTime` lisäksi 2 minuuttia taaksepäin (esim. nyt = 08:33 → ikkuna 08:31, 08:32, 08:33).
+- Muutetaan kaikki `.eq("time", currentTime)` muotoon `.in("time", windowTimes)`.
+- Notification_log -dedup estää tuplalähetykset (sama `referenceId` per päivä).
 
-**`package.json`** – devDependencies:
-- `"jsdom": "^20.0.3"` → `"jsdom": "^25.0.1"`
+Viikonlopun 60 min raster on käytännössä OK, koska viikonloppuna ohitetaan kaikki työpäivämuistutukset (kohta 1 koodissa) – ainoa la–su:na ajettava on `vacation_pending` (esimiehille), jonka tarkka kellonaika ei ole kriittinen, mutta sama ikkunalogiikka kattaa senkin.
 
-Ei muita muutoksia. Vitestin `environment: "jsdom"` -konfiguraatio toimii sellaisenaan jsdom 25:n kanssa.
+**Tekniset muutokset:**
+- `pg_cron` (käyttäjä päivittää itse Studiosta tai SQL:llä, koska self-hosted ympäristössä cron-ajetaan `http://kong:8000`-URL:lla – ei voida tehdä migraatiolla, joka leviäisi muille). Annetaan SQL-snippet käyttöohjeena.
+- `supabase/functions/process-reminders/index.ts`: lisätään `windowTimes`-laskenta ja vaihdetaan `eq → in`.
+- `docs/Installation101.md`: päivitetään cron-esimerkki uuteen aikatauluun.
 
-### Mitä EI päivitetä ja miksi
+## 5. `useServiceWorkerUpdate` – harvempi tarkistus, vain arkisin
 
-- **`lodash.isequal`** – tulee kolmannen osapuolen kirjastoista (`recharts`/`react-hook-form`). Pelkkä varoitus, ei tietoturvariski. Häviää kun nuo kirjastot päivittyvät major-versioon (esim. recharts v3), mikä vaatii oman testaus­kierroksensa eikä liity tähän pyyntöön.
-- **`exceljs`** (pulls `fstream`) – käytössä employee-importissa. Uusin `exceljs@4.4` on jo asennettu; `fstream` häviää vasta exceljs:n seuraavassa majorissa (ei vielä julkaistu).
+Nykyisin: `setInterval(..., 5 * 60_000)` jokaiselle avoimelle välilehdelle.
 
-### Verifiointi päivityksen jälkeen
+Uusi: tarkistetaan **120 min välein, vain ma–pe** (la–su tarkistus skipataan kokonaan). Päivitykset rullataan manuaalisesti ja työajan ulkopuolella tarkistuksilla ei ole arvoa.
 
-1. `npm install` – varoitusten määrä pienenee 9 → 1 (vain `lodash.isequal` jää)
-2. `npm run test` – varmistaa että jsdom 25 toimii olemassa olevien testien kanssa
-3. `npm run build` – varmistaa että build menee läpi
+**Toteutus** `src/hooks/useServiceWorkerUpdate.ts`:ssa:
+- Vaihdetaan väli `120 * 60_000`:een.
+- Wrapataan `reg.update()`-kutsu päivätarkistuksella: `const day = new Date().getDay(); if (day === 0 || day === 6) return;`
+- Säilytetään olemassa oleva `controllerchange`- ja `updatefound`-logiikka ennallaan, jotta käyttäjä saa silti päivitysilmoituksen heti kun uusi service worker on asennettu (esim. sivulatauksen yhteydessä).
 
-### Versiopäivitys
+## Mitä EI muuteta
 
-`src/lib/version.ts`: `26.3.42` → `26.3.43`
+- Ei muuteta TanStack Query -konfiguraatiota, hookkien rakennetta, admin-paneelin lataus­logiikkaa eikä HeaderClockia.
+- Ei kosketa frontendin offline-syncia, push-tilauksia eikä autentikaatiota.
 
+## Tiedostot, joita muokataan
+
+- `supabase/functions/process-reminders/index.ts` – aikaikkuna `time`-vertailuun
+- `src/hooks/useServiceWorkerUpdate.ts` – 120 min väli + viikonloppu-skip
+- `docs/Installation101.md` – uusi cron-esimerkki ja perustelu
+
+## Käyttäjän toimet asennuksen jälkeen
+
+Self-hosted `pg_cron`-aikataulu on ympäristökohtainen eikä päivity automaattisesti. Ohjeistetaan päivittämään se Supabase Studion SQL-editorissa:
+
+```sql
+SELECT cron.unschedule('process-reminders');
+
+SELECT cron.schedule(
+  'process-reminders-weekday',
+  '*/3 * * * 1-5',
+  $$ SELECT net.http_post(
+    url := 'http://kong:8000/functions/v1/process-reminders',
+    headers := '{"Content-Type":"application/json","Authorization":"Bearer <SERVICE_ROLE_KEY>"}'::jsonb,
+    body := '{}'::jsonb
+  ); $$
+);
+
+SELECT cron.schedule(
+  'process-reminders-weekend',
+  '0 * * * 0,6',
+  $$ SELECT net.http_post(
+    url := 'http://kong:8000/functions/v1/process-reminders',
+    headers := '{"Content-Type":"application/json","Authorization":"Bearer <SERVICE_ROLE_KEY>"}'::jsonb,
+    body := '{}'::jsonb
+  ); $$
+);
+```
+
+**Run from:** Supabase Studio → SQL Editor (SSH-tunnelin kautta).
