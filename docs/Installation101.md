@@ -1167,7 +1167,7 @@ The application uses 6 Edge Functions:
 | `create-auth-user` | Admin creates auth accounts for employees | Called from Admin UI |
 | `delete-auth-user` | Admin deletes auth accounts | Called from Admin UI |
 | `data-api` | External REST API with API key auth (responses include `user_email` next to `user_id` for time-entries, project-hours, travel-expenses, vacation-requests, absences) | Called by external systems |
-| `process-reminders` | Push & Slack notification reminders. Skips weekends, Finnish public holidays, and users marked absent for that day | Cron job (step 18) |
+| `process-reminders` | Push & Slack notification reminders. Skips weekends, Finnish public holidays, and users marked absent for that day | Cron job (step 18, weekday/weekend schedule) |
 | `push-public-key` | Returns the VAPID public key to the frontend so browsers can subscribe to Web Push | Called by frontend on app start |
 | `send-test-notification` | Sends a test push + Slack message to verify a user's setup | Called from Settings UI |
 
@@ -1852,23 +1852,37 @@ Copy both keys into your edge function environment variables.
 
 > **Prerequisites:** Supabase services running (step 8), Edge functions deployed (step 11), `CRON_SECRET` set in edge function environment (step 11).
 
-The `process-reminders` edge function must be triggered every minute. The function itself is idempotent (uses `notification_log` for deduplication) and only sends notifications to users whose personal `time` setting matches the current minute (Helsinki time). It automatically skips:
+The `process-reminders` edge function is triggered on a reduced schedule to save backend resources:
+
+- **Weekdays (Mon–Fri):** every 3 minutes
+- **Weekends (Sat–Sun):** every 60 minutes
+
+The function is idempotent (uses `notification_log` for deduplication) and matches user-configured `time` values against a 60-minute lookback window, so reminders set to any minute (e.g. `08:31`) still fire on the next cron tick. It automatically skips:
 
 - Saturdays and Sundays (clock_in/out, weekly_goal, vacation_pending)
 - Finnish public holidays (clock_in/out, weekly_goal)
 - Days the user is on approved vacation, sick leave, or other absence (clock_in/out, weekly_goal)
 
-Vacation status reminders (approved/rejected) are always sent at the requested time, even on weekends.
+Vacation status reminders (approved/rejected) are always sent, even on weekends.
 
-> **Important:** The Nginx config (step 13) blocks external access to `/functions/v1/process-reminders`. The cron job runs on localhost and is allowed through.
+> **Important:** The Nginx config (step 13) blocks external access to `/functions/v1/process-reminders`. The cron job runs on localhost (system cron) or via the internal Docker hostname `kong:8000` (pg_cron) and is allowed through.
 
 ### Option A: System cron
+
+**Run from:** any shell on the host
 
 ```bash
 crontab -e
 
-# Add this line — runs every minute (uses localhost to bypass Nginx external block):
-* * * * * curl -s -X POST \
+# Weekdays — every 3 minutes:
+*/3 * * * 1-5 curl -s -X POST \
+  "http://localhost:8000/functions/v1/process-reminders" \
+  -H "x-cron-secret: <YOUR_CRON_SECRET>" \
+  -H "Content-Type: application/json" \
+  >> /var/log/timetrack-reminders.log 2>&1
+
+# Weekends — every 60 minutes:
+0 * * * 0,6 curl -s -X POST \
   "http://localhost:8000/functions/v1/process-reminders" \
   -H "x-cron-secret: <YOUR_CRON_SECRET>" \
   -H "Content-Type: application/json" \
@@ -1878,21 +1892,39 @@ crontab -e
 > **Note:** We call `localhost:8000` (Kong) directly instead of the public domain. This avoids the Nginx restriction and keeps the request internal.
 
 **Verify cron is set:**
+
+**Run from:** any shell on the host
 ```bash
 crontab -l
-```
-**Expected output:**
-```
-* * * * * curl -s -X POST "http://localhost:8000/functions/v1/process-reminders" ...
 ```
 
 ### Option B: pg_cron (recommended on self-hosted Supabase)
 
+**Run from:** Supabase Studio → SQL Editor (over SSH tunnel) or `docker compose exec db psql -U postgres -d postgres`
+
 ```sql
--- In PostgreSQL (requires pg_cron extension, enabled by default in Supabase)
+-- Remove the old single per-minute job if it exists:
+SELECT cron.unschedule('process-reminders-every-minute');
+
+-- Weekday schedule (Mon–Fri, every 3 minutes):
 SELECT cron.schedule(
-  'process-reminders-every-minute',
-  '* * * * *',
+  'process-reminders-weekday',
+  '*/3 * * * 1-5',
+  $$
+  SELECT net.http_post(
+    url := 'http://kong:8000/functions/v1/process-reminders',
+    headers := jsonb_build_object(
+      'x-cron-secret', '<YOUR_CRON_SECRET>',
+      'Content-Type', 'application/json'
+    )
+  );
+  $$
+);
+
+-- Weekend schedule (Sat & Sun, every 60 minutes):
+SELECT cron.schedule(
+  'process-reminders-weekend',
+  '0 * * * 0,6',
   $$
   SELECT net.http_post(
     url := 'http://kong:8000/functions/v1/process-reminders',
@@ -2491,7 +2523,7 @@ Use this to track your progress:
 - [ ] **Step 13:** HTTPS working (`curl -sI https://yourdomain.com/`)
 - [ ] **Step 14:** fail2ban active, Studio restricted to localhost
 - [ ] **Step 17:** VAPID keys + `VAPID_SUBJECT` generated and set
-- [ ] **Step 18:** Cron job for process-reminders set (every minute)
+- [ ] **Step 18:** Cron job for process-reminders set (`*/3 * * * 1-5` + `0 * * * 0,6`)
 - [ ] **Step 19:** `receipts` storage bucket created
 - [ ] **Step 21:** Health check script working
 - [ ] **Step 22:** Backup cron configured (daily at 2 AM)
