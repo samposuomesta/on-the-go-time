@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { 
   Play, Square, Clock, Car, ParkingCircle, Camera, 
   Thermometer, UserX, Menu, CalendarDays, FileText, 
-  BarChart3, Receipt, Settings, LogOut, AlertTriangle, Shield, Target
+  BarChart3, Receipt, Settings, LogOut, AlertTriangle, Shield, Target, BookOpen
 } from 'lucide-react';
 import {
   AlertDialog,
@@ -117,6 +117,7 @@ export function Dashboard() {
                 { icon: CalendarDays, label: t('menu.vacationRequests'), path: '/vacation-requests' },
                 { icon: AlertTriangle, label: t('menu.longSickLeave'), path: '/long-sick-leave' },
                 { icon: Settings, label: t('menu.settings'), path: '/settings' },
+                { icon: BookOpen, label: t('menu.userGuide'), path: '/ohje' },
                 ...(isAdminOrManager ? [{ icon: Shield, label: t('menu.adminPanel'), path: '/admin' }] : []),
                 { icon: LogOut, label: t('menu.logout'), path: null },
               ].map(({ icon: Icon, label, path }) => (
