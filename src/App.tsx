@@ -17,6 +17,7 @@ import LongSickLeave from "./pages/LongSickLeave.tsx";
 import TravelExpenses from "./pages/TravelExpenses.tsx";
 import MyStatistics from "./pages/MyStatistics.tsx";
 import SettingsPage from "./pages/Settings.tsx";
+import UserGuide from "./pages/UserGuide.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import Login from "./pages/Login.tsx";
 import ForgotPassword from "./pages/ForgotPassword.tsx";
@@ -47,6 +48,7 @@ function AuthRoutes() {
       <Route path="/travel-expenses" element={<ProtectedRoute><TravelExpenses /></ProtectedRoute>} />
       <Route path="/my-statistics" element={<ProtectedRoute><MyStatistics /></ProtectedRoute>} />
       <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+      <Route path="/ohje" element={<ProtectedRoute><UserGuide /></ProtectedRoute>} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
