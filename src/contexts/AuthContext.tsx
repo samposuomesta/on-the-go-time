@@ -47,12 +47,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Resolve the users table row from the auth user's stable UUID
   useEffect(() => {
     if (!authUser?.id) return;
-    supabase
+    (supabase
       .from('users')
-      .select('id, company_id')
-      .eq('auth_user_id' as any, authUser.id)
+      .select('id, company_id') as any)
+      .eq('auth_user_id', authUser.id)
       .maybeSingle()
-      .then(({ data }) => {
+      .then(({ data }: any) => {
         setUserId(data?.id ?? null);
         setCompanyId(data?.company_id ?? null);
         setLoading(false);
@@ -67,7 +67,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             .then(() => {});
         }
       });
-  }, [authUser?.email]);
+  }, [authUser?.id]);
 
   const signOut = async () => {
     // Store logout GPS in latest login session
