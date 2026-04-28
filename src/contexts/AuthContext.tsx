@@ -44,14 +44,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Resolve the users table row from auth email
+  // Resolve the users table row from the auth user's stable UUID
   useEffect(() => {
-    if (!authUser?.email) return;
+    if (!authUser?.id) return;
     supabase
       .from('users')
       .select('id, company_id')
-      .eq('email', authUser.email)
-      .single()
+      .eq('auth_user_id' as any, authUser.id)
+      .maybeSingle()
       .then(({ data }) => {
         setUserId(data?.id ?? null);
         setCompanyId(data?.company_id ?? null);
