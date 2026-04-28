@@ -272,8 +272,6 @@ export type Database = {
           per_diem_full: number
           per_diem_partial: number
           postal_code: string | null
-          slack_bot_token: string | null
-          slack_default_channel: string | null
           street: string | null
           timezone: string
           trailer_km_rate: number
@@ -293,8 +291,6 @@ export type Database = {
           per_diem_full?: number
           per_diem_partial?: number
           postal_code?: string | null
-          slack_bot_token?: string | null
-          slack_default_channel?: string | null
           street?: string | null
           timezone?: string
           trailer_km_rate?: number
@@ -314,11 +310,33 @@ export type Database = {
           per_diem_full?: number
           per_diem_partial?: number
           postal_code?: string | null
-          slack_bot_token?: string | null
-          slack_default_channel?: string | null
           street?: string | null
           timezone?: string
           trailer_km_rate?: number
+        }
+        Relationships: []
+      }
+      company_secrets: {
+        Row: {
+          company_id: string
+          created_at: string
+          slack_bot_token: string | null
+          slack_default_channel: string | null
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          slack_bot_token?: string | null
+          slack_default_channel?: string | null
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          slack_bot_token?: string | null
+          slack_default_channel?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -1073,6 +1091,7 @@ export type Database = {
       users: {
         Row: {
           annual_vacation_days: number
+          auth_user_id: string | null
           auto_subtract_lunch: boolean
           company_id: string
           contract_start_date: string | null
@@ -1090,6 +1109,7 @@ export type Database = {
         }
         Insert: {
           annual_vacation_days?: number
+          auth_user_id?: string | null
           auto_subtract_lunch?: boolean
           company_id: string
           contract_start_date?: string | null
@@ -1107,6 +1127,7 @@ export type Database = {
         }
         Update: {
           annual_vacation_days?: number
+          auth_user_id?: string | null
           auto_subtract_lunch?: boolean
           company_id?: string
           contract_start_date?: string | null

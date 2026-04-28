@@ -62,9 +62,9 @@ Deno.serve(async (req) => {
     const slackUserId = (appUser as any).slack_user_id as string | null;
     if (slackUserId && (appUser as any).company_id) {
       const { data: company } = await admin
-        .from("companies")
+        .from("company_secrets")
         .select("slack_bot_token")
-        .eq("id", (appUser as any).company_id)
+        .eq("company_id", (appUser as any).company_id)
         .maybeSingle();
       const token = (company as any)?.slack_bot_token as string | null;
       if (token) {

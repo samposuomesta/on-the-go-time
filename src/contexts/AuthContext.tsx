@@ -44,15 +44,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Resolve the users table row from auth email
+  // Resolve the users table row from the auth user's stable UUID
   useEffect(() => {
-    if (!authUser?.email) return;
-    supabase
+    if (!authUser?.id) return;
+    (supabase
       .from('users')
-      .select('id, company_id')
-      .eq('email', authUser.email)
-      .single()
-      .then(({ data }) => {
+      .select('id, company_id') as any)
+      .eq('auth_user_id', authUser.id)
+      .maybeSingle()
+      .then(({ data }: any) => {
         setUserId(data?.id ?? null);
         setCompanyId(data?.company_id ?? null);
         setLoading(false);
@@ -67,7 +67,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             .then(() => {});
         }
       });
-  }, [authUser?.email]);
+  }, [authUser?.id]);
 
   const signOut = async () => {
     // Store logout GPS in latest login session

@@ -12,6 +12,7 @@ import { Link, Navigate } from 'react-router-dom';
 import { useAdminData } from '@/hooks/useAdminData';
 import { exportAdminWorkingHoursCSV, exportAdminTravelExpensesCSV, exportAdminProjectHoursCSV, exportAuditTrailCSV, exportProjectManagementCSV } from '@/lib/csv-export';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
+import { supabase } from '@/integrations/supabase/client';
 import { useTranslation, getLocalizedField } from '@/lib/i18n';
 import { VacationTimeline } from '@/components/admin/VacationTimeline';
 import { ApiKeysPanel } from '@/components/admin/ApiKeysPanel';
@@ -2699,8 +2700,19 @@ function EditCompanyDialog({ company, onSave }: { company: any; onSave: (data: a
   const [city, setCity] = useState(company.city || '');
   const [country, setCountry] = useState(company.country || '');
   const [timezone, setTimezone] = useState(company.timezone || 'Europe/Helsinki');
-  const [slackBotToken, setSlackBotToken] = useState(company.slack_bot_token || '');
-  const [slackDefaultChannel, setSlackDefaultChannel] = useState(company.slack_default_channel || '');
+  const [slackBotToken, setSlackBotToken] = useState('');
+  const [slackDefaultChannel, setSlackDefaultChannel] = useState('');
+
+  // Load slack secrets from the admin-only company_secrets table when the dialog opens.
+  const loadSecrets = async () => {
+    const { data } = await supabase
+      .from('company_secrets' as any)
+      .select('slack_bot_token, slack_default_channel')
+      .eq('company_id', company.id)
+      .maybeSingle();
+    setSlackBotToken((data as any)?.slack_bot_token || '');
+    setSlackDefaultChannel((data as any)?.slack_default_channel || '');
+  };
 
   return (
     <Dialog open={open} onOpenChange={(o) => {
@@ -2713,8 +2725,7 @@ function EditCompanyDialog({ company, onSave }: { company: any; onSave: (data: a
         setCity(company.city || '');
         setCountry(company.country || '');
         setTimezone(company.timezone || 'Europe/Helsinki');
-        setSlackBotToken(company.slack_bot_token || '');
-        setSlackDefaultChannel(company.slack_default_channel || '');
+        loadSecrets();
       }
     }}>
       <DialogTrigger asChild><Button size="icon" variant="ghost" className="h-8 w-8"><Pencil className="h-3.5 w-3.5" /></Button></DialogTrigger>
@@ -2773,7 +2784,7 @@ function EditCompanyDialog({ company, onSave }: { company: any; onSave: (data: a
             />
           </div>
         </div>
-        <Button className="w-full mt-2" onClick={() => {
+        <Button className="w-full mt-2" onClick={async () => {
           onSave({
             name: name.trim(),
             company_id_code: companyIdCode.trim() || null,
@@ -2782,9 +2793,16 @@ function EditCompanyDialog({ company, onSave }: { company: any; onSave: (data: a
             city: city.trim() || null,
             country: country || null,
             timezone: timezone.trim() || 'Europe/Helsinki',
-            slack_bot_token: slackBotToken.trim() || null,
-            slack_default_channel: slackDefaultChannel.trim() || null,
           });
+          // Upsert slack credentials into the admin-only company_secrets table.
+          await supabase
+            .from('company_secrets' as any)
+            .upsert({
+              company_id: company.id,
+              slack_bot_token: slackBotToken.trim() || null,
+              slack_default_channel: slackDefaultChannel.trim() || null,
+              updated_at: new Date().toISOString(),
+            } as any, { onConflict: 'company_id' });
           setOpen(false);
         }}>{t("admin.saveChanges")}</Button>
       </DialogContent>
