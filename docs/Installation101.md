@@ -1900,7 +1900,7 @@ crontab -l
 
 ### Option B: pg_cron (recommended on self-hosted Supabase)
 
-**Run from:** Supabase Studio → SQL Editor (over SSH tunnel) or `docker compose exec db psql -U postgres -d postgres`
+**Run from:** Supabase Studio → SQL Editor (over SSH tunnel) tai `/opt/timetrack/supabase-docker/docker/` hakemistosta komennolla `docker compose exec db psql -U postgres -d postgres`
 
 ```sql
 -- Remove the old single per-minute job if it exists:
