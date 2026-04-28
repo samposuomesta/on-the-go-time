@@ -12,6 +12,7 @@ import { Link, Navigate } from 'react-router-dom';
 import { useAdminData } from '@/hooks/useAdminData';
 import { exportAdminWorkingHoursCSV, exportAdminTravelExpensesCSV, exportAdminProjectHoursCSV, exportAuditTrailCSV, exportProjectManagementCSV } from '@/lib/csv-export';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
+import { supabase } from '@/integrations/supabase/client';
 import { useTranslation, getLocalizedField } from '@/lib/i18n';
 import { VacationTimeline } from '@/components/admin/VacationTimeline';
 import { ApiKeysPanel } from '@/components/admin/ApiKeysPanel';
