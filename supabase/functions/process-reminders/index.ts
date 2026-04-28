@@ -153,7 +153,7 @@ Deno.serve(async (req) => {
       .from("user_reminders")
       .select("*")
       .eq("enabled", true)
-      .eq("time", currentTime);
+      .in("time", windowTimes);
 
     if (userReminders) {
       for (const r of userReminders) {
@@ -205,7 +205,7 @@ Deno.serve(async (req) => {
       .select("*")
       .eq("enabled", true)
       .eq("type", "vacation_pending")
-      .eq("time", currentTime);
+      .in("time", windowTimes);
 
     if (vacPendingReminders) {
       for (const r of vacPendingReminders) {
@@ -233,7 +233,7 @@ Deno.serve(async (req) => {
       .select("*")
       .eq("enabled", true)
       .eq("type", "weekly_goal")
-      .eq("time", currentTime)
+      .in("time", windowTimes)
       .eq("day_of_week", dayOfWeek);
 
     if (weeklyGoalReminders) {
