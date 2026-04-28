@@ -35,10 +35,13 @@ export function useServiceWorkerUpdate() {
       });
     });
 
-    // Check for updates every 5 minutes
+    // Check for updates every 120 minutes, weekdays only.
+    // PWA versions are rolled manually; off-hours checks add no value.
     const interval = setInterval(() => {
+      const day = new Date().getDay();
+      if (day === 0 || day === 6) return; // skip Sat/Sun
       navigator.serviceWorker.getRegistration().then((reg) => reg?.update());
-    }, 5 * 60 * 1000);
+    }, 120 * 60 * 1000);
 
     return () => {
       clearInterval(interval);
