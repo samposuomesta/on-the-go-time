@@ -178,6 +178,16 @@ Deno.serve(async (req) => {
       const cursorCreatedAt = params.cursor_created_at || null;
       const cursorId = params.cursor_id || null;
 
+      // Validate cursor params to prevent PostgREST filter injection
+      const ISO_RE = /^\d{4}-\d{2}-\d{2}T[\d:.+-]+(?:Z|[+-]\d{2}:?\d{2})?$/;
+      const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (cursorCreatedAt && !ISO_RE.test(cursorCreatedAt)) {
+        return errorResponse("VALIDATION_ERROR", "Invalid cursor_created_at format.", 400);
+      }
+      if (cursorId && !UUID_RE.test(cursorId)) {
+        return errorResponse("VALIDATION_ERROR", "Invalid cursor_id format.", 400);
+      }
+
       responseBody = await handleGet(
         db, companyId, resource, params, limit, cursorCreatedAt, cursorId
       );
