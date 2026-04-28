@@ -126,6 +126,7 @@ const translations = {
     'menu.weeklyGoals': 'Weekly Goals',
     'menu.settings': 'Settings',
     'menu.logout': 'Logout',
+    'menu.userGuide': 'User Guide',
 
     // Weekly Goals
     'weeklyGoals.title': 'Weekly Goals',
@@ -889,6 +890,7 @@ const translations = {
     'menu.weeklyGoals': 'Viikkotavoitteet',
     'menu.settings': 'Asetukset',
     'menu.logout': 'Kirjaudu ulos',
+    'menu.userGuide': 'Käyttöohje',
 
     // Weekly Goals (FI)
     'weeklyGoals.title': 'Viikkotavoitteet',
