@@ -1167,7 +1167,7 @@ The application uses 6 Edge Functions:
 | `create-auth-user` | Admin creates auth accounts for employees | Called from Admin UI |
 | `delete-auth-user` | Admin deletes auth accounts | Called from Admin UI |
 | `data-api` | External REST API with API key auth (responses include `user_email` next to `user_id` for time-entries, project-hours, travel-expenses, vacation-requests, absences) | Called by external systems |
-| `process-reminders` | Push & Slack notification reminders. Skips weekends, Finnish public holidays, and users marked absent for that day | Cron job (step 18) |
+| `process-reminders` | Push & Slack notification reminders. Skips weekends, Finnish public holidays, and users marked absent for that day | Cron job (step 18, weekday/weekend schedule) |
 | `push-public-key` | Returns the VAPID public key to the frontend so browsers can subscribe to Web Push | Called by frontend on app start |
 | `send-test-notification` | Sends a test push + Slack message to verify a user's setup | Called from Settings UI |
 
@@ -2523,7 +2523,7 @@ Use this to track your progress:
 - [ ] **Step 13:** HTTPS working (`curl -sI https://yourdomain.com/`)
 - [ ] **Step 14:** fail2ban active, Studio restricted to localhost
 - [ ] **Step 17:** VAPID keys + `VAPID_SUBJECT` generated and set
-- [ ] **Step 18:** Cron job for process-reminders set (every minute)
+- [ ] **Step 18:** Cron job for process-reminders set (`*/3 * * * 1-5` + `0 * * * 0,6`)
 - [ ] **Step 19:** `receipts` storage bucket created
 - [ ] **Step 21:** Health check script working
 - [ ] **Step 22:** Backup cron configured (daily at 2 AM)
