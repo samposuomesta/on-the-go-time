@@ -95,6 +95,18 @@ Deno.serve(async (req) => {
     const { currentTime, todayStr, dayOfWeek, dayStartUtc, dayEndUtc } = getHelsinkiDateParts(now);
     const { week: isoWeek, year: isoYear } = getISOWeekNumber(now);
 
+    // Cron now runs every 3 minutes (weekdays) / hourly (weekends), but users
+    // configure reminders to the minute. Build a small lookback window so that
+    // reminders set for e.g. 08:31 still fire when cron triggers at 08:33.
+    // notification_log dedup prevents duplicates within the same day/reference.
+    const WINDOW_MINUTES = 60; // covers both 3-min and 60-min cron rasters
+    const windowTimes: string[] = [];
+    for (let i = 0; i < WINDOW_MINUTES; i++) {
+      const t = new Date(now.getTime() - i * 60_000);
+      const { currentTime: ct } = getHelsinkiDateParts(t);
+      if (!windowTimes.includes(ct)) windowTimes.push(ct);
+    }
+
     // Weekend / Finnish public holiday check (Helsinki time)
     const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
     const isHoliday = isFinnishHoliday(todayStr);
