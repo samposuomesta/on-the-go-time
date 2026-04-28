@@ -345,9 +345,9 @@ Deno.serve(async (req) => {
     const getCompanyMeta = async (companyId: string) => {
       if (companyCache.has(companyId)) return companyCache.get(companyId) ?? null;
       const { data } = await supabase
-        .from("companies")
+        .from("company_secrets")
         .select("slack_bot_token, slack_default_channel")
-        .eq("id", companyId)
+        .eq("company_id", companyId)
         .maybeSingle();
       const meta = data ? { slack_bot_token: (data as any).slack_bot_token ?? null, slack_default_channel: (data as any).slack_default_channel ?? null } : null;
       companyCache.set(companyId, meta);
