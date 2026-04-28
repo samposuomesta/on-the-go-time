@@ -84,9 +84,22 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  // No authentication required: this function is idempotent (notification_log dedup),
-  // sends only pre-scheduled reminders to opted-in users, and exposes no user input or PII.
-  // Anyone calling it can at most fire reminders that are already due to be sent.
+  // Require shared secret. Cron job (pg_cron) must pass either an
+  // `x-cron-secret` header or `Authorization: Bearer <CRON_SECRET>`.
+  const cronSecret = Deno.env.get("CRON_SECRET");
+  if (cronSecret) {
+    const provided =
+      req.headers.get("x-cron-secret") ||
+      req.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ||
+      "";
+    if (provided !== cronSecret) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+  }
+
 
   try {
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
