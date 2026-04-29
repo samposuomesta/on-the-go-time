@@ -47,6 +47,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Resolve the users table row from the auth user's stable UUID
   useEffect(() => {
     if (!authUser?.id) return;
+
+    setLoading(true);
+
     (supabase
       .from('users')
       .select('id, company_id') as any)
@@ -66,6 +69,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             .eq('id', data.id)
             .then(() => {});
         }
+      })
+      .catch(() => {
+        setUserId(null);
+        setCompanyId(null);
+        setLoading(false);
       });
   }, [authUser?.id]);
 
