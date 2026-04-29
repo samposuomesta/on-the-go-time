@@ -23,24 +23,31 @@ export default function Login() {
     if (error) {
       toast.error(error.message);
     } else {
-      // Store login session with GPS
-      const gps = await captureGPS();
-      const userEmail = data.user?.email;
-      if (userEmail) {
-        const { data: userData } = await supabase
-          .from('users')
-          .select('id')
-          .eq('email', userEmail)
-          .single();
-        if (userData) {
+      navigate('/');
+
+      void (async () => {
+        try {
+          const gps = await captureGPS();
+          const userEmail = data.user?.email;
+          if (!userEmail) return;
+
+          const { data: userData } = await supabase
+            .from('users')
+            .select('id')
+            .eq('email', userEmail)
+            .maybeSingle();
+
+          if (!userData) return;
+
           await supabase.from('login_sessions').insert({
             user_id: userData.id,
             login_lat: gps?.lat ?? null,
             login_lng: gps?.lng ?? null,
           } as any);
+        } catch {
+          // Never block login if location capture or session logging fails.
         }
-      }
-      navigate('/');
+      })();
     }
   };
 
