@@ -552,6 +552,7 @@ const translations = {
     'admin.empNumber': 'Emp #',
     'admin.auditTime': 'Time',
     'admin.auditTable': 'Table',
+    'admin.auditTarget': 'Target',
     'admin.auditAction': 'Action',
     'admin.auditChanges': 'Changes',
     'admin.auditBy': 'By',
