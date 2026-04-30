@@ -2462,6 +2462,7 @@ function EditEmployeeDialog({ employee, allEmployees, currentManagerIds, onSave,
   const [selectedManagers, setSelectedManagers] = useState<string[]>(currentManagerIds);
   const [bankAdjustment, setBankAdjustment] = useState('');
   const [bankSetValue, setBankSetValue] = useState('');
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   const availableManagers = allEmployees.filter(
     (e: any) => (e.role === 'manager' || e.role === 'admin') && e.id !== employee.id
@@ -2569,14 +2570,73 @@ function EditEmployeeDialog({ employee, allEmployees, currentManagerIds, onSave,
             )}
           </div>
         </div>
-        <Button className="w-full mt-2" onClick={() => {
-          onSave({ role, employee_number: employeeNumber.trim() || null, contract_start_date: contractDate || null, annual_vacation_days: parseInt(vacationDays) || 25, daily_work_hours: parseFloat(dailyWorkHours) || 7.5, auto_subtract_lunch: autoSubtractLunch, lunch_threshold_hours: parseFloat(lunchThreshold) || 5 }, selectedManagers);
-          // Set absolute balance if changed
-          if (onSetBankBalance && bankSetValue !== '' && parseFloat(bankSetValue) !== currentAdjustment) {
-            onSetBankBalance(employee.id, parseFloat(bankSetValue));
-          }
-          setOpen(false);
-        }}>{t('common.save')}</Button>
+        {(() => {
+          const newVacationDays = parseInt(vacationDays) || 25;
+          const newBankBalance = bankSetValue !== '' ? parseFloat(bankSetValue) : currentAdjustment;
+          const vacationChanged = newVacationDays !== (employee.annual_vacation_days ?? 25);
+          const bankChanged = onSetBankBalance && bankSetValue !== '' && newBankBalance !== currentAdjustment;
+          const needsConfirm = vacationChanged || bankChanged;
+
+          const doSave = () => {
+            onSave({ role, employee_number: employeeNumber.trim() || null, contract_start_date: contractDate || null, annual_vacation_days: newVacationDays, daily_work_hours: parseFloat(dailyWorkHours) || 7.5, auto_subtract_lunch: autoSubtractLunch, lunch_threshold_hours: parseFloat(lunchThreshold) || 5 }, selectedManagers);
+            if (bankChanged) {
+              onSetBankBalance!(employee.id, newBankBalance);
+            }
+            setOpen(false);
+          };
+
+          return (
+            <>
+              <Button className="w-full mt-2" onClick={() => {
+                if (needsConfirm) setConfirmOpen(true);
+                else doSave();
+              }}>{t('common.save')}</Button>
+              <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle className="font-display">{t('common.confirmChanges') || 'Confirm changes'}</AlertDialogTitle>
+                    <AlertDialogDescription asChild>
+                      <div className="space-y-2 text-sm">
+                        <p>{t('employee.confirmSensitiveChanges') || 'You are about to change sensitive values for this employee:'}</p>
+                        <ul className="list-disc pl-5 space-y-1">
+                          {vacationChanged && (
+                            <li>
+                              <span className="font-medium">{t('admin.vacationDaysYear')}:</span>{' '}
+                              <span className="text-muted-foreground">{employee.annual_vacation_days ?? 25}</span>
+                              {' → '}
+                              <span className="text-foreground font-semibold">{newVacationDays}</span>
+                            </li>
+                          )}
+                          {bankChanged && (
+                            <li>
+                              <span className="font-medium">{t('employee.workBankAdjustment')}:</span>{' '}
+                              <span className={cn(currentAdjustment >= 0 ? 'text-success' : 'text-destructive')}>
+                                {currentAdjustment >= 0 ? '+' : ''}{currentAdjustment.toFixed(1)}h
+                              </span>
+                              {' → '}
+                              <span className={cn('font-semibold', newBankBalance >= 0 ? 'text-success' : 'text-destructive')}>
+                                {newBankBalance >= 0 ? '+' : ''}{newBankBalance.toFixed(1)}h
+                              </span>
+                            </li>
+                          )}
+                        </ul>
+                      </div>
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+                    <AlertDialogAction
+                      className="bg-success text-success-foreground hover:bg-success/90"
+                      onClick={() => { setConfirmOpen(false); doSave(); }}
+                    >
+                      {t('common.confirm') || t('common.save')}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </>
+          );
+        })()}
       </DialogContent>
     </Dialog>
   );

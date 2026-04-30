@@ -748,6 +748,9 @@ const translations = {
     // Common
     'common.save': 'Save Changes',
     'common.cancel': 'Cancel',
+    'common.confirm': 'Confirm',
+    'common.confirmChanges': 'Confirm changes',
+    'employee.confirmSensitiveChanges': 'You are about to change sensitive values for this employee:',
     'common.delete': 'Delete',
     'common.edit': 'Edit',
     'common.add': 'Add',
@@ -1512,6 +1515,9 @@ const translations = {
     // Common
     'common.save': 'Tallenna muutokset',
     'common.cancel': 'Peruuta',
+    'common.confirm': 'Vahvista',
+    'common.confirmChanges': 'Vahvista muutokset',
+    'employee.confirmSensitiveChanges': 'Olet muuttamassa tämän työntekijän herkkiä arvoja:',
     'common.delete': 'Poista',
     'common.edit': 'Muokkaa',
     'common.add': 'Lisää',
