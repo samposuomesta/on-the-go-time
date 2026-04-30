@@ -24,10 +24,10 @@ export function useAdminData() {
     queryKey: ['admin-user-managers'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('user_managers' as any)
+        .from('user_managers')
         .select('*');
       if (error) throw error;
-      return data as any[];
+      return data ?? [];
     },
   });
 
@@ -76,12 +76,12 @@ export function useAdminData() {
     queryKey: ['admin-reminders'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('reminder_rules' as any)
+        .from('reminder_rules')
         .select('*')
         .eq('company_id', companyId)
         .order('created_at');
       if (error) throw error;
-      return data as any[];
+      return data ?? [];
     },
   });
 
@@ -200,12 +200,12 @@ export function useAdminData() {
     queryKey: ['admin-audit-log'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('audit_log' as any)
+        .from('audit_log')
         .select('*')
         .order('created_at', { ascending: false })
         .limit(500);
       if (error) throw error;
-      return data as any[];
+      return data ?? [];
     },
   });
 
@@ -238,11 +238,11 @@ export function useAdminData() {
     queryKey: ['admin-login-sessions'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('login_sessions' as any)
+        .from('login_sessions')
         .select('*')
         .order('login_at', { ascending: false });
       if (error) throw error;
-      return data as any[];
+      return data ?? [];
     },
   });
 
@@ -400,7 +400,7 @@ export function useAdminData() {
 
   const createReminder = useMutation({
     mutationFn: async (data: { type: string; time: string; message: string; message_fi?: string; day_of_month?: number; resend_after_days?: number }) => {
-      const { error } = await supabase.from('reminder_rules' as any).insert({ ...data, company_id: companyId } as any);
+      const { error } = await supabase.from('reminder_rules').insert({ ...data, company_id: companyId } as any);
       if (error) throw error;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-reminders'] }),
@@ -408,7 +408,7 @@ export function useAdminData() {
 
   const updateReminder = useMutation({
     mutationFn: async ({ id, ...data }: { id: string; type?: string; time?: string; message?: string; message_fi?: string | null; day_of_month?: number | null; resend_after_days?: number | null }) => {
-      const { error } = await supabase.from('reminder_rules' as any).update(data as any).eq('id', id);
+      const { error } = await supabase.from('reminder_rules').update(data as any).eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-reminders'] }),
@@ -416,7 +416,7 @@ export function useAdminData() {
 
   const toggleReminder = useMutation({
     mutationFn: async ({ id, enabled }: { id: string; enabled: boolean }) => {
-      const { error } = await supabase.from('reminder_rules' as any).update({ enabled } as any).eq('id', id);
+      const { error } = await supabase.from('reminder_rules').update({ enabled } as any).eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-reminders'] }),
@@ -424,7 +424,7 @@ export function useAdminData() {
 
   const deleteReminder = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from('reminder_rules' as any).delete().eq('id', id);
+      const { error } = await supabase.from('reminder_rules').delete().eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-reminders'] }),
@@ -467,7 +467,7 @@ export function useAdminData() {
     mutationFn: async ({ userId, managerIds }: { userId: string; managerIds: string[] }) => {
       // Delete existing assignments
       const { error: delError } = await supabase
-        .from('user_managers' as any)
+        .from('user_managers')
         .delete()
         .eq('user_id', userId);
       if (delError) throw delError;
@@ -475,7 +475,7 @@ export function useAdminData() {
       if (managerIds.length > 0) {
         const rows = managerIds.map(mid => ({ user_id: userId, manager_id: mid }));
         const { error: insError } = await supabase
-          .from('user_managers' as any)
+          .from('user_managers')
           .insert(rows as any);
         if (insError) throw insError;
       }
@@ -507,7 +507,7 @@ export function useAdminData() {
 
   const insertAuditReason = useMutation({
     mutationFn: async ({ tableName, recordId, action, oldData, newData, reason }: { tableName: string; recordId: string; action: string; oldData?: any; newData?: any; reason: string }) => {
-      const { error } = await supabase.from('audit_log' as any).insert({
+      const { error } = await supabase.from('audit_log').insert({
         table_name: tableName,
         record_id: recordId,
         action,

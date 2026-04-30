@@ -132,7 +132,7 @@ export default function SettingsPage() {
         .eq('id', userId)
         .maybeSingle();
       if (error) throw error;
-      return (data as any)?.slack_user_id as string | null;
+      return data?.slack_user_id as string | null;
     },
     enabled: !!userId,
   });

@@ -26,9 +26,9 @@ export default function AdminVacationApprovals() {
   const { data: userManagers = [] } = useQuery({
     queryKey: ['vacation-user-managers'],
     queryFn: async () => {
-      const { data, error } = await supabase.from('user_managers' as any).select('*');
+      const { data, error } = await supabase.from('user_managers').select('*');
       if (error) throw error;
-      return data as any[];
+      return data ?? [];
     },
   });
 

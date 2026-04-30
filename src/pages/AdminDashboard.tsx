@@ -2059,7 +2059,7 @@ function CompaniesPanel({ admin }: { admin: any }) {
     setTrailerRate(String(primary.trailer_km_rate ?? '0.09'));
     setPerDiemPartial(String(primary.per_diem_partial ?? '25'));
     setPerDiemFull(String(primary.per_diem_full ?? '54'));
-  }, [primary?.id, primary?.car_km_rate, (primary as any)?.benefit_car_km_rate, primary?.trailer_km_rate, primary?.per_diem_partial, primary?.per_diem_full]);
+  }, [primary?.id, primary?.car_km_rate, primary?.benefit_car_km_rate, primary?.trailer_km_rate, primary?.per_diem_partial, primary?.per_diem_full]);
 
   const saveCompensation = () => {
     if (!primary) return;
@@ -2075,8 +2075,8 @@ function CompaniesPanel({ admin }: { admin: any }) {
     toast.success(t('common.updated'));
   };
 
-  const lastSavedAt = (primary as any)?.compensation_updated_at
-    ? new Date((primary as any).compensation_updated_at)
+  const lastSavedAt = primary?.compensation_updated_at
+    ? new Date(primary.compensation_updated_at)
     : null;
   const lastSavedLabel = lastSavedAt
     ? format(lastSavedAt, language === 'fi' ? 'd.M.yyyy HH:mm' : 'PPp', { locale: dateLocale })
@@ -2706,12 +2706,12 @@ function EditCompanyDialog({ company, onSave }: { company: any; onSave: (data: a
   // Load slack secrets from the admin-only company_secrets table when the dialog opens.
   const loadSecrets = async () => {
     const { data } = await supabase
-      .from('company_secrets' as any)
+      .from('company_secrets')
       .select('slack_bot_token, slack_default_channel')
       .eq('company_id', company.id)
       .maybeSingle();
-    setSlackBotToken((data as any)?.slack_bot_token || '');
-    setSlackDefaultChannel((data as any)?.slack_default_channel || '');
+    setSlackBotToken(data?.slack_bot_token || '');
+    setSlackDefaultChannel(data?.slack_default_channel || '');
   };
 
   return (
@@ -2796,7 +2796,7 @@ function EditCompanyDialog({ company, onSave }: { company: any; onSave: (data: a
           });
           // Upsert slack credentials into the admin-only company_secrets table.
           await supabase
-            .from('company_secrets' as any)
+            .from('company_secrets')
             .upsert({
               company_id: company.id,
               slack_bot_token: slackBotToken.trim() || null,
