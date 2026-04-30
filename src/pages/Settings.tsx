@@ -17,7 +17,7 @@ import { AboutSection } from '@/components/settings/AboutSection';
 import { ReminderRow } from '@/components/settings/ReminderRow';
 import { ReminderEditorDialog, type ReminderEditState } from '@/components/settings/ReminderEditorDialog';
 
-type Theme = 'light' | 'dark' | 'system';
+// Theme type imported from AppearanceSection
 
 function getStoredTheme(): Theme {
   return (localStorage.getItem('timetrack-theme') as Theme) || 'system';
