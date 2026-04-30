@@ -11,6 +11,7 @@ import { ImportPanel } from '@/components/admin/ImportPanel';
 import { Link, Navigate } from 'react-router-dom';
 import { useAdminData } from '@/hooks/useAdminData';
 import { exportAdminWorkingHoursCSV, exportAdminTravelExpensesCSV, exportAdminProjectHoursCSV, exportAuditTrailCSV, exportProjectManagementCSV } from '@/lib/csv-export';
+import { diffChanges, summarizeInsertOrDelete, tableLabel, targetUserIdForLog } from '@/lib/audit-format';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { supabase } from '@/integrations/supabase/client';
 import { useTranslation, getLocalizedField } from '@/lib/i18n';
