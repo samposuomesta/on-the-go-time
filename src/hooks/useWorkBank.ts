@@ -84,6 +84,9 @@ export function useWorkBank() {
 
       const workedByDate: Record<string, number> = {};
 
+      // Lounas vähennetään PER SESSION (yksittäinen kirjautumisjakso),
+      // ei päivän yhteistunneista. Esim. kaksi 4h sessiota ei laukaise vähennystä,
+      // mutta yksi 7h yhtäjaksoinen sessio laukaisee.
       for (const entry of entries as TimeEntry[]) {
         if (!entry.end_time) continue;
         const dateKey = format(new Date(entry.start_time), 'yyyy-MM-dd');
