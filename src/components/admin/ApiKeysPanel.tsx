@@ -53,12 +53,12 @@ export function ApiKeysPanel() {
     queryKey: ['admin-api-keys'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('api_keys' as any)
+        .from('api_keys')
         .select('*')
         .eq('company_id', companyId)
         .order('created_at', { ascending: false });
       if (error) throw error;
-      return data as any[];
+      return data ?? [];
     },
   });
 
@@ -70,7 +70,7 @@ export function ApiKeysPanel() {
     }) => {
       const rawKey = generateApiKey();
       const keyHash = await sha256(rawKey);
-      const { error } = await supabase.from('api_keys' as any).insert({
+      const { error } = await supabase.from('api_keys').insert({
         company_id: companyId,
         key_hash: keyHash,
         label,
@@ -89,7 +89,7 @@ export function ApiKeysPanel() {
   const revokeKey = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
-        .from('api_keys' as any)
+        .from('api_keys')
         .update({ active: false } as any)
         .eq('id', id);
       if (error) throw error;
