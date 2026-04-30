@@ -3253,3 +3253,9 @@ function AuditLogTab({ admin }: { admin: any }) {
               ))}
             </TableBody>
           </Table>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
