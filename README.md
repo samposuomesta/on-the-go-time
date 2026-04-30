@@ -16,7 +16,7 @@ Moderni työajanseurantasovellus yrityksille. Sisältää kellokorttikirjaukset,
 ## Teknologiat
 
 - **Frontend:** React, TypeScript, Vite, Tailwind CSS, shadcn/ui
-- **Backend:** Lovable Cloud (Supabase) – tietokanta, autentikointi, Edge Functions
+- **Backend:** Supabase (self-hosted tai pilvi) – tietokanta, autentikointi, Edge Functions
 - **PWA:** Service Worker, offline-tuki
 
 ## Käyttöohje
