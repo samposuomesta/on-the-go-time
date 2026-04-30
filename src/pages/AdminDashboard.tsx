@@ -1808,7 +1808,7 @@ function EditAbsenceReasonDialog({ reason, onSave }: { reason: any; onSave: (dat
 
 /* ===== PROJECTS ===== */
 
-function ProjectsPanel({ admin }: { admin: any }) {
+: { admin: any }) {
   const { t } = useTranslation();
   const projects = admin.projects.data ?? [];
   return (
@@ -2045,7 +2045,7 @@ function ProjectManagementPanel({ admin }: { admin: any }) {
 
 /* ===== COMPANIES ===== */
 
-function CompaniesPanel({ admin }: { admin: any }) {
+: { admin: any }) {
   const { t, language } = useTranslation();
   const dateLocale = useDateLocale();
   const companies = admin.companies.data ?? [];
@@ -2160,7 +2160,7 @@ function CompaniesPanel({ admin }: { admin: any }) {
 
 /* ===== REMINDERS ===== */
 
-function RemindersPanel({ admin }: { admin: any }) {
+: { admin: any }) {
   const { language, t } = useTranslation();
   const reminders = admin.reminderRules.data ?? [];
   return (
@@ -2586,7 +2586,7 @@ function EditEmployeeDialog({ employee, allEmployees, currentManagerIds, onSave,
   );
 }
 
-function AddProjectDialog({ onCreate }: { onCreate: (data: { name: string; customer: string | null; target_hours: number | null }) => void }) {
+: { onCreate: (data: { name: string; customer: string | null; target_hours: number | null }) => void }) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
@@ -2612,7 +2612,7 @@ function AddProjectDialog({ onCreate }: { onCreate: (data: { name: string; custo
   );
 }
 
-function EditProjectDialog({ project, onSave }: { project: any; onSave: (data: { name?: string; customer?: string | null; target_hours?: number | null }) => void }) {
+: { project: any; onSave: (data: { name?: string; customer?: string | null; target_hours?: number | null }) => void }) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState(project.name);
@@ -2638,7 +2638,7 @@ function EditProjectDialog({ project, onSave }: { project: any; onSave: (data: {
   );
 }
 
-function AddCompanyDialog({ onCreate }: { onCreate: (data: any) => void }) {
+: { onCreate: (data: any) => void }) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
@@ -2694,7 +2694,7 @@ function AddCompanyDialog({ onCreate }: { onCreate: (data: any) => void }) {
   );
 }
 
-function EditCompanyDialog({ company, onSave }: { company: any; onSave: (data: any) => void }) {
+: { company: any; onSave: (data: any) => void }) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState(company.name);
@@ -2814,7 +2814,7 @@ function EditCompanyDialog({ company, onSave }: { company: any; onSave: (data: a
   );
 }
 
-function AddReminderDialog({ onCreate }: { onCreate: (data: { type: string; time: string; message: string; message_fi?: string; day_of_month?: number; resend_after_days?: number }) => void }) {
+: { onCreate: (data: { type: string; time: string; message: string; message_fi?: string; day_of_month?: number; resend_after_days?: number }) => void }) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [type, setType] = useState('clock_in');
@@ -2885,7 +2885,7 @@ function AddReminderDialog({ onCreate }: { onCreate: (data: { type: string; time
   );
 }
 
-function EditReminderDialog({ reminder, onSave }: { reminder: any; onSave: (data: { type?: string; time?: string; message?: string; message_fi?: string | null; day_of_month?: number | null; resend_after_days?: number | null }) => void }) {
+: { reminder: any; onSave: (data: { type?: string; time?: string; message?: string; message_fi?: string | null; day_of_month?: number | null; resend_after_days?: number | null }) => void }) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [type, setType] = useState(reminder.type);
@@ -2952,7 +2952,7 @@ function EditReminderDialog({ reminder, onSave }: { reminder: any; onSave: (data
 
 /* ===== AUDIT TRAIL ===== */
 
-function AuditTrailPanel({ admin }: { admin: any }) {
+: { admin: any }) {
   const { t } = useTranslation();
   const [logTab, setLogTab] = useState<'audit' | 'api'>('audit');
 
@@ -2989,7 +2989,7 @@ function AuditTrailPanel({ admin }: { admin: any }) {
   );
 }
 
-function ApiLogTab({ admin }: { admin: any }) {
+: { admin: any }) {
   const { t } = useTranslation();
   const apiLogs = admin.apiLogs?.data ?? [];
   const apiKeys = admin.apiKeysList?.data ?? [];
@@ -3044,7 +3044,7 @@ function ApiLogTab({ admin }: { admin: any }) {
   );
 }
 
-function AuditLogTab({ admin }: { admin: any }) {
+: { admin: any }) {
   const { t } = useTranslation();
   const [tableFilter, setTableFilter] = useState('all');
   const [actionFilter, setActionFilter] = useState('all');
