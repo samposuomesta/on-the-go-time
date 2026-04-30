@@ -16,16 +16,31 @@ export default function ResetPassword() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Listen for the PASSWORD_RECOVERY event
+    // Listen for the PASSWORD_RECOVERY event (fires when user clicks email link)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'PASSWORD_RECOVERY') {
+      if (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN') {
         setReady(true);
       }
     });
-    // Also check hash for type=recovery
-    if (window.location.hash.includes('type=recovery')) {
+
+    // URL-based recovery indicators (hash for implicit flow, query for PKCE/verify flow)
+    const hash = window.location.hash;
+    const search = window.location.search;
+    if (
+      hash.includes('type=recovery') ||
+      hash.includes('access_token') ||
+      search.includes('type=recovery') ||
+      search.includes('code=')
+    ) {
       setReady(true);
     }
+
+    // If we already have an active session (e.g. /verify redirected and signed us in),
+    // treat as ready so the user can set a new password.
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) setReady(true);
+    });
+
     return () => subscription.unsubscribe();
   }, []);
 
