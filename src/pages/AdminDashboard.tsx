@@ -2462,6 +2462,7 @@ function EditEmployeeDialog({ employee, allEmployees, currentManagerIds, onSave,
   const [selectedManagers, setSelectedManagers] = useState<string[]>(currentManagerIds);
   const [bankAdjustment, setBankAdjustment] = useState('');
   const [bankSetValue, setBankSetValue] = useState('');
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   const availableManagers = allEmployees.filter(
     (e: any) => (e.role === 'manager' || e.role === 'admin') && e.id !== employee.id
