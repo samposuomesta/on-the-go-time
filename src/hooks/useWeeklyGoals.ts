@@ -92,7 +92,7 @@ export const useWeeklyGoals = () => {
               .select('id, user_id, week_number, year, rated_at, is_admin_assigned, template_name, created_at, goals(id, text, category, rating, comment, created_at)')
               .in('user_id', teammateIds)
               .order('week_number', { ascending: false }),
-            supabase.from('users').select('id, name').in('id', teammateIds),
+            (supabase.from('users_public' as any).select('id, name').in('id', teammateIds)),
           ]);
 
           const nameMap = new Map<string, string>((profiles ?? []).map((p: any) => [p.id, p.name]));
