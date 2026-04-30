@@ -11,6 +11,7 @@ import { ImportPanel } from '@/components/admin/ImportPanel';
 import { Link, Navigate } from 'react-router-dom';
 import { useAdminData } from '@/hooks/useAdminData';
 import { exportAdminWorkingHoursCSV, exportAdminTravelExpensesCSV, exportAdminProjectHoursCSV, exportAuditTrailCSV, exportProjectManagementCSV } from '@/lib/csv-export';
+import { diffChanges, summarizeInsertOrDelete, tableLabel, targetUserIdForLog } from '@/lib/audit-format';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { supabase } from '@/integrations/supabase/client';
 import { useTranslation, getLocalizedField } from '@/lib/i18n';
@@ -3101,19 +3102,22 @@ function ApiLogTab({ admin }: { admin: any }) {
 }
 
 function AuditLogTab({ admin }: { admin: any }) {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
+  const lang = language === 'fi' ? 'fi' : 'en';
   const [tableFilter, setTableFilter] = useState('all');
   const [actionFilter, setActionFilter] = useState('all');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const logs = admin.auditLog.data ?? [];
   const employees = admin.employees.data ?? [];
+  const projects = admin.projects?.data ?? [];
 
   const nameMap = useMemo(() => {
     const map: Record<string, string> = {};
     employees.forEach((e: any) => { map[e.id] = e.name; });
+    projects.forEach((p: any) => { map[p.id] = p.name; });
     return map;
-  }, [employees]);
+  }, [employees, projects]);
 
   const tables = useMemo(() => {
     const set = new Set(logs.map((l: any) => l.table_name));
@@ -3130,31 +3134,41 @@ function AuditLogTab({ admin }: { admin: any }) {
     });
   }, [logs, tableFilter, actionFilter, dateFrom, dateTo]);
 
-  const formatChanges = (log: any) => {
-    if (log.action === 'INSERT') {
-      const d = log.new_data;
-      if (d?.name) return `Created "${d.name}"`;
-      if (d?.status) return `Status: ${d.status}`;
-      return 'New record';
+  const renderChanges = (log: any) => {
+    if (log.action === 'INSERT' || log.action === 'DELETE') {
+      const verb = log.action === 'INSERT'
+        ? (lang === 'fi' ? 'Luotu' : 'Created')
+        : (lang === 'fi' ? 'Poistettu' : 'Deleted');
+      return (
+        <div className="space-y-0.5">
+          <div className="font-medium">{verb}</div>
+          <div className="text-muted-foreground">{summarizeInsertOrDelete(log, nameMap, lang)}</div>
+        </div>
+      );
     }
-    if (log.action === 'DELETE') {
-      const d = log.old_data;
-      if (d?.name) return `Deleted "${d.name}"`;
-      return 'Record deleted';
+    const changes = diffChanges(log, nameMap, lang);
+    if (changes.length === 0) {
+      return <span className="text-muted-foreground italic">{lang === 'fi' ? 'Ei näkyviä muutoksia' : 'No visible changes'}</span>;
     }
-    if (log.action === 'UPDATE' && log.old_data && log.new_data) {
-      const changes: string[] = [];
-      for (const key of Object.keys(log.new_data)) {
-        if (key === 'created_at' || key === 'id') continue;
-        if (JSON.stringify(log.old_data[key]) !== JSON.stringify(log.new_data[key])) {
-          const oldVal = log.old_data[key];
-          const newVal = log.new_data[key];
-          changes.push(`${key}: ${oldVal} → ${newVal}`);
-        }
-      }
-      return changes.length > 0 ? changes.join(', ') : 'No visible changes';
-    }
-    return '';
+    return (
+      <div className="space-y-1">
+        {changes.map((c, i) => (
+          <div key={i} className="flex flex-wrap items-baseline gap-1.5">
+            <span className="font-medium">{c.field}:</span>
+            <span className="text-destructive line-through opacity-70">{c.oldValue}</span>
+            <span className="text-muted-foreground">→</span>
+            <span className="text-success font-medium">{c.newValue}</span>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  const targetName = (log: any): string => {
+    const uid = targetUserIdForLog(log);
+    if (uid && nameMap[uid]) return nameMap[uid];
+    if (uid) return uid.slice(0, 8) + '…';
+    return '—';
   };
 
   const actionColor: Record<string, string> = {
@@ -3199,7 +3213,7 @@ function AuditLogTab({ admin }: { admin: any }) {
         )}
         <div className="flex items-center gap-2 ml-auto">
           <span className="text-xs text-muted-foreground">{filtered.length} {t('admin.entries')}</span>
-          <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => exportAuditTrailCSV(filtered)}>
+          <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => exportAuditTrailCSV(filtered, nameMap, lang)}>
             <Download className="h-3.5 w-3.5" /> CSV
           </Button>
         </div>
@@ -3212,27 +3226,29 @@ function AuditLogTab({ admin }: { admin: any }) {
               <TableRow>
                 <TableHead>{t("admin.auditTime")}</TableHead>
                 <TableHead>{t("admin.auditTable")}</TableHead>
+                <TableHead>{t("admin.auditTarget")}</TableHead>
                 <TableHead>{t("admin.auditAction")}</TableHead>
-                <TableHead>{t("admin.auditChanges")}</TableHead>
+                <TableHead className="min-w-[320px]">{t("admin.auditChanges")}</TableHead>
                 <TableHead>{t("admin.auditBy")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filtered.length === 0 ? (
-                <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">{t("admin.noAuditEntries")}</TableCell></TableRow>
+                <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">{t("admin.noAuditEntries")}</TableCell></TableRow>
               ) : filtered.slice(0, 100).map((log: any) => (
-                <TableRow key={log.id}>
+                <TableRow key={log.id} className="align-top">
                   <TableCell className="text-xs whitespace-nowrap text-muted-foreground">
-                    {format(parseISO(log.created_at), 'dd.MM.yyyy HH:mm')}
+                    {format(parseISO(log.created_at), 'd.M.yyyy HH:mm')}
                   </TableCell>
-                  <TableCell className="text-xs">{log.table_name.replace(/_/g, ' ')}</TableCell>
+                  <TableCell className="text-xs">{tableLabel(log.table_name, lang)}</TableCell>
+                  <TableCell className="text-xs font-medium">{targetName(log)}</TableCell>
                   <TableCell>
                     <Badge variant="outline" className={cn("text-[10px]", actionColor[log.action])}>
                       {log.action}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-xs max-w-[300px] truncate">{formatChanges(log)}</TableCell>
-                  <TableCell className="text-xs text-muted-foreground">{log.changed_by === 'system' ? t('admin.system') : log.changed_by}</TableCell>
+                  <TableCell className="text-xs">{renderChanges(log)}</TableCell>
+                  <TableCell className="text-xs text-muted-foreground whitespace-nowrap">{log.changed_by === 'system' ? t('admin.system') : log.changed_by}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -3242,3 +3258,4 @@ function AuditLogTab({ admin }: { admin: any }) {
     </div>
   );
 }
+

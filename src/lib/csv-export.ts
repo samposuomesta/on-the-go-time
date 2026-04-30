@@ -1,4 +1,5 @@
 import { format, parseISO } from 'date-fns';
+import { diffChanges, summarizeInsertOrDelete, tableLabel, targetUserIdForLog } from './audit-format';
 
 export function exportTimeEntriesCSV(entries: any[]) {
   const headers = ['Date', 'Start Time', 'End Time', 'Duration (h)', 'Break (min)'];
@@ -106,15 +107,41 @@ export function exportProjectManagementCSV(rows: { projectName: string; employee
   downloadCSV([headers.join(','), ...csvRows].join('\n'), 'project-management.csv');
 }
 
-export function exportAuditTrailCSV(logs: any[]) {
-  const headers = ['Time', 'Table', 'Action', 'Changed By', 'Record ID'];
-  const rows = logs.map((l: any) => [
-    l.created_at ? format(parseISO(l.created_at), 'yyyy-MM-dd HH:mm:ss') : '',
-    l.table_name,
-    l.action,
-    `"${(l.changed_by ?? 'system').replace(/"/g, '""')}"`,
-    l.record_id ?? '',
-  ].join(','));
+export function exportAuditTrailCSV(
+  logs: any[],
+  nameMap: Record<string, string> = {},
+  lang: 'fi' | 'en' = 'en'
+) {
+  // Lazy import to avoid circular deps
+  // (helpers imported at top)
+  const headers = lang === 'fi'
+    ? ['Aika', 'Taulu', 'Kohde', 'Toiminto', 'Muutokset', 'Tekijä']
+    : ['Time', 'Table', 'Target', 'Action', 'Changes', 'By'];
+  const escape = (v: any) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+  const rows = logs.map((l: any) => {
+    const uid = targetUserIdForLog(l);
+    const target = (uid && nameMap[uid]) ? nameMap[uid] : (uid ? uid.slice(0, 8) + '…' : '—');
+    let changesText = '';
+    if (l.action === 'INSERT' || l.action === 'DELETE') {
+      const verb = l.action === 'INSERT'
+        ? (lang === 'fi' ? 'Luotu' : 'Created')
+        : (lang === 'fi' ? 'Poistettu' : 'Deleted');
+      changesText = `${verb}: ${summarizeInsertOrDelete(l, nameMap, lang)}`;
+    } else {
+      const changes = diffChanges(l, nameMap, lang);
+      changesText = changes.length === 0
+        ? (lang === 'fi' ? 'Ei näkyviä muutoksia' : 'No visible changes')
+        : changes.map((c: any) => `${c.field}: ${c.oldValue} → ${c.newValue}`).join('; ');
+    }
+    return [
+      l.created_at ? format(parseISO(l.created_at), 'yyyy-MM-dd HH:mm:ss') : '',
+      escape(tableLabel(l.table_name, lang)),
+      escape(target),
+      l.action,
+      escape(changesText),
+      escape(l.changed_by ?? 'system'),
+    ].join(',');
+  });
   downloadCSV([headers.join(','), ...rows].join('\n'), 'audit-trail.csv');
 }
 
