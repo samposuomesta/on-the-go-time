@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { ArrowLeft, Bell, Smartphone, Check, X, AlertTriangle, Send, Trash2, RefreshCw, Copy } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
