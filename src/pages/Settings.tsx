@@ -489,50 +489,10 @@ export default function SettingsPage() {
       </header>
 
       <main className="flex-1 px-4 py-4 max-w-lg mx-auto w-full space-y-6">
-        {/* Language */}
-        <section>
-          <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t('settings.language')}</Label>
-          <div className="grid grid-cols-2 gap-2 mt-2">
-            {langOptions.map(({ value, label, flag }) => (
-              <button
-                key={value}
-                onClick={() => setLanguage(value)}
-                className={cn(
-                  'flex items-center gap-3 rounded-lg border p-4 transition-colors touch-target',
-                  language === value
-                    ? 'border-primary bg-primary/5 text-primary'
-                    : 'border-border bg-card text-muted-foreground hover:bg-muted'
-                )}
-              >
-                <span className="text-xl">{flag}</span>
-                <span className="text-sm font-medium">{label}</span>
-              </button>
-            ))}
-          </div>
-        </section>
+        <LanguageSection language={language} onChange={setLanguage} />
+        <AppearanceSection theme={theme} onChange={setTheme} />
 
-        {/* Appearance */}
-        <section>
-          <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t('settings.appearance')}</Label>
-          <div className="grid grid-cols-3 gap-2 mt-2">
-            {themeOptions.map(({ value, icon: Icon, labelKey }) => (
-              <button
-                key={value}
-                onClick={() => setTheme(value)}
-                className={cn(
-                  'flex flex-col items-center gap-2 rounded-lg border p-4 transition-colors touch-target',
-                  theme === value
-                    ? 'border-primary bg-primary/5 text-primary'
-                    : 'border-border bg-card text-muted-foreground hover:bg-muted'
-                )}
-              >
-                <Icon className="h-5 w-5" />
-                <span className="text-xs font-medium">{t(labelKey)}</span>
-              </button>
-            ))}
-          </div>
-        </section>
-
+        {/* Notifications (Web Push) — kept inline because of tight push-state coupling */}
         {/* Notifications (Web Push) */}
         <section>
           <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t('settings.notifications')}</Label>
