@@ -713,51 +713,32 @@ export default function SettingsPage() {
           savedValue={userSlack}
           onSave={saveSlackUserId}
         />
-        {/* Reminders */}
         <section>
           <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t('settings.reminders')}</Label>
           <Card className="mt-2">
             <CardContent className="p-4 space-y-4">
               {reminderTypes.map(({ type, labelKey, defaultTime }) => {
                 const reminder = getReminder(type);
-                const isEnabled = reminder?.enabled ?? false;
-                const time = reminder?.time ?? defaultTime;
-                const slackOn = reminder?.send_to_slack ?? false;
                 return (
-                  <div key={type} className="space-y-2">
-                    <div className="flex items-center justify-between gap-3">
-                      <div className="flex items-center gap-3 flex-1 min-w-0">
-                        <Bell className="h-4 w-4 text-muted-foreground shrink-0" />
-                        <span className="text-sm font-medium truncate">{t(labelKey)}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => setEditing({ type, time, day_of_week: null, showDay: false, labelKey })}
-                          disabled={!isEnabled}
-                          className="inline-flex items-center gap-1 h-8 px-2 rounded-md border border-input bg-background text-xs font-mono disabled:opacity-50 hover:bg-muted"
-                        >
-                          {time}
-                          <Pencil className="h-3 w-3 text-muted-foreground" />
-                        </button>
-                        <Switch
-                          checked={isEnabled}
-                          onCheckedChange={() => handleToggle(type, defaultTime)}
-                        />
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between gap-3 ml-7">
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <Send className="h-3 w-3" />
-                        <span>{language === 'fi' ? 'Lähetä myös Slackiin' : 'Also send to Slack'}</span>
-                      </div>
-                      <Switch
-                        checked={slackOn}
-                        disabled={!isEnabled}
-                        onCheckedChange={() => handleToggleSlack(type, defaultTime)}
-                      />
-                    </div>
-                  </div>
+                  <ReminderRow
+                    key={type}
+                    labelKey={labelKey}
+                    state={{
+                      enabled: reminder?.enabled ?? false,
+                      time: reminder?.time ?? defaultTime,
+                      day_of_week: null,
+                      send_to_slack: reminder?.send_to_slack ?? false,
+                    }}
+                    onEdit={() => setEditing({
+                      type,
+                      time: reminder?.time ?? defaultTime,
+                      day_of_week: null,
+                      showDay: false,
+                      labelKey,
+                    })}
+                    onToggle={() => handleToggle(type, defaultTime)}
+                    onToggleSlack={() => handleToggleSlack(type, defaultTime)}
+                  />
                 );
               })}
             </CardContent>
