@@ -477,16 +477,7 @@ export default function SettingsPage() {
     { type: 'vacation_status', labelKey: 'settings.vacationStatusReminder' as const, defaultTime: '09:00', hintKey: 'settings.vacationStatusHint' as const },
   ];
 
-  const themeOptions: { value: Theme; icon: typeof Sun; labelKey: 'theme.light' | 'theme.dark' | 'theme.system' }[] = [
-    { value: 'light', icon: Sun, labelKey: 'theme.light' },
-    { value: 'dark', icon: Moon, labelKey: 'theme.dark' },
-    { value: 'system', icon: Monitor, labelKey: 'theme.system' },
-  ];
-
-  const langOptions: { value: Language; label: string; flag: string }[] = [
-    { value: 'en', label: 'English', flag: '🇬🇧' },
-    { value: 'fi', label: 'Suomi', flag: '🇫🇮' },
-  ];
+  // theme & language option arrays now live inside their dedicated section components
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
