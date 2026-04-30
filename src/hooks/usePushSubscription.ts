@@ -13,8 +13,14 @@ function plog(level: PushDebugLevel, ...args: unknown[]) {
   if (externalLogger) {
     try { externalLogger(level, ...args); } catch { /* ignore */ }
   }
-  if (level === 'error') console.error(...args);
-  else if (level === 'warn') console.warn(...args);
+  // Errors aina näkyviin; muut lokit vain kehitysympäristössä tai kun
+  // ulkoinen debug-logger (esim. Settings-sivun push-debug) on aktiivinen.
+  if (level === 'error') {
+    console.error(...args);
+    return;
+  }
+  if (!import.meta.env.DEV && !externalLogger) return;
+  if (level === 'warn') console.warn(...args);
   else console.log(...args);
 }
 

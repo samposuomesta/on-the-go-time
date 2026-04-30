@@ -130,7 +130,7 @@ fi
 echo "==> [4/5] Building frontend"
 cd "$APP_DIR"
 # Try npm ci first (fast, reproducible). If the lock file is out of sync
-# with package.json (common after dependency bumps via Lovable), fall back
+# with package.json (common after upstream dependency bumps), fall back
 # to `npm install` which updates the lock file to match package.json.
 if ! npm ci; then
   echo "    npm ci failed (lock file out of sync) — falling back to npm install"
