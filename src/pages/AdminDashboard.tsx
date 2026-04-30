@@ -3213,7 +3213,7 @@ function AuditLogTab({ admin }: { admin: any }) {
         )}
         <div className="flex items-center gap-2 ml-auto">
           <span className="text-xs text-muted-foreground">{filtered.length} {t('admin.entries')}</span>
-          <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => exportAuditTrailCSV(filtered)}>
+          <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => exportAuditTrailCSV(filtered, nameMap, lang)}>
             <Download className="h-3.5 w-3.5" /> CSV
           </Button>
         </div>
@@ -3226,33 +3226,30 @@ function AuditLogTab({ admin }: { admin: any }) {
               <TableRow>
                 <TableHead>{t("admin.auditTime")}</TableHead>
                 <TableHead>{t("admin.auditTable")}</TableHead>
+                <TableHead>{t("admin.auditTarget")}</TableHead>
                 <TableHead>{t("admin.auditAction")}</TableHead>
-                <TableHead>{t("admin.auditChanges")}</TableHead>
+                <TableHead className="min-w-[320px]">{t("admin.auditChanges")}</TableHead>
                 <TableHead>{t("admin.auditBy")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filtered.length === 0 ? (
-                <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">{t("admin.noAuditEntries")}</TableCell></TableRow>
+                <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">{t("admin.noAuditEntries")}</TableCell></TableRow>
               ) : filtered.slice(0, 100).map((log: any) => (
-                <TableRow key={log.id}>
+                <TableRow key={log.id} className="align-top">
                   <TableCell className="text-xs whitespace-nowrap text-muted-foreground">
-                    {format(parseISO(log.created_at), 'dd.MM.yyyy HH:mm')}
+                    {format(parseISO(log.created_at), 'd.M.yyyy HH:mm')}
                   </TableCell>
-                  <TableCell className="text-xs">{log.table_name.replace(/_/g, ' ')}</TableCell>
+                  <TableCell className="text-xs">{tableLabel(log.table_name, lang)}</TableCell>
+                  <TableCell className="text-xs font-medium">{targetName(log)}</TableCell>
                   <TableCell>
                     <Badge variant="outline" className={cn("text-[10px]", actionColor[log.action])}>
                       {log.action}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-xs max-w-[300px] truncate">{formatChanges(log)}</TableCell>
-                  <TableCell className="text-xs text-muted-foreground">{log.changed_by === 'system' ? t('admin.system') : log.changed_by}</TableCell>
+                  <TableCell className="text-xs">{renderChanges(log)}</TableCell>
+                  <TableCell className="text-xs text-muted-foreground whitespace-nowrap">{log.changed_by === 'system' ? t('admin.system') : log.changed_by}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
