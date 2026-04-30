@@ -1,20 +1,21 @@
 import { useState, useEffect } from 'react';
-import { APP_VERSION, BUILD_DATE } from '@/lib/version';
-import { ArrowLeft, Moon, Sun, Monitor, Bell, Smartphone, Check, X, AlertTriangle, Send, Trash2, RefreshCw, Copy, Pencil } from 'lucide-react';
+import { ArrowLeft, Bell, Smartphone, Check, X, AlertTriangle, Send, Trash2, RefreshCw, Copy } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
-import { Switch } from '@/components/ui/switch';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
-import { useTranslation, Language } from '@/lib/i18n';
+import { useTranslation } from '@/lib/i18n';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { usePushSubscription, setPushDebugLogger } from '@/hooks/usePushSubscription';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { LanguageSection } from '@/components/settings/LanguageSection';
+import { AppearanceSection, type Theme } from '@/components/settings/AppearanceSection';
+import { SlackSection } from '@/components/settings/SlackSection';
+import { AboutSection } from '@/components/settings/AboutSection';
+import { ReminderRow } from '@/components/settings/ReminderRow';
+import { ReminderEditorDialog, type ReminderEditState } from '@/components/settings/ReminderEditorDialog';
 
 type Theme = 'light' | 'dark' | 'system';
 
