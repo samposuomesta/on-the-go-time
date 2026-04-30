@@ -706,28 +706,13 @@ export default function SettingsPage() {
           </Card>
         </section>
 
-        {/* Slack integration */}
-        <section>
-          <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t('settings.slackIntegration')}</Label>
-          <Card className="mt-2">
-            <CardContent className="p-4 space-y-3">
-              <div className="space-y-1.5">
-                <Label htmlFor="slack-user-id" className="text-sm">{t('settings.slackUserId')}</Label>
-                <Input
-                  id="slack-user-id"
-                  placeholder="U01ABCDE2FG"
-                  value={slackUserId}
-                  onChange={(e) => setSlackUserId(e.target.value)}
-                />
-                <p className="text-xs text-muted-foreground">{t('settings.slackUserIdHint')}</p>
-              </div>
-              <Button size="sm" onClick={saveSlackUserId} disabled={slackSaving || (slackUserId.trim() === (userSlack ?? ''))}>
-                {t('common.save')}
-              </Button>
-            </CardContent>
-          </Card>
-        </section>
-
+        <SlackSection
+          slackUserId={slackUserId}
+          setSlackUserId={setSlackUserId}
+          saving={slackSaving}
+          savedValue={userSlack}
+          onSave={saveSlackUserId}
+        />
         {/* Reminders */}
         <section>
           <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t('settings.reminders')}</Label>
