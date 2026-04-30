@@ -1533,7 +1533,7 @@ const translations = {
   },
 } as const;
 
-type TranslationKey = keyof typeof translations.en;
+export type TranslationKey = keyof typeof translations.en;
 
 interface I18nContextType {
   language: Language;
