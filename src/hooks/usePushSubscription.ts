@@ -147,7 +147,7 @@ async function getActiveServiceWorker(): Promise<ServiceWorkerRegistration> {
   // 2. Poista rikkinäiset (iOS bugi)
   for (const r of regs) {
     if (!r.active) {
-      console.log('[push] removing inactive SW registration', r.scope);
+      plog('log', '[push] removing inactive SW registration', r.scope);
       await r.unregister();
     }
   }
@@ -217,45 +217,45 @@ export function usePushSubscription() {
 
   const subscribe = useCallback(
     async ({ requestPermission = false }: { requestPermission?: boolean } = {}): Promise<SubscribeResult> => {
-      console.log('[push] subscribe() called, requestPermission=', requestPermission);
-      console.log('[push] supported:', 'serviceWorker' in navigator, 'PushManager' in window, 'Notification' in window);
+      plog('log', '[push] subscribe() called, requestPermission=', requestPermission);
+      plog('log', '[push] supported:', 'serviceWorker' in navigator, 'PushManager' in window, 'Notification' in window);
 
       if (!currentUser?.id) {
-        console.warn('[push] no current user');
+        plog('warn', '[push] no current user');
         return { ok: false, reason: 'no-user' };
       }
       if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) {
-        console.warn('[push] unsupported browser');
+        plog('warn', '[push] unsupported browser');
         return { ok: false, reason: 'unsupported' };
       }
 
       const isIOS = detectIOS();
       const standalone = detectStandalone();
-      console.log('[push] iOS:', isIOS, 'standalone:', standalone);
+      plog('log', '[push] iOS:', isIOS, 'standalone:', standalone);
 
       // iOS hard requirement: must be installed to home screen
       if (isIOS && !standalone) {
-        console.warn('[push] iOS not in standalone — must add to Home Screen');
+        plog('warn', '[push] iOS not in standalone — must add to Home Screen');
         return { ok: false, reason: 'not-standalone-ios' };
       }
 
       try {
         let permission = Notification.permission;
-        console.log('[push] current permission:', permission);
+        plog('log', '[push] current permission:', permission);
 
         // iOS fallback: try to request permission anyway if not granted
         if (permission !== 'granted') {
           try {
             permission = await Notification.requestPermission();
-            console.log('[push] permission after request:', permission);
+            plog('log', '[push] permission after request:', permission);
           } catch (e) {
-            console.warn('[push] permission request failed', e);
+            plog('warn', '[push] permission request failed', e);
           }
         }
 
         // Do NOT block if iOS bugs the permission status — continue to subscription anyway
         if (permission !== 'granted') {
-          console.warn('[push] permission not explicitly granted, but continuing for iOS');
+          plog('warn', '[push] permission not explicitly granted, but continuing for iOS');
         }
 
         // ⚠️ TÄRKEÄ: käytä RAW avainta backendista (älä normalize sitä)
@@ -270,7 +270,7 @@ export function usePushSubscription() {
         let subscription = await registration.pushManager.getSubscription();
 
         if (!subscription) {
-          console.log('[push] creating new subscription');
+          plog('log', '[push] creating new subscription');
           subscription = await registration.pushManager.subscribe({
             userVisibleOnly: true,
             applicationServerKey,
@@ -281,7 +281,7 @@ export function usePushSubscription() {
           const shouldRefreshSubscription = isIOS || (currentApplicationServerKey !== null && currentApplicationServerKey !== vapidPublicKey);
 
           if (shouldRefreshSubscription) {
-            console.log('[push] refreshing existing subscription', {
+            plog('log', '[push] refreshing existing subscription', {
               isIOS,
               keyChanged: currentApplicationServerKey !== null && currentApplicationServerKey !== vapidPublicKey,
             });
@@ -298,12 +298,12 @@ export function usePushSubscription() {
               applicationServerKey,
             });
           } else {
-            console.log('[push] reusing existing subscription');
+            plog('log', '[push] reusing existing subscription');
           }
         }
 
         const subJson = subscription.toJSON();
-        console.log('[push] SUBSCRIPTION OBJECT:', JSON.stringify(subJson));
+        plog('log', '[push] SUBSCRIPTION OBJECT:', JSON.stringify(subJson));
 
         if (!subJson.endpoint || !subJson.keys?.p256dh || !subJson.keys?.auth) {
           console.error('[push] subscription missing fields');
@@ -311,7 +311,7 @@ export function usePushSubscription() {
         }
 
         if (subJson.endpoint.includes('web.push.apple.com')) {
-          console.log('[push] iOS PUSH ENDPOINT DETECTED');
+          plog('log', '[push] iOS PUSH ENDPOINT DETECTED');
         }
 
         const userAgent = navigator.userAgent || '';
@@ -334,14 +334,14 @@ export function usePushSubscription() {
             user_agent: userAgent,
             platform,
           });
-          console.log('[push] subscription stored in database');
+          plog('log', '[push] subscription stored in database');
         } else {
           // Refresh metadata in case UA changed
           await supabase
             .from('push_subscriptions')
             .update({ user_agent: userAgent, platform })
             .eq('id', existing[0].id);
-          console.log('[push] subscription metadata updated');
+          plog('log', '[push] subscription metadata updated');
         }
 
         await refresh();
@@ -367,7 +367,7 @@ export function usePushSubscription() {
         const sub = await reg.pushManager.getSubscription();
         if (sub && (!endpoint || sub.endpoint === endpoint)) {
           await sub.unsubscribe();
-          console.log('[push] local subscription removed');
+          plog('log', '[push] local subscription removed');
         }
         if (currentUser?.id) {
           const query = supabase.from('push_subscriptions').delete().eq('user_id', currentUser.id);
@@ -379,20 +379,20 @@ export function usePushSubscription() {
         }
         await refresh();
       } catch (err) {
-        console.warn('[push] unsubscribe failed:', err);
+        plog('warn', '[push] unsubscribe failed:', err);
       }
     },
     [currentUser?.id, refresh],
   );
 
   const resetAll = useCallback(async (): Promise<SubscribeResult> => {
-    console.log('[push] resetAll() called (force reset)');
+    plog('log', '[push] resetAll() called (force reset)');
     if (!currentUser?.id) {
-      console.warn('[push] reset: no current user');
+      plog('warn', '[push] reset: no current user');
       return { ok: false, reason: 'no-user' };
     }
     if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) {
-      console.warn('[push] reset: unsupported environment');
+      plog('warn', '[push] reset: unsupported environment');
       return { ok: false, reason: 'unsupported' };
     }
 
@@ -405,12 +405,12 @@ export function usePushSubscription() {
         const sub = await reg.pushManager.getSubscription();
         if (sub) {
           await sub.unsubscribe();
-          console.log('[push] reset: local subscription removed');
+          plog('log', '[push] reset: local subscription removed');
         } else {
-          console.log('[push] reset: no local subscription to remove');
+          plog('log', '[push] reset: no local subscription to remove');
         }
       } catch (e) {
-        console.warn('[push] reset: local unsubscribe failed (iOS bug)', e);
+        plog('warn', '[push] reset: local unsubscribe failed (iOS bug)', e);
       }
 
       // 3. Delete ALL server-side subscriptions for this user (always)
@@ -420,12 +420,12 @@ export function usePushSubscription() {
           .delete()
           .eq('user_id', currentUser.id);
         if (delErr) {
-          console.warn('[push] reset: server delete error', delErr);
+          plog('warn', '[push] reset: server delete error', delErr);
         } else {
-          console.log('[push] reset: server subscriptions deleted');
+          plog('log', '[push] reset: server subscriptions deleted');
         }
       } catch (e) {
-        console.warn('[push] reset: server delete threw', e);
+        plog('warn', '[push] reset: server delete threw', e);
       }
 
       // 4. Unregister ALL service workers and re-register (CRITICAL for iOS)
@@ -433,12 +433,12 @@ export function usePushSubscription() {
         const registrations = await navigator.serviceWorker.getRegistrations();
         for (const r of registrations) {
           await r.unregister();
-          console.log('[push] reset: unregistered SW', r.scope);
+          plog('log', '[push] reset: unregistered SW', r.scope);
         }
         await navigator.serviceWorker.register('/sw.js');
-        console.log('[push] reset: service worker re-registered');
+        plog('log', '[push] reset: service worker re-registered');
       } catch (e) {
-        console.warn('[push] reset: SW re-register failed', e);
+        plog('warn', '[push] reset: SW re-register failed', e);
       }
 
       // 5. Small delay (iOS needs this to settle APNs registration)
@@ -447,11 +447,11 @@ export function usePushSubscription() {
       try {
         await refresh();
       } catch (e) {
-        console.warn('[push] reset: refresh failed', e);
+        plog('warn', '[push] reset: refresh failed', e);
       }
 
       // 6. Re-subscribe with fresh APNs/FCM registration
-      console.log('[push] reset: re-subscribing');
+      plog('log', '[push] reset: re-subscribing');
       return await subscribe({ requestPermission: true });
     } catch (err) {
       console.error('[push] reset failed', err);
