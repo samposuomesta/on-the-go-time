@@ -1320,6 +1320,7 @@ const translations = {
     'admin.empNumber': 'Hlönro',
     'admin.auditTime': 'Aika',
     'admin.auditTable': 'Taulu',
+    'admin.auditTarget': 'Kohde',
     'admin.auditAction': 'Toiminto',
     'admin.auditChanges': 'Muutokset',
     'admin.auditBy': 'Tekijä',
