@@ -17,10 +17,6 @@ import { useTranslation, getLocalizedField } from '@/lib/i18n';
 import { VacationTimeline } from '@/components/admin/VacationTimeline';
 import { ApiKeysPanel } from '@/components/admin/ApiKeysPanel';
 import { ReportsPanel } from '@/components/admin/ReportsPanel';
-import { ProjectsPanel } from '@/components/admin/panels/ProjectsPanel';
-import { CompaniesPanel } from '@/components/admin/panels/CompaniesPanel';
-import { RemindersPanel } from '@/components/admin/panels/RemindersPanel';
-import { AuditTrailPanel } from '@/components/admin/panels/AuditTrailPanel';
 import { getFinnishHolidaySet } from '@/lib/finnish-holidays';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -315,6 +311,66 @@ function countBusinessDays(startDate: string, endDate: string, holidaySet?: Set<
 function useFilteredStats(
   employees: any[], allTimeEntries: any[], allAbsences: any[], allVacationRequests: any[], workBank: any[],
   fromStr: string, toStr: string, holidaySet?: Set<string>
+) {
+  const timeEntries = useMemo(() => allTimeEntries.filter((te: any) => {
+    const d = format(new Date(te.start_time), 'yyyy-MM-dd');
+    return d >= fromStr && d <= toStr;
+  }), [allTimeEntries, fromStr, toStr]);
+
+  const absences = useMemo(() => allAbsences.filter((a: any) => {
+    return a.start_date <= toStr && a.end_date >= fromStr;
+  }), [allAbsences, fromStr, toStr]);
+
+  const vacationRequests = useMemo(() => allVacationRequests.filter((v: any) => {
+    return v.start_date <= toStr && v.end_date >= fromStr;
+  }), [allVacationRequests, fromStr, toStr]);
+
+  const stats = useMemo(() => {
+    const perUser: Record<string, {
+      name: string; role: string;
+      workedHours: number; projectHours: number;
+      vacationDaysUsed: number; vacationDaysTotal: number;
+      sickDays: number; absenceDays: number;
+      bankBalance: number;
+    }> = {};
+
+    employees.forEach((emp: any) => {
+      perUser[emp.id] = {
+        name: emp.name, role: emp.role, workedHours: 0, projectHours: 0,
+        vacationDaysUsed: 0, vacationDaysTotal: emp.annual_vacation_days ?? 25,
+        sickDays: 0, absenceDays: 0, bankBalance: 0,
+      };
+    });
+
+    timeEntries.forEach((te: any) => {
+      if (!te.end_time || !perUser[te.user_id]) return;
+      const mins = differenceInMinutes(new Date(te.end_time), new Date(te.start_time)) - (te.break_minutes ?? 0);
+      perUser[te.user_id].workedHours += Math.max(0, mins / 60);
+    });
+
+    vacationRequests.forEach((vr: any) => {
+      if (vr.status !== 'approved' || !perUser[vr.user_id]) return;
+      perUser[vr.user_id].vacationDaysUsed += countBusinessDays(vr.start_date, vr.end_date, holidaySet);
+    });
+
+    absences.forEach((ab: any) => {
+      if (!perUser[ab.user_id]) return;
+      const days = countBusinessDays(ab.start_date, ab.end_date, holidaySet);
+      if (ab.type === 'sick') perUser[ab.user_id].sickDays += days;
+      else perUser[ab.user_id].absenceDays += days;
+    });
+
+    workBank.forEach((wb: any) => {
+      if (!perUser[wb.user_id]) return;
+      perUser[wb.user_id].bankBalance += Number(wb.hours);
+    });
+
+    return perUser;
+  }, [employees, timeEntries, absences, vacationRequests, workBank, holidaySet]);
+
+  return stats;
+}
+
 function StatisticsDatePicker({ fromDate, toDate, setFromDate, setToDate }: {
   fromDate: Date; toDate: Date; setFromDate: (d: Date) => void; setToDate: (d: Date) => void;
 }) {
@@ -1747,6 +1803,55 @@ function EditAbsenceReasonDialog({ reason, onSave }: { reason: any; onSave: (dat
 }
 
 /* ===== PROJECTS ===== */
+
+function ProjectsPanel({ admin }: { admin: any }) {
+  const { t } = useTranslation();
+  const projects = admin.projects.data ?? [];
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-display font-bold">{t('projects.title')}</h2>
+          <p className="text-sm text-muted-foreground">{projects.length} {t('projects.title').toLowerCase()}</p>
+        </div>
+        <AddProjectDialog onCreate={(data) => { admin.createProject.mutate(data); toast.success(t('common.added')); }} />
+      </div>
+      <Card>
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/50">
+                  <TableHead className="font-semibold">{t('projects.name')}</TableHead>
+                  <TableHead className="font-semibold">{t('projects.customer')}</TableHead>
+                  <TableHead className="font-semibold">{t('projects.status')}</TableHead>
+                  <TableHead className="font-semibold w-[100px]">{t('absenceReasons.active')}</TableHead>
+                  <TableHead className="w-[60px]"></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {projects.length === 0 ? (
+                  <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-12">{t('projects.noProjects')}</TableCell></TableRow>
+                ) : projects.map((p: any) => (
+                  <TableRow key={p.id} className="hover:bg-muted/30">
+                    <TableCell className="font-medium">{p.name}</TableCell>
+                    <TableCell className="text-muted-foreground">{p.customer || '—'}</TableCell>
+                    <TableCell><Badge variant={p.active ? 'default' : 'secondary'}>{p.active ? t('absenceReasons.active') : t('absenceReasons.inactive')}</Badge></TableCell>
+                    <TableCell><Switch checked={p.active} onCheckedChange={(active) => admin.toggleProject.mutate({ id: p.id, active })} /></TableCell>
+                    <TableCell>
+                      <EditProjectDialog project={p} onSave={(data) => { admin.updateProject.mutate({ id: p.id, ...data }); toast.success(t('common.updated')); }} />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 /* ===== PROJECT MANAGEMENT ===== */
 
 function ProjectManagementPanel({ admin }: { admin: any }) {
@@ -1935,7 +2040,181 @@ function ProjectManagementPanel({ admin }: { admin: any }) {
 }
 
 /* ===== COMPANIES ===== */
+
+function CompaniesPanel({ admin }: { admin: any }) {
+  const { t, language } = useTranslation();
+  const dateLocale = useDateLocale();
+  const companies = admin.companies.data ?? [];
+  const primary = companies[0]; // single-tenant view: admin sees own company
+  const [carRate, setCarRate] = useState<string>('');
+  const [benefitCarRate, setBenefitCarRate] = useState<string>('');
+  const [trailerRate, setTrailerRate] = useState<string>('');
+  const [perDiemPartial, setPerDiemPartial] = useState<string>('');
+  const [perDiemFull, setPerDiemFull] = useState<string>('');
+
+  useEffect(() => {
+    if (!primary) return;
+    setCarRate(String(primary.car_km_rate ?? '0.55'));
+    setBenefitCarRate(String(primary.benefit_car_km_rate ?? '0.12'));
+    setTrailerRate(String(primary.trailer_km_rate ?? '0.09'));
+    setPerDiemPartial(String(primary.per_diem_partial ?? '25'));
+    setPerDiemFull(String(primary.per_diem_full ?? '54'));
+  }, [primary?.id, primary?.car_km_rate, primary?.benefit_car_km_rate, primary?.trailer_km_rate, primary?.per_diem_partial, primary?.per_diem_full]);
+
+  const saveCompensation = () => {
+    if (!primary) return;
+    admin.updateCompany.mutate({
+      id: primary.id,
+      car_km_rate: parseFloat(carRate.replace(',', '.')) || 0.55,
+      benefit_car_km_rate: parseFloat(benefitCarRate.replace(',', '.')) || 0.12,
+      trailer_km_rate: parseFloat(trailerRate.replace(',', '.')) || 0.09,
+      per_diem_partial: parseFloat(perDiemPartial.replace(',', '.')) || 25,
+      per_diem_full: parseFloat(perDiemFull.replace(',', '.')) || 54,
+      compensation_updated_at: new Date().toISOString(),
+    });
+    toast.success(t('common.updated'));
+  };
+
+  const lastSavedAt = primary?.compensation_updated_at
+    ? new Date(primary.compensation_updated_at)
+    : null;
+  const lastSavedLabel = lastSavedAt
+    ? format(lastSavedAt, language === 'fi' ? 'd.M.yyyy HH:mm' : 'PPp', { locale: dateLocale })
+    : t('admin.neverSaved');
+
+  return (
+    <div className="space-y-4">
+      {primary && (
+        <Card>
+          <CardContent className="p-4 space-y-3">
+            <div>
+              <h3 className="font-display font-bold">{t('admin.compensationSettings')}</h3>
+              <p className="text-xs text-muted-foreground">{t('admin.compensationSettingsDesc')}</p>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-5">
+              <div className="space-y-1.5"><Label className="text-xs">{t('admin.carKmRate')}</Label><Input type="text" inputMode="decimal" value={carRate} onChange={(e) => setCarRate(e.target.value)} /></div>
+              <div className="space-y-1.5"><Label className="text-xs">{t('admin.benefitCarKmRate')}</Label><Input type="text" inputMode="decimal" value={benefitCarRate} onChange={(e) => setBenefitCarRate(e.target.value)} /></div>
+              <div className="space-y-1.5"><Label className="text-xs">{t('admin.trailerKmRate')}</Label><Input type="text" inputMode="decimal" value={trailerRate} onChange={(e) => setTrailerRate(e.target.value)} /></div>
+              <div className="space-y-1.5"><Label className="text-xs">{t('admin.perDiemPartial')}</Label><Input type="text" inputMode="decimal" value={perDiemPartial} onChange={(e) => setPerDiemPartial(e.target.value)} /></div>
+              <div className="space-y-1.5"><Label className="text-xs">{t('admin.perDiemFull')}</Label><Input type="text" inputMode="decimal" value={perDiemFull} onChange={(e) => setPerDiemFull(e.target.value)} /></div>
+            </div>
+            <div className="flex flex-wrap items-center gap-3">
+              <Button size="sm" onClick={saveCompensation}>{t('common.save')}</Button>
+              <span className="text-xs text-muted-foreground">{t('admin.lastSaved')}: {lastSavedLabel}</span>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-display font-bold">{t('admin.companiesTitle')}</h2>
+          <p className="text-sm text-muted-foreground">{companies.length} {t('admin.companiesTitle').toLowerCase()}</p>
+        </div>
+        <AddCompanyDialog onCreate={(data) => { admin.createCompany.mutate(data); toast.success(t('admin.companyAdded')); }} />
+      </div>
+      <Card>
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/50">
+                  <TableHead className="font-semibold">{t("common.name")}</TableHead>
+                  <TableHead className="font-semibold">{t("admin.companyId")}</TableHead>
+                  <TableHead className="font-semibold">{t("admin.addressLabel")}</TableHead>
+                  <TableHead className="font-semibold">{t("admin.country")}</TableHead>
+                  <TableHead className="font-semibold">{t("admin.timezone")}</TableHead>
+                  <TableHead className="w-[60px]"></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {companies.length === 0 ? (
+                  <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-12">{t('admin.noCompanies')}</TableCell></TableRow>
+                ) : companies.map((c: any) => {
+                  const addressParts = [c.street, c.postal_code, c.city].filter(Boolean).join(', ') || c.address || '—';
+                  return (
+                    <TableRow key={c.id} className="hover:bg-muted/30">
+                      <TableCell className="font-medium">{c.name}</TableCell>
+                      <TableCell className="font-mono text-sm text-muted-foreground">{c.company_id_code || '—'}</TableCell>
+                      <TableCell className="text-muted-foreground max-w-[240px] truncate">{addressParts}</TableCell>
+                      <TableCell>{c.country ? (<Badge variant="outline" className="text-xs">{c.country}</Badge>) : '—'}</TableCell>
+                      <TableCell className="text-xs text-muted-foreground">{c.timezone || 'Europe/Helsinki'}</TableCell>
+                      <TableCell>
+                        <EditCompanyDialog company={c} onSave={(data) => { admin.updateCompany.mutate({ id: c.id, ...data }); toast.success(t('common.updated')); }} />
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 /* ===== REMINDERS ===== */
+
+function RemindersPanel({ admin }: { admin: any }) {
+  const { language, t } = useTranslation();
+  const reminders = admin.reminderRules.data ?? [];
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-display font-bold">{t('reminders.title')}</h2>
+          <p className="text-sm text-muted-foreground">{reminders.length} {t('reminders.title').toLowerCase()}</p>
+        </div>
+        <AddReminderDialog onCreate={(data) => { admin.createReminder.mutate(data); toast.success(t('common.added')); }} />
+      </div>
+      <Card>
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/50">
+                  <TableHead className="font-semibold">{t('reminders.type')}</TableHead>
+                  <TableHead className="font-semibold">{t('reminders.time')}</TableHead>
+                  <TableHead className="font-semibold">{t('reminders.message')}</TableHead>
+                  <TableHead className="font-semibold">{t('reminders.messageFi')}</TableHead>
+                  <TableHead className="font-semibold">{t('reminders.enabled')}</TableHead>
+                  <TableHead className="w-[100px]"></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {reminders.length === 0 ? (
+                  <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-12">{t('reminders.noReminders')}</TableCell></TableRow>
+                ) : reminders.map((r: any) => (
+                  <TableRow key={r.id} className="hover:bg-muted/30">
+                    <TableCell className="font-medium capitalize">
+                      {r.type === 'hours_approval' ? t('reminders.hoursApproval') : r.type.replace('_', ' ')}
+                      {r.day_of_month && <span className="text-xs text-muted-foreground ml-1">({t('reminders.dayOfMonth')}: {r.day_of_month}, {t('reminders.resendAfterDays')}: {r.resend_after_days ?? '—'})</span>}
+                    </TableCell>
+                    <TableCell className="font-mono">{r.time}</TableCell>
+                    <TableCell className="text-muted-foreground max-w-[200px] truncate">{r.message}</TableCell>
+                    <TableCell className="text-muted-foreground max-w-[200px] truncate">{r.message_fi || '—'}</TableCell>
+                    <TableCell><Switch checked={r.enabled} onCheckedChange={(enabled) => admin.toggleReminder.mutate({ id: r.id, enabled })} /></TableCell>
+                    <TableCell>
+                      <div className="flex gap-1">
+                        <EditReminderDialog reminder={r} onSave={(data) => { admin.updateReminder.mutate({ id: r.id, ...data }); toast.success(t('common.updated')); }} />
+                        <Button size="icon" variant="ghost" className="text-destructive hover:text-destructive h-8 w-8"
+                          onClick={() => { admin.deleteReminder.mutate(r.id); toast.success(t('common.deleted')); }}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 /* ===== SUB-DIALOGS ===== */
 
 function ImportEmployeesDialog({ onCreate, companies }: { onCreate: (data: any) => void; companies: any[] }) {
@@ -2302,6 +2581,604 @@ function EditEmployeeDialog({ employee, allEmployees, currentManagerIds, onSave,
     </Dialog>
   );
 }
+
+function AddProjectDialog({ onCreate }: { onCreate: (data: { name: string; customer: string | null; target_hours: number | null }) => void }) {
+  const { t } = useTranslation();
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState('');
+  const [customer, setCustomer] = useState('');
+  const [targetHours, setTargetHours] = useState('');
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setName(''); setCustomer(''); setTargetHours(''); } }}>
+      <DialogTrigger asChild><Button className="gap-1.5"><Plus className="h-4 w-4" /> {t('projects.add')}</Button></DialogTrigger>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader><DialogTitle className="font-display">{t('projects.add')}</DialogTitle></DialogHeader>
+        <div className="space-y-4 mt-2">
+          <div className="space-y-1.5"><Label>{t('projects.name')}</Label><Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Project name" /></div>
+          <div className="space-y-1.5"><Label>{t('projects.customerOptional')}</Label><Input value={customer} onChange={(e) => setCustomer(e.target.value)} placeholder="Customer name" /></div>
+          <div className="space-y-1.5"><Label>{t('projects.targetHours')}</Label><Input type="number" min="0" step="1" value={targetHours} onChange={(e) => setTargetHours(e.target.value)} placeholder="Leave empty for no target" /></div>
+          <Button className="w-full" disabled={!name.trim()} onClick={() => {
+            onCreate({ name: name.trim(), customer: customer.trim() || null, target_hours: targetHours ? parseFloat(targetHours) : null });
+            setOpen(false); setName(''); setCustomer(''); setTargetHours('');
+          }}>{t('projects.add')}</Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function EditProjectDialog({ project, onSave }: { project: any; onSave: (data: { name?: string; customer?: string | null; target_hours?: number | null }) => void }) {
+  const { t } = useTranslation();
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState(project.name);
+  const [customer, setCustomer] = useState(project.customer || '');
+  const [targetHours, setTargetHours] = useState(String(project.target_hours ?? ''));
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (o) { setName(project.name); setCustomer(project.customer || ''); setTargetHours(String(project.target_hours ?? '')); } }}>
+      <DialogTrigger asChild><Button size="icon" variant="ghost" className="h-8 w-8"><Pencil className="h-3.5 w-3.5" /></Button></DialogTrigger>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader><DialogTitle className="font-display">{t('projects.edit')}</DialogTitle></DialogHeader>
+        <div className="space-y-4 mt-2">
+          <div className="space-y-1.5"><Label>{t('projects.name')}</Label><Input value={name} onChange={(e) => setName(e.target.value)} /></div>
+          <div className="space-y-1.5"><Label>{t('projects.customerOptional')}</Label><Input value={customer} onChange={(e) => setCustomer(e.target.value)} /></div>
+          <div className="space-y-1.5"><Label>{t('projects.targetHours')}</Label><Input type="number" min="0" step="1" value={targetHours} onChange={(e) => setTargetHours(e.target.value)} placeholder="Leave empty for no target" /></div>
+          <Button className="w-full" disabled={!name.trim()} onClick={() => {
+            onSave({ name: name.trim(), customer: customer.trim() || null, target_hours: targetHours ? parseFloat(targetHours) : null });
+            setOpen(false);
+          }}>{t('common.save')}</Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function AddCompanyDialog({ onCreate }: { onCreate: (data: any) => void }) {
+  const { t } = useTranslation();
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState('');
+  const [companyIdCode, setCompanyIdCode] = useState('');
+  const [street, setStreet] = useState('');
+  const [postalCode, setPostalCode] = useState('');
+  const [city, setCity] = useState('');
+  const [country, setCountry] = useState('');
+  const [timezone, setTimezone] = useState('Europe/Helsinki');
+  const reset = () => { setName(''); setCompanyIdCode(''); setStreet(''); setPostalCode(''); setCity(''); setCountry(''); setTimezone('Europe/Helsinki'); };
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) reset(); }}>
+      <DialogTrigger asChild><Button className="gap-1.5"><Plus className="h-4 w-4" /> {t("admin.addCompany")}</Button></DialogTrigger>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader><DialogTitle className="font-display">{t("admin.addCompany")}</DialogTitle></DialogHeader>
+        <div className="grid gap-4 mt-2 sm:grid-cols-2">
+          <div className="space-y-1.5 sm:col-span-2"><Label>{t("admin.companyName")}</Label><Input value={name} onChange={(e) => setName(e.target.value)} placeholder={t("admin.companyName")} /></div>
+          <div className="space-y-1.5"><Label>{t("admin.companyId")}</Label><Input value={companyIdCode} onChange={(e) => setCompanyIdCode(e.target.value)} placeholder={t("admin.companyId")} /></div>
+          <div className="space-y-1.5"><Label>{t("admin.country")}</Label>
+            <Select value={country} onValueChange={setCountry}>
+              <SelectTrigger><SelectValue placeholder={t("admin.selectCountry")} /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Finland">Finland</SelectItem>
+                <SelectItem value="Sweden">Sweden</SelectItem>
+                <SelectItem value="Norway">Norway</SelectItem>
+                <SelectItem value="Denmark">Denmark</SelectItem>
+                <SelectItem value="Estonia">Estonia</SelectItem>
+                <SelectItem value="Germany">Germany</SelectItem>
+                <SelectItem value="Other">Other</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5 sm:col-span-2"><Label>{t("admin.street")}</Label><Input value={street} onChange={(e) => setStreet(e.target.value)} /></div>
+          <div className="space-y-1.5"><Label>{t("admin.postalCode")}</Label><Input value={postalCode} onChange={(e) => setPostalCode(e.target.value)} /></div>
+          <div className="space-y-1.5"><Label>{t("admin.city")}</Label><Input value={city} onChange={(e) => setCity(e.target.value)} /></div>
+          <div className="space-y-1.5 sm:col-span-2"><Label>{t("admin.timezone")}</Label><Input value={timezone} onChange={(e) => setTimezone(e.target.value)} placeholder="Europe/Helsinki" /></div>
+        </div>
+        <Button className="w-full mt-2" disabled={!name.trim()} onClick={() => {
+          onCreate({
+            name: name.trim(),
+            company_id_code: companyIdCode.trim() || null,
+            street: street.trim() || null,
+            postal_code: postalCode.trim() || null,
+            city: city.trim() || null,
+            country: country || null,
+            timezone: timezone.trim() || 'Europe/Helsinki',
+          });
+          setOpen(false); reset();
+        }}>{t("admin.addCompany")}</Button>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function EditCompanyDialog({ company, onSave }: { company: any; onSave: (data: any) => void }) {
+  const { t } = useTranslation();
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState(company.name);
+  const [companyIdCode, setCompanyIdCode] = useState(company.company_id_code || '');
+  const [street, setStreet] = useState(company.street || '');
+  const [postalCode, setPostalCode] = useState(company.postal_code || '');
+  const [city, setCity] = useState(company.city || '');
+  const [country, setCountry] = useState(company.country || '');
+  const [timezone, setTimezone] = useState(company.timezone || 'Europe/Helsinki');
+  const [slackBotToken, setSlackBotToken] = useState('');
+  const [slackDefaultChannel, setSlackDefaultChannel] = useState('');
+
+  // Load slack secrets from the admin-only company_secrets table when the dialog opens.
+  const loadSecrets = async () => {
+    const { data } = await supabase
+      .from('company_secrets')
+      .select('slack_bot_token, slack_default_channel')
+      .eq('company_id', company.id)
+      .maybeSingle();
+    setSlackBotToken(data?.slack_bot_token || '');
+    setSlackDefaultChannel(data?.slack_default_channel || '');
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => {
+      setOpen(o);
+      if (o) {
+        setName(company.name);
+        setCompanyIdCode(company.company_id_code || '');
+        setStreet(company.street || '');
+        setPostalCode(company.postal_code || '');
+        setCity(company.city || '');
+        setCountry(company.country || '');
+        setTimezone(company.timezone || 'Europe/Helsinki');
+        loadSecrets();
+      }
+    }}>
+      <DialogTrigger asChild><Button size="icon" variant="ghost" className="h-8 w-8"><Pencil className="h-3.5 w-3.5" /></Button></DialogTrigger>
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
+        <DialogHeader><DialogTitle className="font-display">{t("admin.editCompany")}</DialogTitle></DialogHeader>
+        <div className="grid gap-4 mt-2 sm:grid-cols-2">
+          <div className="space-y-1.5 sm:col-span-2"><Label>{t("admin.companyName")}</Label><Input value={name} onChange={(e) => setName(e.target.value)} /></div>
+          <div className="space-y-1.5"><Label>{t("admin.companyId")}</Label><Input value={companyIdCode} onChange={(e) => setCompanyIdCode(e.target.value)} placeholder={t("admin.companyId")} /></div>
+          <div className="space-y-1.5"><Label>{t("admin.country")}</Label>
+            <Select value={country} onValueChange={setCountry}>
+              <SelectTrigger><SelectValue placeholder={t("admin.selectCountry")} /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Finland">Finland</SelectItem>
+                <SelectItem value="Sweden">Sweden</SelectItem>
+                <SelectItem value="Norway">Norway</SelectItem>
+                <SelectItem value="Denmark">Denmark</SelectItem>
+                <SelectItem value="Estonia">Estonia</SelectItem>
+                <SelectItem value="Germany">Germany</SelectItem>
+                <SelectItem value="Other">Other</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5 sm:col-span-2"><Label>{t("admin.street")}</Label><Input value={street} onChange={(e) => setStreet(e.target.value)} /></div>
+          <div className="space-y-1.5"><Label>{t("admin.postalCode")}</Label><Input value={postalCode} onChange={(e) => setPostalCode(e.target.value)} /></div>
+          <div className="space-y-1.5"><Label>{t("admin.city")}</Label><Input value={city} onChange={(e) => setCity(e.target.value)} /></div>
+          <div className="space-y-1.5 sm:col-span-2"><Label>{t("admin.timezone")}</Label><Input value={timezone} onChange={(e) => setTimezone(e.target.value)} placeholder="Europe/Helsinki" /></div>
+
+          <div className="sm:col-span-2 pt-2 border-t border-border">
+            <h4 className="text-sm font-display font-bold mb-2">{t('admin.slackIntegration')}</h4>
+          </div>
+          <div className="space-y-1.5 sm:col-span-2">
+            <Label>{t('admin.slackBotToken')}</Label>
+            <Input
+              type="password"
+              autoComplete="off"
+              value={slackBotToken}
+              onChange={(e) => setSlackBotToken(e.target.value)}
+              placeholder="xoxb-..."
+            />
+            <p className="text-xs text-muted-foreground">{t('admin.slackBotTokenHint')}</p>
+            <a
+              href="/slack-app-manifest.md"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-primary hover:underline inline-block"
+            >
+              📘 Slack App -ohjeet (manifesti & asennus)
+            </a>
+          </div>
+          <div className="space-y-1.5 sm:col-span-2">
+            <Label>{t('admin.slackDefaultChannel')}</Label>
+            <Input
+              value={slackDefaultChannel}
+              onChange={(e) => setSlackDefaultChannel(e.target.value)}
+              placeholder="#general"
+            />
+          </div>
+        </div>
+        <Button className="w-full mt-2" onClick={async () => {
+          onSave({
+            name: name.trim(),
+            company_id_code: companyIdCode.trim() || null,
+            street: street.trim() || null,
+            postal_code: postalCode.trim() || null,
+            city: city.trim() || null,
+            country: country || null,
+            timezone: timezone.trim() || 'Europe/Helsinki',
+          });
+          // Upsert slack credentials into the admin-only company_secrets table.
+          await supabase
+            .from('company_secrets')
+            .upsert({
+              company_id: company.id,
+              slack_bot_token: slackBotToken.trim() || null,
+              slack_default_channel: slackDefaultChannel.trim() || null,
+              updated_at: new Date().toISOString(),
+            } as any, { onConflict: 'company_id' });
+          setOpen(false);
+        }}>{t("admin.saveChanges")}</Button>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function AddReminderDialog({ onCreate }: { onCreate: (data: { type: string; time: string; message: string; message_fi?: string; day_of_month?: number; resend_after_days?: number }) => void }) {
+  const { t } = useTranslation();
+  const [open, setOpen] = useState(false);
+  const [type, setType] = useState('clock_in');
+  const [time, setTime] = useState('08:30');
+  const [message, setMessage] = useState('');
+  const [messageFi, setMessageFi] = useState('');
+  const [dayOfMonth, setDayOfMonth] = useState('1');
+  const [resendAfterDays, setResendAfterDays] = useState('3');
+
+  const defaultMessages: Record<string, string> = {
+    clock_in: "Don't forget to start your workday!",
+    clock_out: 'Still working? Remember to clock out.',
+    vacation_approval: 'You have vacation requests to review.',
+    manager_approval: 'You have pending approvals.',
+    hours_approval: 'Please review and approve employee working hours for last month.',
+  };
+
+  const isMonthly = type === 'hours_approval';
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setType('clock_in'); setTime('08:30'); setMessage(''); setMessageFi(''); setDayOfMonth('1'); setResendAfterDays('3'); } }}>
+      <DialogTrigger asChild><Button className="gap-1.5"><Plus className="h-4 w-4" /> {t('reminders.add')}</Button></DialogTrigger>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader><DialogTitle className="font-display">{t('reminders.add')}</DialogTitle></DialogHeader>
+        <div className="space-y-4 mt-2">
+          <div className="space-y-1.5">
+            <Label>{t('reminders.type')}</Label>
+            <Select value={type} onValueChange={(v) => { setType(v); setMessage(defaultMessages[v] || ''); }}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="clock_in">{t('reminders.clockIn')}</SelectItem>
+                <SelectItem value="clock_out">{t('reminders.clockOut')}</SelectItem>
+                <SelectItem value="vacation_approval">{t('reminders.vacationApproval')}</SelectItem>
+                <SelectItem value="manager_approval">{t('reminders.managerApproval')}</SelectItem>
+                <SelectItem value="hours_approval">{t('reminders.hoursApproval')}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          {isMonthly ? (
+            <>
+              <div className="space-y-1.5">
+                <Label>{t('reminders.dayOfMonth')}</Label>
+                <Input type="number" min="1" max="28" value={dayOfMonth} onChange={(e) => setDayOfMonth(e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>{t('reminders.resendAfterDays')}</Label>
+                <p className="text-xs text-muted-foreground">{t('reminders.resendAfterDaysHelp')}</p>
+                <Input type="number" min="1" max="14" value={resendAfterDays} onChange={(e) => setResendAfterDays(e.target.value)} />
+              </div>
+            </>
+          ) : (
+            <div className="space-y-1.5"><Label>{t('reminders.time')}</Label><Input type="time" value={time} onChange={(e) => setTime(e.target.value)} /></div>
+          )}
+          <div className="space-y-1.5"><Label>{t('reminders.messageEn')}</Label><Input value={message || defaultMessages[type]} onChange={(e) => setMessage(e.target.value)} /></div>
+          <div className="space-y-1.5"><Label>{t('reminders.messageFi')}</Label><Input value={messageFi} onChange={(e) => setMessageFi(e.target.value)} placeholder="Viesti suomeksi" /></div>
+          <Button className="w-full" onClick={() => {
+            onCreate({
+              type, time: isMonthly ? '09:00' : time,
+              message: message || defaultMessages[type],
+              message_fi: messageFi.trim() || undefined,
+              ...(isMonthly ? { day_of_month: parseInt(dayOfMonth) || 1, resend_after_days: parseInt(resendAfterDays) || 3 } : {}),
+            });
+            setOpen(false); setType('clock_in'); setTime('08:30'); setMessage(''); setMessageFi(''); setDayOfMonth('1'); setResendAfterDays('3');
+          }}>{t('reminders.add')}</Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function EditReminderDialog({ reminder, onSave }: { reminder: any; onSave: (data: { type?: string; time?: string; message?: string; message_fi?: string | null; day_of_month?: number | null; resend_after_days?: number | null }) => void }) {
+  const { t } = useTranslation();
+  const [open, setOpen] = useState(false);
+  const [type, setType] = useState(reminder.type);
+  const [time, setTime] = useState(reminder.time);
+  const [message, setMessage] = useState(reminder.message);
+  const [messageFi, setMessageFi] = useState(reminder.message_fi || '');
+  const [dayOfMonth, setDayOfMonth] = useState(String(reminder.day_of_month ?? 1));
+  const [resendAfterDays, setResendAfterDays] = useState(String(reminder.resend_after_days ?? 3));
+
+  const isMonthly = type === 'hours_approval';
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (o) { setType(reminder.type); setTime(reminder.time); setMessage(reminder.message); setMessageFi(reminder.message_fi || ''); setDayOfMonth(String(reminder.day_of_month ?? 1)); setResendAfterDays(String(reminder.resend_after_days ?? 3)); } }}>
+      <DialogTrigger asChild><Button size="icon" variant="ghost" className="h-8 w-8"><Pencil className="h-3.5 w-3.5" /></Button></DialogTrigger>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader><DialogTitle className="font-display">{t('reminders.edit')}</DialogTitle></DialogHeader>
+        <div className="space-y-4 mt-2">
+          <div className="space-y-1.5">
+            <Label>{t('reminders.type')}</Label>
+            <Select value={type} onValueChange={setType}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="clock_in">{t('reminders.clockIn')}</SelectItem>
+                <SelectItem value="clock_out">{t('reminders.clockOut')}</SelectItem>
+                <SelectItem value="vacation_approval">{t('reminders.vacationApproval')}</SelectItem>
+                <SelectItem value="manager_approval">{t('reminders.managerApproval')}</SelectItem>
+                <SelectItem value="hours_approval">{t('reminders.hoursApproval')}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          {isMonthly ? (
+            <>
+              <div className="space-y-1.5">
+                <Label>{t('reminders.dayOfMonth')}</Label>
+                <Input type="number" min="1" max="28" value={dayOfMonth} onChange={(e) => setDayOfMonth(e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>{t('reminders.resendAfterDays')}</Label>
+                <p className="text-xs text-muted-foreground">{t('reminders.resendAfterDaysHelp')}</p>
+                <Input type="number" min="1" max="14" value={resendAfterDays} onChange={(e) => setResendAfterDays(e.target.value)} />
+              </div>
+            </>
+          ) : (
+            <div className="space-y-1.5"><Label>{t('reminders.time')}</Label><Input type="time" value={time} onChange={(e) => setTime(e.target.value)} /></div>
+          )}
+          <div className="space-y-1.5"><Label>{t('reminders.messageEn')}</Label><Input value={message} onChange={(e) => setMessage(e.target.value)} /></div>
+          <div className="space-y-1.5"><Label>{t('reminders.messageFi')}</Label><Input value={messageFi} onChange={(e) => setMessageFi(e.target.value)} placeholder="Viesti suomeksi" /></div>
+          <Button className="w-full" onClick={() => {
+            onSave({
+              type, time: isMonthly ? '09:00' : time, message,
+              message_fi: messageFi.trim() || null,
+              day_of_month: isMonthly ? (parseInt(dayOfMonth) || 1) : null,
+              resend_after_days: isMonthly ? (parseInt(resendAfterDays) || 3) : null,
+            });
+            setOpen(false);
+          }}>{t('common.save')}</Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 /* ===== REPORTS (extracted to ReportsPanel component) ===== */
 
 /* ===== AUDIT TRAIL ===== */
+
+function AuditTrailPanel({ admin }: { admin: any }) {
+  const { t } = useTranslation();
+  const [logTab, setLogTab] = useState<'audit' | 'api'>('audit');
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-xl font-display font-bold">{t('admin.logs')}</h2>
+        <p className="text-sm text-muted-foreground">{t('admin.logsDesc')}</p>
+      </div>
+
+      <div className="flex gap-1 bg-muted rounded-lg p-1 w-fit">
+        <button
+          onClick={() => setLogTab('audit')}
+          className={cn(
+            "px-3 py-1.5 text-sm font-medium rounded-md transition-colors",
+            logTab === 'audit' ? "bg-card shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
+          )}
+        >
+          {t('admin.auditTrail')}
+        </button>
+        <button
+          onClick={() => setLogTab('api')}
+          className={cn(
+            "px-3 py-1.5 text-sm font-medium rounded-md transition-colors",
+            logTab === 'api' ? "bg-card shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
+          )}
+        >
+          {t('admin.apiLogs')}
+        </button>
+      </div>
+
+      {logTab === 'audit' ? <AuditLogTab admin={admin} /> : <ApiLogTab admin={admin} />}
+    </div>
+  );
+}
+
+function ApiLogTab({ admin }: { admin: any }) {
+  const { t } = useTranslation();
+  const apiLogs = admin.apiLogs?.data ?? [];
+  const apiKeys = admin.apiKeysList?.data ?? [];
+
+  const keyLabelMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    apiKeys.forEach((k: any) => { map[k.id] = k.label || k.id.slice(0, 8); });
+    return map;
+  }, [apiKeys]);
+
+  const statusColor = (code: number) => {
+    if (code < 300) return 'bg-success/15 text-success border-success/30';
+    if (code < 500) return 'bg-warning/15 text-warning border-warning/30';
+    return 'bg-destructive/15 text-destructive border-destructive/30';
+  };
+
+  return (
+    <Card>
+      <CardContent className="p-0">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>{t('admin.auditTime')}</TableHead>
+              <TableHead>{t('admin.apiEndpoint')}</TableHead>
+              <TableHead>{t('admin.apiStatus')}</TableHead>
+              <TableHead>{t('admin.apiResponseTime')}</TableHead>
+              <TableHead>{t('admin.apiKeyLabel')}</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {apiLogs.length === 0 ? (
+              <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">{t('admin.noApiLogs')}</TableCell></TableRow>
+            ) : apiLogs.slice(0, 200).map((log: any) => (
+              <TableRow key={log.id}>
+                <TableCell className="text-xs whitespace-nowrap text-muted-foreground">
+                  {format(parseISO(log.created_at), 'dd.MM.yyyy HH:mm:ss')}
+                </TableCell>
+                <TableCell className="text-xs font-mono">{log.endpoint}</TableCell>
+                <TableCell>
+                  <Badge variant="outline" className={cn("text-[10px]", statusColor(log.status_code))}>
+                    {log.status_code}
+                  </Badge>
+                </TableCell>
+                <TableCell className="text-xs text-muted-foreground">{log.response_time_ms != null ? `${log.response_time_ms} ms` : '—'}</TableCell>
+                <TableCell className="text-xs text-muted-foreground">{keyLabelMap[log.api_key_id] ?? '—'}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </CardContent>
+    </Card>
+  );
+}
+
+function AuditLogTab({ admin }: { admin: any }) {
+  const { t } = useTranslation();
+  const [tableFilter, setTableFilter] = useState('all');
+  const [actionFilter, setActionFilter] = useState('all');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+  const logs = admin.auditLog.data ?? [];
+  const employees = admin.employees.data ?? [];
+
+  const nameMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    employees.forEach((e: any) => { map[e.id] = e.name; });
+    return map;
+  }, [employees]);
+
+  const tables = useMemo(() => {
+    const set = new Set(logs.map((l: any) => l.table_name));
+    return Array.from(set).sort() as string[];
+  }, [logs]);
+
+  const filtered = useMemo(() => {
+    return logs.filter((l: any) => {
+      if (tableFilter !== 'all' && l.table_name !== tableFilter) return false;
+      if (actionFilter !== 'all' && l.action !== actionFilter) return false;
+      if (dateFrom && l.created_at && l.created_at.slice(0, 10) < dateFrom) return false;
+      if (dateTo && l.created_at && l.created_at.slice(0, 10) > dateTo) return false;
+      return true;
+    });
+  }, [logs, tableFilter, actionFilter, dateFrom, dateTo]);
+
+  const formatChanges = (log: any) => {
+    if (log.action === 'INSERT') {
+      const d = log.new_data;
+      if (d?.name) return `Created "${d.name}"`;
+      if (d?.status) return `Status: ${d.status}`;
+      return 'New record';
+    }
+    if (log.action === 'DELETE') {
+      const d = log.old_data;
+      if (d?.name) return `Deleted "${d.name}"`;
+      return 'Record deleted';
+    }
+    if (log.action === 'UPDATE' && log.old_data && log.new_data) {
+      const changes: string[] = [];
+      for (const key of Object.keys(log.new_data)) {
+        if (key === 'created_at' || key === 'id') continue;
+        if (JSON.stringify(log.old_data[key]) !== JSON.stringify(log.new_data[key])) {
+          const oldVal = log.old_data[key];
+          const newVal = log.new_data[key];
+          changes.push(`${key}: ${oldVal} → ${newVal}`);
+        }
+      }
+      return changes.length > 0 ? changes.join(', ') : 'No visible changes';
+    }
+    return '';
+  };
+
+  const actionColor: Record<string, string> = {
+    INSERT: 'bg-success/15 text-success border-success/30',
+    UPDATE: 'bg-warning/15 text-warning border-warning/30',
+    DELETE: 'bg-destructive/15 text-destructive border-destructive/30',
+  };
+
+  return (
+    <div className="space-y-6">
+      <div />
+
+      <div className="flex flex-wrap gap-3 items-end">
+        <Select value={tableFilter} onValueChange={setTableFilter}>
+           <SelectTrigger className="w-[180px]"><SelectValue placeholder={t("admin.allTables")} /></SelectTrigger>
+           <SelectContent>
+             <SelectItem value="all">{t("admin.allTables")}</SelectItem>
+             {tables.map(t => <SelectItem key={t} value={t}>{t.replace(/_/g, ' ')}</SelectItem>)}
+           </SelectContent>
+         </Select>
+         <Select value={actionFilter} onValueChange={setActionFilter}>
+           <SelectTrigger className="w-[140px]"><SelectValue placeholder={t("admin.allActions")} /></SelectTrigger>
+           <SelectContent>
+             <SelectItem value="all">{t("admin.allActions")}</SelectItem>
+             <SelectItem value="INSERT">{t("admin.insert")}</SelectItem>
+             <SelectItem value="UPDATE">{t("admin.update")}</SelectItem>
+             <SelectItem value="DELETE">{t("admin.deleteAction")}</SelectItem>
+           </SelectContent>
+        </Select>
+        <div className="space-y-1">
+          <Label className="text-xs">{t("admin.from")}</Label>
+          <DatePickerInput value={dateFrom} onChange={setDateFrom} />
+        </div>
+        <div className="space-y-1">
+          <Label className="text-xs">{t("admin.to")}</Label>
+          <DatePickerInput value={dateTo} onChange={setDateTo} />
+        </div>
+        {(tableFilter !== 'all' || actionFilter !== 'all' || dateFrom || dateTo) && (
+           <Button variant="ghost" size="sm" onClick={() => { setTableFilter('all'); setActionFilter('all'); setDateFrom(''); setDateTo(''); }}>
+             <X className="h-3.5 w-3.5 mr-1" /> {t('admin.clear')}
+           </Button>
+        )}
+        <div className="flex items-center gap-2 ml-auto">
+          <span className="text-xs text-muted-foreground">{filtered.length} {t('admin.entries')}</span>
+          <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => exportAuditTrailCSV(filtered)}>
+            <Download className="h-3.5 w-3.5" /> CSV
+          </Button>
+        </div>
+      </div>
+
+      <Card>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{t("admin.auditTime")}</TableHead>
+                <TableHead>{t("admin.auditTable")}</TableHead>
+                <TableHead>{t("admin.auditAction")}</TableHead>
+                <TableHead>{t("admin.auditChanges")}</TableHead>
+                <TableHead>{t("admin.auditBy")}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filtered.length === 0 ? (
+                <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">{t("admin.noAuditEntries")}</TableCell></TableRow>
+              ) : filtered.slice(0, 100).map((log: any) => (
+                <TableRow key={log.id}>
+                  <TableCell className="text-xs whitespace-nowrap text-muted-foreground">
+                    {format(parseISO(log.created_at), 'dd.MM.yyyy HH:mm')}
+                  </TableCell>
+                  <TableCell className="text-xs">{log.table_name.replace(/_/g, ' ')}</TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className={cn("text-[10px]", actionColor[log.action])}>
+                      {log.action}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-xs max-w-[300px] truncate">{formatChanges(log)}</TableCell>
+                  <TableCell className="text-xs text-muted-foreground">{log.changed_by === 'system' ? t('admin.system') : log.changed_by}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
