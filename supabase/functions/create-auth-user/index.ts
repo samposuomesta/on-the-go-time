@@ -1,42 +1,60 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { z } from "npm:zod@3";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+const json = (body: unknown, status = 200) =>
+  new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+
+// Input schema. Password is optional — when omitted we send an invite/recovery email.
+const BodySchema = z.object({
+  email: z.string().trim().toLowerCase().email().max(255),
+  password: z.string().min(8).max(128).optional(),
+  redirectTo: z.string().url().max(2048).optional(),
+});
+
+// Map known auth errors to safe, stable messages. Anything unmapped becomes 500.
+function mapAuthError(message: string | undefined): { status: number; error: string } | null {
+  if (!message) return null;
+  const m = message.toLowerCase();
+  if (m.includes("already") && (m.includes("registered") || m.includes("exists"))) {
+    return { status: 409, error: "User already exists" };
   }
+  if (m.includes("invalid") && m.includes("email")) {
+    return { status: 400, error: "Invalid email" };
+  }
+  if (m.includes("password")) {
+    return { status: 400, error: "Password does not meet requirements" };
+  }
+  if (m.includes("rate") && m.includes("limit")) {
+    return { status: 429, error: "Too many requests, try again later" };
+  }
+  return null;
+}
+
+Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
-    // Verify the caller is authenticated
     const authHeader = req.headers.get("authorization");
-    if (!authHeader) {
-      return new Response(JSON.stringify({ error: "Missing authorization" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    if (!authHeader) return json({ error: "Missing authorization" }, 401);
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-    // Verify caller is admin using their token
     const callerClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!, {
       global: { headers: { Authorization: authHeader } },
     });
 
     const { data: { user: caller } } = await callerClient.auth.getUser();
-    if (!caller) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    if (!caller?.email) return json({ error: "Unauthorized" }, 401);
 
-    // Check caller role from users table
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
     const { data: callerUser } = await adminClient
       .from("users")
@@ -45,63 +63,56 @@ Deno.serve(async (req) => {
       .single();
 
     if (!callerUser || callerUser.role !== "admin") {
-      return new Response(JSON.stringify({ error: "Only admins can create auth accounts" }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return json({ error: "Only admins can create auth accounts" }, 403);
     }
 
-    const { email, password, redirectTo } = await req.json();
-    if (!email) {
-      return new Response(JSON.stringify({ error: "Email is required" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    let raw: unknown;
+    try {
+      raw = await req.json();
+    } catch {
+      return json({ error: "Invalid JSON body" }, 400);
     }
+    const parsed = BodySchema.safeParse(raw);
+    if (!parsed.success) {
+      return json({ error: "Invalid input", details: parsed.error.flatten().fieldErrors }, 400);
+    }
+    const { email, password, redirectTo } = parsed.data;
 
     // Check if auth user already exists
     const { data: existingUsers } = await adminClient.auth.admin.listUsers();
-    const exists = existingUsers?.users?.find((u) => u.email === email);
+    const exists = existingUsers?.users?.find((u) => u.email?.toLowerCase() === email);
     if (exists) {
       if (password) {
-        // Update existing user's password
-        await adminClient.auth.admin.updateUserById(exists.id, { password });
-        return new Response(JSON.stringify({ message: "Password updated for existing account" }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        const { error: updateError } = await adminClient.auth.admin.updateUserById(exists.id, { password });
+        if (updateError) {
+          const mapped = mapAuthError(updateError.message);
+          if (mapped) return json({ error: mapped.error }, mapped.status);
+          console.error("updateUserById failed:", updateError);
+          return json({ error: "Failed to update account" }, 500);
+        }
+        return json({ message: "Password updated for existing account" });
       }
-      // No password provided, send recovery email that actually delivers
-      const { error: resetError } = await adminClient.auth.resetPasswordForEmail(email, {
-        redirectTo,
-      });
+      const { error: resetError } = await adminClient.auth.resetPasswordForEmail(email, { redirectTo });
       if (resetError) {
-        console.error("Failed to send recovery email:", resetError);
-        return new Response(JSON.stringify({ error: resetError.message }), {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        const mapped = mapAuthError(resetError.message);
+        if (mapped) return json({ error: mapped.error }, mapped.status);
+        console.error("resetPasswordForEmail failed:", resetError);
+        return json({ error: "Failed to send recovery email" }, 500);
       }
-      return new Response(JSON.stringify({ message: "Password reset email sent" }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return json({ message: "Password reset email sent" });
     }
 
     if (!password) {
       const { data: invitedUser, error: inviteError } = await adminClient.auth.admin.inviteUserByEmail(email, {
         redirectTo,
       });
-
       if (inviteError) {
-        return new Response(JSON.stringify({ error: inviteError.message }), {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        const mapped = mapAuthError(inviteError.message);
+        if (mapped) return json({ error: mapped.error }, mapped.status);
+        console.error("inviteUserByEmail failed:", inviteError);
+        return json({ error: "Failed to send invite" }, 500);
       }
-
-      return new Response(
-        JSON.stringify({ message: "Invite email sent", userId: invitedUser.user?.id ?? null }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return json({ message: "Invite email sent", userId: invitedUser.user?.id ?? null });
     }
 
     const { data: newUser, error: createError } = await adminClient.auth.admin.createUser({
@@ -109,23 +120,16 @@ Deno.serve(async (req) => {
       password,
       email_confirm: true,
     });
-
     if (createError) {
-      return new Response(JSON.stringify({ error: createError.message }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      const mapped = mapAuthError(createError.message);
+      if (mapped) return json({ error: mapped.error }, mapped.status);
+      console.error("createUser failed:", createError);
+      return json({ error: "Failed to create account" }, 500);
     }
 
-    return new Response(
-      JSON.stringify({ message: "Auth account created with password", userId: newUser.user.id }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return json({ message: "Auth account created with password", userId: newUser.user.id });
   } catch (err) {
-    console.error("Error:", err);
-    return new Response(JSON.stringify({ error: "Internal server error" }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    console.error("create-auth-user error:", err);
+    return json({ error: "Internal server error" }, 500);
   }
 });
