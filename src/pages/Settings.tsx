@@ -745,7 +745,6 @@ export default function SettingsPage() {
           </Card>
         </section>
 
-        {/* Weekly Goal Reminders */}
         <section>
           <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t('settings.weeklyGoalReminders')}</Label>
           <Card className="mt-2">
@@ -755,159 +754,69 @@ export default function SettingsPage() {
                 const defaultTime = '15:00';
                 const defaultDay = 5; // Friday
                 const reminder = getReminder(type);
-                const isEnabled = reminder?.enabled ?? false;
                 const time = reminder?.time ?? defaultTime;
                 const day = reminder?.day_of_week ?? defaultDay;
-                const slackOn = reminder?.send_to_slack ?? false;
                 return (
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between gap-3">
-                      <div className="flex items-center gap-3 flex-1 min-w-0">
-                        <Bell className="h-4 w-4 text-muted-foreground shrink-0" />
-                        <span className="text-sm font-medium truncate">{t('settings.weeklyGoalReminder')}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => setEditing({ type, time, day_of_week: day, showDay: true, labelKey: 'settings.weeklyGoalReminder' })}
-                          disabled={!isEnabled}
-                          className="inline-flex items-center gap-1 h-8 px-2 rounded-md border border-input bg-background text-xs disabled:opacity-50 hover:bg-muted"
-                        >
-                          <span className="font-mono">{time}</span>
-                          <span className="text-muted-foreground">· {t(`settings.day.${day}` as any)}</span>
-                          <Pencil className="h-3 w-3 text-muted-foreground" />
-                        </button>
-                        <Switch checked={isEnabled} onCheckedChange={() => handleToggleWeekly(type, defaultTime, defaultDay)} />
-                      </div>
-                    </div>
-                    <p className="text-xs text-muted-foreground ml-7">{t('settings.weeklyGoalHint')}</p>
-                    <div className="flex items-center justify-between gap-3 ml-7">
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <Send className="h-3 w-3" />
-                        <span>{language === 'fi' ? 'Lähetä myös Slackiin' : 'Also send to Slack'}</span>
-                      </div>
-                      <Switch
-                        checked={slackOn}
-                        disabled={!isEnabled}
-                        onCheckedChange={() => handleToggleSlack(type, defaultTime, defaultDay)}
-                      />
-                    </div>
-                  </div>
+                  <ReminderRow
+                    labelKey="settings.weeklyGoalReminder"
+                    hintKey="settings.weeklyGoalHint"
+                    showDay
+                    state={{
+                      enabled: reminder?.enabled ?? false,
+                      time,
+                      day_of_week: day,
+                      send_to_slack: reminder?.send_to_slack ?? false,
+                    }}
+                    onEdit={() => setEditing({
+                      type,
+                      time,
+                      day_of_week: day,
+                      showDay: true,
+                      labelKey: 'settings.weeklyGoalReminder',
+                    })}
+                    onToggle={() => handleToggleWeekly(type, defaultTime, defaultDay)}
+                    onToggleSlack={() => handleToggleSlack(type, defaultTime, defaultDay)}
+                  />
                 );
               })()}
             </CardContent>
           </Card>
         </section>
 
-        {/* Vacation Reminders */}
         <section>
           <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t('settings.vacationReminders')}</Label>
           <Card className="mt-2">
             <CardContent className="p-4 space-y-4">
               {vacationReminderTypes.map(({ type, labelKey, defaultTime, hintKey }) => {
                 const reminder = getReminder(type);
-                const isEnabled = reminder?.enabled ?? false;
-                const time = reminder?.time ?? defaultTime;
-                const slackOn = reminder?.send_to_slack ?? false;
                 return (
-                  <div key={type} className="space-y-2">
-                    <div className="flex items-center justify-between gap-3">
-                      <div className="flex items-center gap-3 flex-1 min-w-0">
-                        <Bell className="h-4 w-4 text-muted-foreground shrink-0" />
-                        <span className="text-sm font-medium truncate">{t(labelKey)}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => setEditing({ type, time, day_of_week: null, showDay: false, labelKey })}
-                          disabled={!isEnabled}
-                          className="inline-flex items-center gap-1 h-8 px-2 rounded-md border border-input bg-background text-xs font-mono disabled:opacity-50 hover:bg-muted"
-                        >
-                          {time}
-                          <Pencil className="h-3 w-3 text-muted-foreground" />
-                        </button>
-                        <Switch
-                          checked={isEnabled}
-                          onCheckedChange={() => handleToggle(type, defaultTime)}
-                        />
-                      </div>
-                    </div>
-                    <p className="text-xs text-muted-foreground ml-7">{t(hintKey)}</p>
-                    <div className="flex items-center justify-between gap-3 ml-7">
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <Send className="h-3 w-3" />
-                        <span>{language === 'fi' ? 'Lähetä myös Slackiin' : 'Also send to Slack'}</span>
-                      </div>
-                      <Switch
-                        checked={slackOn}
-                        disabled={!isEnabled}
-                        onCheckedChange={() => handleToggleSlack(type, defaultTime)}
-                      />
-                    </div>
-                  </div>
+                  <ReminderRow
+                    key={type}
+                    labelKey={labelKey}
+                    hintKey={hintKey}
+                    state={{
+                      enabled: reminder?.enabled ?? false,
+                      time: reminder?.time ?? defaultTime,
+                      day_of_week: null,
+                      send_to_slack: reminder?.send_to_slack ?? false,
+                    }}
+                    onEdit={() => setEditing({
+                      type,
+                      time: reminder?.time ?? defaultTime,
+                      day_of_week: null,
+                      showDay: false,
+                      labelKey,
+                    })}
+                    onToggle={() => handleToggle(type, defaultTime)}
+                    onToggleSlack={() => handleToggleSlack(type, defaultTime)}
+                  />
                 );
               })}
             </CardContent>
           </Card>
         </section>
-        <section>
-          <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t('settings.about')}</Label>
-          <Card className="mt-2">
-            <CardContent className="p-4 space-y-2">
-              <div className="flex justify-between items-center text-sm gap-2">
-                <span className="text-muted-foreground">{t('settings.version')}</span>
-                <div className="flex items-center gap-2">
-                  <span className="font-medium font-display">{APP_VERSION}</span>
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      if (checkingUpdate) return;
-                      setCheckingUpdate(true);
-                      try {
-                        if (!('serviceWorker' in navigator)) {
-                          toast.error(t('settings.updateCheckFailed'));
-                          return;
-                        }
-                        const reg = await navigator.serviceWorker.getRegistration();
-                        if (!reg) {
-                          toast.error(t('settings.updateCheckFailed'));
-                          return;
-                        }
-                        await reg.update();
-                        await new Promise((r) => setTimeout(r, 1500));
-                        const fresh = await navigator.serviceWorker.getRegistration();
-                        const waiting = fresh?.waiting;
-                        if (waiting) {
-                          toast.success(t('settings.updateAvailable'));
-                          waiting.postMessage({ type: 'SKIP_WAITING' });
-                        } else {
-                          toast.success(t('settings.upToDate'));
-                        }
-                      } catch {
-                        toast.error(t('settings.updateCheckFailed'));
-                      } finally {
-                        setCheckingUpdate(false);
-                      }
-                    }}
-                    className="text-primary hover:underline disabled:opacity-50 inline-flex items-center gap-1"
-                    disabled={checkingUpdate}
-                  >
-                    <RefreshCw className={`h-3 w-3 ${checkingUpdate ? 'animate-spin' : ''}`} />
-                    {checkingUpdate ? t('settings.checkingUpdates') : t('settings.checkForUpdates')}
-                  </button>
-                </div>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">{t('settings.platform')}</span>
-                <span className="font-medium">PWA</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">{t('settings.offline')}</span>
-                <span className="font-medium text-success">{t('settings.enabled')}</span>
-              </div>
-            </CardContent>
-          </Card>
-        </section>
+
+        <AboutSection />
       </main>
 
       {/* Edit reminder dialog — time/day are persisted only when Save is pressed */}
