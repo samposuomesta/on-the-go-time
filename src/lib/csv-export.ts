@@ -113,7 +113,7 @@ export function exportAuditTrailCSV(
   lang: 'fi' | 'en' = 'en'
 ) {
   // Lazy import to avoid circular deps
-  const { diffChanges, summarizeInsertOrDelete, tableLabel, targetUserIdForLog } = require('./audit-format');
+  // (helpers imported at top)
   const headers = lang === 'fi'
     ? ['Aika', 'Taulu', 'Kohde', 'Toiminto', 'Muutokset', 'Tekijä']
     : ['Time', 'Table', 'Target', 'Action', 'Changes', 'By'];
