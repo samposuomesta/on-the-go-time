@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { toast } from 'sonner';
+import { sanitizeErrorMessage } from '@/lib/safe-error';
 import logo from '@/assets/logo.png';
 
 export default function ResetPassword() {

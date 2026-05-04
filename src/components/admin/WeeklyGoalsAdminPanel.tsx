@@ -98,11 +98,11 @@ function TeamManagement() {
     if (!name.trim() || !currentUser) return;
     if (editing) {
       const { error } = await supabase.from('teams').update({ name: name.trim(), description: description.trim() || null }).eq('id', editing.id);
-      if (error) return toast.error(error.message);
+      if (error) return toast.error(sanitizeErrorMessage(error));
       toast.success('Team updated');
     } else {
       const { error } = await supabase.from('teams').insert({ name: name.trim(), description: description.trim() || null, company_id: currentUser.company_id });
-      if (error) return toast.error(error.message);
+      if (error) return toast.error(sanitizeErrorMessage(error));
       toast.success('Team created');
     }
     setDialogOpen(false);
@@ -111,7 +111,7 @@ function TeamManagement() {
 
   const remove = async (id: string) => {
     const { error } = await supabase.from('teams').delete().eq('id', id);
-    if (error) return toast.error(error.message);
+    if (error) return toast.error(sanitizeErrorMessage(error));
     toast.success('Team deleted');
     fetchData();
   };
@@ -126,11 +126,11 @@ function TeamManagement() {
     if (!memberDialog) return;
     if (checked) {
       const { error } = await supabase.from('user_teams').insert({ team_id: memberDialog.id, user_id: userId });
-      if (error) return toast.error(error.message);
+      if (error) return toast.error(sanitizeErrorMessage(error));
       setTeamMembers([...teamMembers, userId]);
     } else {
       const { error } = await supabase.from('user_teams').delete().eq('team_id', memberDialog.id).eq('user_id', userId);
-      if (error) return toast.error(error.message);
+      if (error) return toast.error(sanitizeErrorMessage(error));
       setTeamMembers(teamMembers.filter((id) => id !== userId));
     }
     fetchData();
@@ -463,10 +463,10 @@ function GoalTemplateManagement() {
     if (!name.trim() || !currentUser) return;
     if (editing) {
       const { error } = await supabase.from('goal_templates').update({ name: name.trim(), description: description.trim() || null }).eq('id', editing.id);
-      if (error) return toast.error(error.message);
+      if (error) return toast.error(sanitizeErrorMessage(error));
     } else {
       const { error } = await supabase.from('goal_templates').insert({ name: name.trim(), description: description.trim() || null, company_id: currentUser.company_id, created_by: userId });
-      if (error) return toast.error(error.message);
+      if (error) return toast.error(sanitizeErrorMessage(error));
     }
     toast.success('Saved');
     setDialogOpen(false);
@@ -475,7 +475,7 @@ function GoalTemplateManagement() {
 
   const remove = async (id: string) => {
     const { error } = await supabase.from('goal_templates').delete().eq('id', id);
-    if (error) return toast.error(error.message);
+    if (error) return toast.error(sanitizeErrorMessage(error));
     fetchData();
   };
 
@@ -499,7 +499,7 @@ function GoalTemplateManagement() {
       created_by: userId,
     }));
     const { error } = await supabase.from('scheduled_goals').insert(records);
-    if (error) return toast.error(error.message);
+    if (error) return toast.error(sanitizeErrorMessage(error));
     toast.success(`Scheduled for ${schedUserIds.length} users`);
     setScheduleDialog(null);
   };
