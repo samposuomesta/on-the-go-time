@@ -51,19 +51,28 @@ export default function LongSickLeave() {
         .from('absences')
         .select('*, absence_reasons(label, label_fi)')
         .eq('user_id', userId)
-        .eq('type', 'sick')
         .order('created_at', { ascending: false });
       if (error) throw error;
       return data;
     },
   });
 
+  // Determine if a reason represents an actual sick leave vs another type of absence
+  const isSickReason = (reasonId: string): boolean => {
+    const reason = reasons.find((r: any) => r.id === reasonId);
+    if (!reason) return false;
+    const label = (reason.label || '').toLowerCase();
+    const labelFi = (reason.label_fi || '').toLowerCase();
+    return label.includes('sick') || labelFi.includes('sairas') || labelFi.includes('lapsi sairaana');
+  };
+
   const createMutation = useMutation({
     mutationFn: async () => {
       if (!startDate || !endDate) throw new Error('Select both dates');
+      const absenceType: 'sick' | 'absence' = selectedReasonId && isSickReason(selectedReasonId) ? 'sick' : 'absence';
       const { error } = await supabase.from('absences').insert({
         user_id: userId,
-        type: 'sick' as const,
+        type: absenceType,
         start_date: format(startDate, 'yyyy-MM-dd'),
         end_date: format(endDate, 'yyyy-MM-dd'),
         status: 'pending' as const,
