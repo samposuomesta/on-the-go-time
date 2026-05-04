@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { ActiveEntry, CompletedEntry } from '@/hooks/useTimeTracking';
 import { format } from 'date-fns';
 import { useTranslation } from '@/lib/i18n';
+import { formatHoursMinutes } from '@/lib/utils';
 
 function useElapsedTime(startTime: string | null) {
   const [elapsed, setElapsed] = useState('00:00:00');
@@ -110,7 +111,7 @@ export function StatusCard({ activeEntry, loading, bankBalance, todayCompleted, 
         <div className="flex items-center gap-2 pt-1 border-t border-border">
           <span className="text-xs text-muted-foreground">{t('dashboard.timeBank')}</span>
           <span className={`text-sm font-semibold ${bankBalance >= 0 ? 'text-success' : 'text-destructive'}`}>
-            {bankBalance >= 0 ? '+' : ''}{bankBalance.toFixed(1)}h
+            {bankBalance >= 0 ? '+' : ''}{formatHoursMinutes(bankBalance)}
           </span>
         </div>
       </CardContent>

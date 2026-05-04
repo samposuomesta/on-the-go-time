@@ -32,7 +32,7 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
+import { cn, formatHoursMinutes } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Separator } from '@/components/ui/separator';
@@ -555,7 +555,7 @@ function StatisticsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: s
                       <TableCell className="text-right font-mono text-sm">{u.workedHours.toFixed(1)}h</TableCell>
                       <TableCell className="text-right">
                         <span className={cn("font-mono text-sm font-medium", u.bankBalance >= 0 ? "text-success" : "text-destructive")}>
-                          {u.bankBalance >= 0 ? '+' : ''}{u.bankBalance.toFixed(1)}h
+                          {u.bankBalance >= 0 ? '+' : ''}{formatHoursMinutes(u.bankBalance)}
                         </span>
                       </TableCell>
                       <TableCell>
