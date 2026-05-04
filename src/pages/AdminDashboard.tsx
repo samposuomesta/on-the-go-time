@@ -2459,7 +2459,7 @@ function EditEmployeeDialog({ employee, allEmployees, currentManagerIds, onSave,
   const [vacationDays, setVacationDays] = useState(String(employee.annual_vacation_days ?? 25));
   const [dailyWorkHours, setDailyWorkHours] = useState(String(employee.daily_work_hours ?? 7.5));
   const [autoSubtractLunch, setAutoSubtractLunch] = useState(employee.auto_subtract_lunch ?? false);
-  const [lunchThreshold, setLunchThreshold] = useState(String(employee.lunch_threshold_hours ?? 5));
+  const [lunchThreshold, setLunchThreshold] = useState(String(employee.lunch_threshold_hours ?? 6));
   const [selectedManagers, setSelectedManagers] = useState<string[]>(currentManagerIds);
   const [bankAdjustment, setBankAdjustment] = useState('');
   const [bankSetValue, setBankSetValue] = useState('');
