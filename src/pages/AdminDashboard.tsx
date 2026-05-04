@@ -555,7 +555,7 @@ function StatisticsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: s
                       <TableCell className="text-right font-mono text-sm">{u.workedHours.toFixed(1)}h</TableCell>
                       <TableCell className="text-right">
                         <span className={cn("font-mono text-sm font-medium", u.bankBalance >= 0 ? "text-success" : "text-destructive")}>
-                          {u.bankBalance >= 0 ? '+' : ''}{u.bankBalance.toFixed(1)}h
+                          {u.bankBalance >= 0 ? '+' : ''}{formatHoursMinutes(u.bankBalance)}
                         </span>
                       </TableCell>
                       <TableCell>
