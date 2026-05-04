@@ -1,62 +1,60 @@
-## Tavoite
+## Context
 
-Luodaan suomenkielinen, kuvakaappauksilla varustettu peruskäyttöohje normaalille käyttäjälle (ei admin/esimies-osioita). Ohje näkyy sovelluksen sisällä omana sivuna, johon pääsee sivupalkin valikosta. Kuvakaappaukset otetaan automatisoidusti previewistä demo-käyttäjällä.
+Lockfiles themselves don't have versions — they record what's installed. The actual fix is to upgrade the **lodash** package to `4.18.1` (the patched release for GHSA-35jh-r3h4-6jhm / follow-up to CVE-2021-23337).
 
-## Mitä sivu sisältää
+### Where lodash comes from in this project
 
-Sivu rakentuu neljästä laajennettavasta osiosta (Accordion), jokaisessa numeroidut askeleet ja niihin liittyvät kuvakaappaukset:
+`lodash` is **not** a direct dependency in `package.json`. It is pulled in transitively at version `4.17.21` by:
 
-1. **Kirjautuminen ja PWA-asennus**
-   - Sisäänkirjautuminen sähköpostilla ja salasanalla
-   - "Unohtuiko salasana?" -toiminto
-   - Sovelluksen asentaminen kotinäytölle (Android/iOS-erot lyhyesti)
-   - Kielen vaihto ja teema (vaalea/tumma)
+- `recharts@2.15.4` → `lodash ^4.17.21` (used for chart rendering across the app)
 
-2. **Työajan kirjaus**
-   - Aloita työ / Lopeta työ -painikkeet etusivulta
-   - "Sairaana tänään" -toiminto
-   - Lounaan automaattinen vähennys lyhyesti
-   - Mitä tapahtuu offline-tilassa
+Several `lodash.*` micro-packages (`lodash.merge`, `lodash.isequal`, etc.) are also present via `@fast-csv/*`, `@tailwindcss/typography`, `archiver-utils`, and `eslint`. **These are separate packages and are not affected** by the lodash main-package advisory — no action needed on them.
 
-3. **Omat tunnit ja muokkaus**
-   - Omat kirjaukset -näkymä
-   - "Pending"-tilassa olevan kirjauksen muokkaus ja poisto
-   - Lukittuminen hyväksynnän jälkeen
-   - Omien tilastojen katselu
+## Will this affect functionality?
 
-4. **Lomat, matkakulut ja muistutukset**
-   - Lomahakemuksen lähettäminen (erilliset alkamis-/päättymispäivät)
-   - Matkakulujen lisäys (km, pysäköinti, asiakas, kuittikuva)
-   - Henkilökohtaisten muistutusten asettaminen Asetuksissa
-   - Push-ilmoitusten salliminen selaimessa
+Low risk, but not zero:
 
-Sivun yläosaan tulee lyhyt esittelyteksti ja sisällysluettelo. Jokaisen osion yläpuolella on iso otsikko, alapuolella askeleet numeroituna ja niihin liittyvät kuvakaappaukset selitteineen. Sivu noudattaa olemassa olevaa industrial-modern -tyyliä (Space Grotesk / Inter, semantic tokens index.css:stä).
+- **Recharts** is the only runtime consumer. It uses lodash utilities like `get`, `isEqual`, `throttle`, etc. Lodash 4.x has maintained a strict no-breaking-change policy across minor versions, so `4.17.21 → 4.18.1` should be drop-in compatible.
+- **Build tooling** (`eslint`, tailwind typography) only uses isolated `lodash.*` packages, which are unaffected.
+- **Edge functions** (Deno) do not use npm lodash.
+- No application code in `src/` imports lodash directly.
 
-## Tekniset muutokset
+Recommended verification after the bump: load the pages that render charts (`MyStatistics`, `AdminDashboard`, weekly-goals dashboards) and confirm charts render correctly.
 
-- **Uusi sivu** `src/pages/UserGuide.tsx` — yksi React-komponentti, jossa käytetään olemassa olevia shadcn-komponentteja (`Accordion`, `Card`, `Separator`).
-- **Uusi reitti** `/ohje` lisätään `src/App.tsx`:ään suojatuksi reitiksi (`ProtectedRoute`).
-- **Sivupalkin valikko**: lisätään uusi rivi `src/components/dashboard/Dashboard.tsx` -komponentin valikkoluetteloon (esim. ikoni `BookOpen`, label `t('menu.userGuide')`).
-- **i18n**: lisätään käännösavaimet `src/lib/i18n.tsx`:ään (`menu.userGuide`, `guide.title`, `guide.section.*` jne.). EN-puolelle lisätään tyngät, FI-puoli täytetään kokonaan.
-- **Kuvakaappaukset**:
-  - Otetaan browser-työkalulla seuraavilta sivuilta demo-käyttäjällä:
-    - `/login` (lomake + salasanan unohtuminen)
-    - `/` (etusivu, Aloita/Lopeta-painikkeet, tilakortti)
-    - `/my-entries` (omat kirjaukset, muokkausnappi)
-    - `/my-statistics` (tilastonäkymä)
-    - `/vacation-requests` (lomahakemuslomake)
-    - `/travel-expenses` (matkakulujen lisäys)
-    - `/settings` (muistutukset ja kieli)
-  - Tallennetaan polkuun `src/assets/guide/` (esim. `01-login.png`, `02-dashboard-clockin.png`…).
-  - Importataan `UserGuide.tsx`:ään ES-importeilla, jotta Vite optimoi ne.
-  - Mobiiliviewport (390×844) jotta kuvat vastaavat puhelinkokemusta.
+## Plan
 
-## Mitä EI tehdä
+1. **Add an npm/bun override** in `package.json` to force `lodash` to `4.18.1` everywhere in the dependency tree:
+   ```json
+   "overrides": {
+     "lodash": "4.18.1"
+   },
+   "resolutions": {
+     "lodash": "4.18.1"
+   }
+   ```
+   (`overrides` for npm, `resolutions` for bun/yarn compatibility.)
 
-- Ei kosketa olemassa olevaan `docs/Käyttöohje.md` -tiedostoon (jää ylläpitäjille tekniseksi viiteohjeeksi).
-- Ei admin- tai esimieskuvauksia.
-- Ei muutoksia auth-, tietokanta- tai backend-koodiin.
+2. **Reinstall** so lockfiles regenerate with the new version:
+   - `bun install` updates `bun.lock` (and `bun.lockb` if present).
+   - `npm install` updates `package-lock.json`.
+   The Lovable sandbox will regenerate these automatically.
 
-## Lopputulos
+3. **Verify** in the preview:
+   - Open the dashboard pages that show charts.
+   - Check console for any lodash-related runtime errors.
 
-Käyttäjä näkee sivupalkissa uuden "Käyttöohje"-rivin, klikkaa sitä ja saa selkeän, kuvitetun perehdytyksen sovelluksen tärkeimpiin toimintoihin omalla äidinkielellään.
+4. **Self-hosted servers** — after pulling the change, run from `/opt/timetrack/app`:
+   ```bash
+   bun install
+   bun run build
+   ```
+   Then redeploy the static frontend per your normal maintenance workflow.
+
+## Caveat
+
+At the time of writing, the latest published lodash on npm is `4.17.21`. If `4.18.1` has not yet been published when the install runs, `bun install` will fail with "version not found." If that happens, options are:
+- Wait until the patched version is available on npm, **or**
+- Pin to a forked/patched build, **or**
+- Apply a `patches/` patch via `patch-package` until upstream releases.
+
+I'll surface that error and pause for your decision if it occurs.
