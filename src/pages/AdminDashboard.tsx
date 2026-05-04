@@ -2403,7 +2403,7 @@ function AddEmployeeDialog({ onCreate, companies }: { onCreate: (data: any) => P
           </div>
           <div className="space-y-1.5"><Label>{t("admin.contractStartLabel")}</Label><DatePickerInput value={contractDate} onChange={setContractDate} className="w-full" /></div>
           <div className="space-y-1.5"><Label>{t("admin.vacationDaysYear")}</Label><Input type="number" value={vacationDays} onChange={(e) => setVacationDays(e.target.value)} min="0" max="50" /></div>
-          <div className="space-y-1.5"><Label>{t("admin.dailyWorkingHours")}</Label><Input type="number" step="0.5" value={dailyWorkHours} onChange={(e) => setDailyWorkHours(e.target.value)} min="1" max="24" /></div>
+          <div className="space-y-1.5"><Label>{t("admin.dailyWorkingHours")}</Label><Input type="text" inputMode="decimal" pattern="[0-9.,]*" value={dailyWorkHours} onChange={(e) => setDailyWorkHours(e.target.value.replace(/[^0-9.,]/g, ''))} /></div>
           <div className="sm:col-span-2 space-y-3 rounded-lg border border-border p-3">
             <div className="flex items-center justify-between">
               <div>
