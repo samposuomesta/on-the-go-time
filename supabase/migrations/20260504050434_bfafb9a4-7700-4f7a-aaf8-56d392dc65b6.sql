@@ -1,0 +1,1 @@
+ALTER TABLE public.users ALTER COLUMN lunch_threshold_hours SET DEFAULT 6;

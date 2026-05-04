@@ -807,7 +807,7 @@ function EmployeesPanel({ admin, canSeeUser, isAdmin }: { admin: any; canSeeUser
                       <TableCell className="font-mono text-sm">{emp.daily_work_hours ?? 7.5}h</TableCell>
                       <TableCell>
                         {emp.auto_subtract_lunch ? (
-                          <Badge variant="outline" className="text-[10px] border-success/30 text-success">30min &gt;{emp.lunch_threshold_hours ?? 5}h</Badge>
+                          <Badge variant="outline" className="text-[10px] border-success/30 text-success">30min &gt;{emp.lunch_threshold_hours ?? 6}h</Badge>
                         ) : <span className="text-muted-foreground text-xs">—</span>}
                       </TableCell>
                       <TableCell className="flex gap-1">
@@ -2357,7 +2357,7 @@ function AddEmployeeDialog({ onCreate, companies }: { onCreate: (data: any) => P
   const [vacationDays, setVacationDays] = useState('25');
   const [dailyWorkHours, setDailyWorkHours] = useState('7.5');
   const [autoSubtractLunch, setAutoSubtractLunch] = useState(false);
-  const [lunchThreshold, setLunchThreshold] = useState('5');
+  const [lunchThreshold, setLunchThreshold] = useState('6');
   const [creatingAuth, setCreatingAuth] = useState(false);
   const reset = () => { setFirstName(''); setLastName(''); setEmail(''); setPassword(''); setEmployeeNumber(''); setCompanyId(companies.length === 1 ? companies[0].id : ''); setRole('employee'); setContractDate(''); setVacationDays('25'); setDailyWorkHours('7.5'); setAutoSubtractLunch(false); setLunchThreshold('5'); };
 
@@ -2425,7 +2425,7 @@ function AddEmployeeDialog({ onCreate, companies }: { onCreate: (data: any) => P
           const empEmail = email.trim();
           setCreatingAuth(true);
           try {
-            await onCreate({ name: fullName, email: empEmail, employee_number: employeeNumber.trim() || null, company_id: companyId, role, contract_start_date: contractDate || null, annual_vacation_days: parseInt(vacationDays) || 25, daily_work_hours: parseFloat(dailyWorkHours) || 7.5, auto_subtract_lunch: autoSubtractLunch, lunch_threshold_hours: parseFloat(lunchThreshold) || 5, password: password.trim() || undefined });
+            await onCreate({ name: fullName, email: empEmail, employee_number: employeeNumber.trim() || null, company_id: companyId, role, contract_start_date: contractDate || null, annual_vacation_days: parseInt(vacationDays) || 25, daily_work_hours: parseFloat(dailyWorkHours) || 7.5, auto_subtract_lunch: autoSubtractLunch, lunch_threshold_hours: parseFloat(lunchThreshold) || 6, password: password.trim() || undefined });
             if (password.trim()) {
               toast.success(t('admin.authAccountCreated'));
             }
@@ -2459,7 +2459,7 @@ function EditEmployeeDialog({ employee, allEmployees, currentManagerIds, onSave,
   const [vacationDays, setVacationDays] = useState(String(employee.annual_vacation_days ?? 25));
   const [dailyWorkHours, setDailyWorkHours] = useState(String(employee.daily_work_hours ?? 7.5));
   const [autoSubtractLunch, setAutoSubtractLunch] = useState(employee.auto_subtract_lunch ?? false);
-  const [lunchThreshold, setLunchThreshold] = useState(String(employee.lunch_threshold_hours ?? 5));
+  const [lunchThreshold, setLunchThreshold] = useState(String(employee.lunch_threshold_hours ?? 6));
   const [selectedManagers, setSelectedManagers] = useState<string[]>(currentManagerIds);
   const [bankAdjustment, setBankAdjustment] = useState('');
   const [bankSetValue, setBankSetValue] = useState('');
@@ -2482,7 +2482,7 @@ function EditEmployeeDialog({ employee, allEmployees, currentManagerIds, onSave,
         setSelectedManagers(currentManagerIds);
         setDailyWorkHours(String(employee.daily_work_hours ?? 7.5));
         setAutoSubtractLunch(employee.auto_subtract_lunch ?? false);
-        setLunchThreshold(String(employee.lunch_threshold_hours ?? 5));
+        setLunchThreshold(String(employee.lunch_threshold_hours ?? 6));
         setVacationDays(String(employee.annual_vacation_days ?? 25));
         setContractDate(employee.contract_start_date || '');
         setBankAdjustment('');
@@ -2579,7 +2579,7 @@ function EditEmployeeDialog({ employee, allEmployees, currentManagerIds, onSave,
           const needsConfirm = vacationChanged || bankChanged;
 
           const doSave = () => {
-            onSave({ role, employee_number: employeeNumber.trim() || null, contract_start_date: contractDate || null, annual_vacation_days: newVacationDays, daily_work_hours: parseFloat(dailyWorkHours) || 7.5, auto_subtract_lunch: autoSubtractLunch, lunch_threshold_hours: parseFloat(lunchThreshold) || 5 }, selectedManagers);
+            onSave({ role, employee_number: employeeNumber.trim() || null, contract_start_date: contractDate || null, annual_vacation_days: newVacationDays, daily_work_hours: parseFloat(dailyWorkHours) || 7.5, auto_subtract_lunch: autoSubtractLunch, lunch_threshold_hours: parseFloat(lunchThreshold) || 6 }, selectedManagers);
             if (bankChanged) {
               onSetBankBalance!(employee.id, newBankBalance);
             }
