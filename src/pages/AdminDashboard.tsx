@@ -2403,7 +2403,7 @@ function AddEmployeeDialog({ onCreate, companies }: { onCreate: (data: any) => P
           </div>
           <div className="space-y-1.5"><Label>{t("admin.contractStartLabel")}</Label><DatePickerInput value={contractDate} onChange={setContractDate} className="w-full" /></div>
           <div className="space-y-1.5"><Label>{t("admin.vacationDaysYear")}</Label><Input type="number" value={vacationDays} onChange={(e) => setVacationDays(e.target.value)} min="0" max="50" /></div>
-          <div className="space-y-1.5"><Label>{t("admin.dailyWorkingHours")}</Label><Input type="number" step="0.5" value={dailyWorkHours} onChange={(e) => setDailyWorkHours(e.target.value)} min="1" max="24" /></div>
+          <div className="space-y-1.5"><Label>{t("admin.dailyWorkingHours")}</Label><Input type="text" inputMode="decimal" pattern="[0-9.,]*" value={dailyWorkHours} onChange={(e) => setDailyWorkHours(e.target.value.replace(/[^0-9.,]/g, ''))} /></div>
           <div className="sm:col-span-2 space-y-3 rounded-lg border border-border p-3">
             <div className="flex items-center justify-between">
               <div>
@@ -2415,7 +2415,7 @@ function AddEmployeeDialog({ onCreate, companies }: { onCreate: (data: any) => P
             {autoSubtractLunch && (
               <div className="space-y-1.5">
                 <Label className="text-xs">{t("admin.ifDailyWorkExceeds")}</Label>
-                <Input type="number" step="0.5" value={lunchThreshold} onChange={(e) => setLunchThreshold(e.target.value)} min="1" max="12" />
+                <Input type="text" inputMode="decimal" pattern="[0-9.,]*" value={lunchThreshold} onChange={(e) => setLunchThreshold(e.target.value.replace(/[^0-9.,]/g, ''))} />
               </div>
             )}
           </div>
@@ -2425,7 +2425,7 @@ function AddEmployeeDialog({ onCreate, companies }: { onCreate: (data: any) => P
           const empEmail = email.trim();
           setCreatingAuth(true);
           try {
-            await onCreate({ name: fullName, email: empEmail, employee_number: employeeNumber.trim() || null, company_id: companyId, role, contract_start_date: contractDate || null, annual_vacation_days: parseInt(vacationDays) || 25, daily_work_hours: parseFloat(dailyWorkHours) || 7.5, auto_subtract_lunch: autoSubtractLunch, lunch_threshold_hours: parseFloat(lunchThreshold) || 6, password: password.trim() || undefined });
+            await onCreate({ name: fullName, email: empEmail, employee_number: employeeNumber.trim() || null, company_id: companyId, role, contract_start_date: contractDate || null, annual_vacation_days: parseInt(vacationDays) || 25, daily_work_hours: parseFloat(dailyWorkHours.replace(',', '.')) || 7.5, auto_subtract_lunch: autoSubtractLunch, lunch_threshold_hours: parseFloat(lunchThreshold.replace(',', '.')) || 6, password: password.trim() || undefined });
             if (password.trim()) {
               toast.success(t('admin.authAccountCreated'));
             }
@@ -2502,7 +2502,7 @@ function EditEmployeeDialog({ employee, allEmployees, currentManagerIds, onSave,
           </div>
           <div className="space-y-1.5"><Label>{t("admin.contractStartLabel")}</Label><DatePickerInput value={contractDate} onChange={setContractDate} className="w-full" /></div>
           <div className="space-y-1.5"><Label>{t("admin.vacationDaysYear")}</Label><Input type="number" value={vacationDays} onChange={(e) => setVacationDays(e.target.value)} min="0" max="50" /></div>
-          <div className="space-y-1.5"><Label>{t("admin.dailyWorkingHours")}</Label><Input type="number" step="0.5" value={dailyWorkHours} onChange={(e) => setDailyWorkHours(e.target.value)} min="1" max="24" /></div>
+          <div className="space-y-1.5"><Label>{t("admin.dailyWorkingHours")}</Label><Input type="text" inputMode="decimal" pattern="[0-9.,]*" value={dailyWorkHours} onChange={(e) => setDailyWorkHours(e.target.value.replace(/[^0-9.,]/g, ''))} /></div>
           <div className="sm:col-span-2 space-y-3 rounded-lg border border-border p-3">
             <div className="flex items-center justify-between">
               <div>
@@ -2514,7 +2514,7 @@ function EditEmployeeDialog({ employee, allEmployees, currentManagerIds, onSave,
             {autoSubtractLunch && (
               <div className="space-y-1.5">
                 <Label className="text-xs">{t("admin.ifDailyWorkExceeds")}</Label>
-                <Input type="number" step="0.5" value={lunchThreshold} onChange={(e) => setLunchThreshold(e.target.value)} min="1" max="12" />
+                <Input type="text" inputMode="decimal" pattern="[0-9.,]*" value={lunchThreshold} onChange={(e) => setLunchThreshold(e.target.value.replace(/[^0-9.,]/g, ''))} />
               </div>
             )}
           </div>
@@ -2579,7 +2579,7 @@ function EditEmployeeDialog({ employee, allEmployees, currentManagerIds, onSave,
           const needsConfirm = vacationChanged || bankChanged;
 
           const doSave = () => {
-            onSave({ role, employee_number: employeeNumber.trim() || null, contract_start_date: contractDate || null, annual_vacation_days: newVacationDays, daily_work_hours: parseFloat(dailyWorkHours) || 7.5, auto_subtract_lunch: autoSubtractLunch, lunch_threshold_hours: parseFloat(lunchThreshold) || 6 }, selectedManagers);
+            onSave({ role, employee_number: employeeNumber.trim() || null, contract_start_date: contractDate || null, annual_vacation_days: newVacationDays, daily_work_hours: parseFloat(dailyWorkHours.replace(',', '.')) || 7.5, auto_subtract_lunch: autoSubtractLunch, lunch_threshold_hours: parseFloat(lunchThreshold.replace(',', '.')) || 6 }, selectedManagers);
             if (bankChanged) {
               onSetBankBalance!(employee.id, newBankBalance);
             }
