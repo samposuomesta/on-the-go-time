@@ -827,10 +827,14 @@ function EmployeesPanel({ admin, canSeeUser, isAdmin }: { admin: any; canSeeUser
                           employee={emp}
                           allEmployees={employees}
                           currentManagerIds={userManagers.filter((um: any) => um.user_id === emp.id).map((um: any) => um.manager_id)}
-                          onSave={(data, managerIds) => {
-                            admin.updateEmployee.mutate({ id: emp.id, ...data });
-                            admin.setEmployeeManagers.mutate({ userId: emp.id, managerIds });
-                            toast.success('Updated');
+                          onSave={async (data, managerIds) => {
+                            try {
+                              await admin.updateEmployee.mutateAsync({ id: emp.id, ...data });
+                              await admin.setEmployeeManagers.mutateAsync({ userId: emp.id, managerIds });
+                              toast.success('Updated');
+                            } catch (e: any) {
+                              toast.error(e?.message || 'Update failed');
+                            }
                           }}
                           currentAdjustment={adjustmentSumByUser[emp.id] ?? 0}
                           onBankAdjust={(userId, hours) => {
