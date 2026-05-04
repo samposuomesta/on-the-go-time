@@ -26,7 +26,7 @@ services:
         aliases:
           - meta
 
-  # --- Auth SMTP ---
+  # --- Auth SMTP + custom email templates ---
   auth:
     restart: unless-stopped
     environment:
@@ -38,6 +38,11 @@ services:
       - GOTRUE_SMTP_SENDER_NAME=${SMTP_SENDER_NAME}
       - GOTRUE_MAILER_AUTOCONFIRM=false
       - GOTRUE_MAILER_EXTERNAL_HOSTS=taika.integral.fi
+      # Override default recovery email to remove the OTP code line
+      - GOTRUE_MAILER_TEMPLATES_RECOVERY=/etc/gotrue-templates/recovery.html
+      - GOTRUE_MAILER_SUBJECTS_RECOVERY=Reset your password
+    volumes:
+      - ./volumes/auth/templates:/etc/gotrue-templates:ro
 
   # --- Core services reliability ---
   db:
