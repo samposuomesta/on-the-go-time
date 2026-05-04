@@ -2357,7 +2357,7 @@ function AddEmployeeDialog({ onCreate, companies }: { onCreate: (data: any) => P
   const [vacationDays, setVacationDays] = useState('25');
   const [dailyWorkHours, setDailyWorkHours] = useState('7.5');
   const [autoSubtractLunch, setAutoSubtractLunch] = useState(false);
-  const [lunchThreshold, setLunchThreshold] = useState('5');
+  const [lunchThreshold, setLunchThreshold] = useState('6');
   const [creatingAuth, setCreatingAuth] = useState(false);
   const reset = () => { setFirstName(''); setLastName(''); setEmail(''); setPassword(''); setEmployeeNumber(''); setCompanyId(companies.length === 1 ? companies[0].id : ''); setRole('employee'); setContractDate(''); setVacationDays('25'); setDailyWorkHours('7.5'); setAutoSubtractLunch(false); setLunchThreshold('5'); };
 
