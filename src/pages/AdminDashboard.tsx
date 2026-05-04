@@ -2579,7 +2579,7 @@ function EditEmployeeDialog({ employee, allEmployees, currentManagerIds, onSave,
           const needsConfirm = vacationChanged || bankChanged;
 
           const doSave = () => {
-            onSave({ role, employee_number: employeeNumber.trim() || null, contract_start_date: contractDate || null, annual_vacation_days: newVacationDays, daily_work_hours: parseFloat(dailyWorkHours) || 7.5, auto_subtract_lunch: autoSubtractLunch, lunch_threshold_hours: parseFloat(lunchThreshold) || 6 }, selectedManagers);
+            onSave({ role, employee_number: employeeNumber.trim() || null, contract_start_date: contractDate || null, annual_vacation_days: newVacationDays, daily_work_hours: parseFloat(dailyWorkHours.replace(',', '.')) || 7.5, auto_subtract_lunch: autoSubtractLunch, lunch_threshold_hours: parseFloat(lunchThreshold.replace(',', '.')) || 6 }, selectedManagers);
             if (bankChanged) {
               onSetBankBalance!(employee.id, newBankBalance);
             }
