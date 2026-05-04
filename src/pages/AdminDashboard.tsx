@@ -2425,7 +2425,7 @@ function AddEmployeeDialog({ onCreate, companies }: { onCreate: (data: any) => P
           const empEmail = email.trim();
           setCreatingAuth(true);
           try {
-            await onCreate({ name: fullName, email: empEmail, employee_number: employeeNumber.trim() || null, company_id: companyId, role, contract_start_date: contractDate || null, annual_vacation_days: parseInt(vacationDays) || 25, daily_work_hours: parseFloat(dailyWorkHours) || 7.5, auto_subtract_lunch: autoSubtractLunch, lunch_threshold_hours: parseFloat(lunchThreshold) || 6, password: password.trim() || undefined });
+            await onCreate({ name: fullName, email: empEmail, employee_number: employeeNumber.trim() || null, company_id: companyId, role, contract_start_date: contractDate || null, annual_vacation_days: parseInt(vacationDays) || 25, daily_work_hours: parseFloat(dailyWorkHours.replace(',', '.')) || 7.5, auto_subtract_lunch: autoSubtractLunch, lunch_threshold_hours: parseFloat(lunchThreshold.replace(',', '.')) || 6, password: password.trim() || undefined });
             if (password.trim()) {
               toast.success(t('admin.authAccountCreated'));
             }
