@@ -111,7 +111,7 @@ export function StatusCard({ activeEntry, loading, bankBalance, todayCompleted, 
         <div className="flex items-center gap-2 pt-1 border-t border-border">
           <span className="text-xs text-muted-foreground">{t('dashboard.timeBank')}</span>
           <span className={`text-sm font-semibold ${bankBalance >= 0 ? 'text-success' : 'text-destructive'}`}>
-            {bankBalance >= 0 ? '+' : ''}{bankBalance.toFixed(1)}h
+            {bankBalance >= 0 ? '+' : ''}{formatHoursMinutes(bankBalance)}
           </span>
         </div>
       </CardContent>
