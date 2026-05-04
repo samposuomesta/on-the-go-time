@@ -1,4 +1,18 @@
-const CACHE_NAME = 'timetrack-v19';
+const CACHE_NAME = 'timetrack-v20';
+
+// Network-only URL patterns — never serve these from cache.
+// Prevents stale Supabase data (e.g. work bank balance) in the PWA.
+const NETWORK_ONLY_PATTERNS = [
+  '/rest/v1/',
+  '/auth/v1/',
+  '/functions/v1/',
+  '/realtime/v1/',
+  '/storage/v1/',
+];
+
+function isNetworkOnly(url) {
+  return NETWORK_ONLY_PATTERNS.some((p) => url.includes(p));
+}
 const OFFLINE_URLS = ['/', '/index.html'];
 
 self.addEventListener('install', (event) => {
@@ -25,6 +39,15 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
+
+  const url = event.request.url;
+
+  // Network-only for Supabase API calls — never cache, never serve stale.
+  if (isNetworkOnly(url)) {
+    event.respondWith(fetch(event.request));
+    return;
+  }
+
   event.respondWith(
     fetch(event.request)
       .then((response) => {
