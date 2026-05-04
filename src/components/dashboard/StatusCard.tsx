@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { ActiveEntry, CompletedEntry } from '@/hooks/useTimeTracking';
 import { format } from 'date-fns';
 import { useTranslation } from '@/lib/i18n';
+import { formatHoursMinutes } from '@/lib/utils';
 
 function useElapsedTime(startTime: string | null) {
   const [elapsed, setElapsed] = useState('00:00:00');
