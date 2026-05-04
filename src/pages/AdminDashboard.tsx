@@ -807,7 +807,7 @@ function EmployeesPanel({ admin, canSeeUser, isAdmin }: { admin: any; canSeeUser
                       <TableCell className="font-mono text-sm">{emp.daily_work_hours ?? 7.5}h</TableCell>
                       <TableCell>
                         {emp.auto_subtract_lunch ? (
-                          <Badge variant="outline" className="text-[10px] border-success/30 text-success">30min &gt;{emp.lunch_threshold_hours ?? 5}h</Badge>
+                          <Badge variant="outline" className="text-[10px] border-success/30 text-success">30min &gt;{emp.lunch_threshold_hours ?? 6}h</Badge>
                         ) : <span className="text-muted-foreground text-xs">—</span>}
                       </TableCell>
                       <TableCell className="flex gap-1">
