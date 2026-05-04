@@ -2482,7 +2482,7 @@ function EditEmployeeDialog({ employee, allEmployees, currentManagerIds, onSave,
         setSelectedManagers(currentManagerIds);
         setDailyWorkHours(String(employee.daily_work_hours ?? 7.5));
         setAutoSubtractLunch(employee.auto_subtract_lunch ?? false);
-        setLunchThreshold(String(employee.lunch_threshold_hours ?? 5));
+        setLunchThreshold(String(employee.lunch_threshold_hours ?? 6));
         setVacationDays(String(employee.annual_vacation_days ?? 25));
         setContractDate(employee.contract_start_date || '');
         setBankAdjustment('');
