@@ -745,7 +745,7 @@ async function postProjectHours(db: any, companyId: string, body: any) {
   if (external_id) insertData.external_id = external_id;
 
   const { data, error } = await db.from("project_hours").insert(insertData).select().single();
-  if (error) throw { status: 500, code: "INTERNAL_ERROR", message: error.message };
+  if (error) throw mapPgError(error);
 
   return { data };
 }
