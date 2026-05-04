@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { captureGPS } from '@/lib/gps';
+import { sanitizeErrorMessage } from '@/lib/safe-error';
 import logo from '@/assets/logo.png';
 
 export default function Login() {

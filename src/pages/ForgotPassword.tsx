@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from 'sonner';
+import { sanitizeErrorMessage } from '@/lib/safe-error';
 import logo from '@/assets/logo.png';
 
 export default function ForgotPassword() {
