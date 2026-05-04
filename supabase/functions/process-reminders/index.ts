@@ -87,17 +87,22 @@ Deno.serve(async (req) => {
   // Require shared secret. Cron job (pg_cron) must pass either an
   // `x-cron-secret` header or `Authorization: Bearer <CRON_SECRET>`.
   const cronSecret = Deno.env.get("CRON_SECRET");
-  if (cronSecret) {
-    const provided =
-      req.headers.get("x-cron-secret") ||
-      req.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ||
-      "";
-    if (provided !== cronSecret) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+  if (!cronSecret) {
+    console.error("CRON_SECRET is not configured; refusing request.");
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+  const provided =
+    req.headers.get("x-cron-secret") ||
+    req.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ||
+    "";
+  if (provided !== cronSecret) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 
 
@@ -221,14 +226,43 @@ Deno.serve(async (req) => {
       .in("time", windowTimes);
 
     if (vacPendingReminders) {
-      for (const r of vacPendingReminders) {
-        const { data: pendingVacs } = await supabase
-          .from("vacation_requests")
-          .select("id")
-          .eq("status", "pending")
-          .limit(1);
+      // Cache: company_id -> boolean (has any pending vacation request for that company)
+      const companyHasPendingCache = new Map<string, boolean>();
 
-        if (pendingVacs && pendingVacs.length > 0) {
+      for (const r of vacPendingReminders) {
+        // Resolve manager's company
+        const { data: managerRow } = await supabase
+          .from("users")
+          .select("company_id")
+          .eq("id", r.user_id)
+          .maybeSingle();
+        const managerCompanyId = managerRow?.company_id as string | undefined;
+        if (!managerCompanyId) continue;
+
+        let hasPending = companyHasPendingCache.get(managerCompanyId);
+        if (hasPending === undefined) {
+          // Fetch all user IDs in this company, then check pending vacation requests for them
+          const { data: companyUsers } = await supabase
+            .from("users")
+            .select("id")
+            .eq("company_id", managerCompanyId);
+          const userIds = (companyUsers ?? []).map((u: any) => u.id);
+
+          if (userIds.length === 0) {
+            hasPending = false;
+          } else {
+            const { data: pendingVacs } = await supabase
+              .from("vacation_requests")
+              .select("id")
+              .eq("status", "pending")
+              .in("user_id", userIds)
+              .limit(1);
+            hasPending = !!(pendingVacs && pendingVacs.length > 0);
+          }
+          companyHasPendingCache.set(managerCompanyId, hasPending);
+        }
+
+        if (hasPending) {
           actions.push({
             userId: r.user_id,
             type: "vacation_pending",
