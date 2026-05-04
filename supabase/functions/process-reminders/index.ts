@@ -87,17 +87,22 @@ Deno.serve(async (req) => {
   // Require shared secret. Cron job (pg_cron) must pass either an
   // `x-cron-secret` header or `Authorization: Bearer <CRON_SECRET>`.
   const cronSecret = Deno.env.get("CRON_SECRET");
-  if (cronSecret) {
-    const provided =
-      req.headers.get("x-cron-secret") ||
-      req.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ||
-      "";
-    if (provided !== cronSecret) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+  if (!cronSecret) {
+    console.error("CRON_SECRET is not configured; refusing request.");
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+  const provided =
+    req.headers.get("x-cron-secret") ||
+    req.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ||
+    "";
+  if (provided !== cronSecret) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 
 
