@@ -505,6 +505,39 @@ export function useAdminData() {
     },
   });
 
+  const deleteTimeEntry = useMutation({
+    mutationFn: async ({ id }: { id: string }) => {
+      const { error } = await supabase.from('time_entries').delete().eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-pending-time-entries'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-all-time-entries'] });
+    },
+  });
+
+  const deleteProjectHours = useMutation({
+    mutationFn: async ({ id }: { id: string }) => {
+      const { error } = await supabase.from('project_hours').delete().eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-hours'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-all-hours'] });
+    },
+  });
+
+  const deleteTravelExpense = useMutation({
+    mutationFn: async ({ id }: { id: string }) => {
+      const { error } = await supabase.from('travel_expenses').delete().eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-travel'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-all-travel'] });
+    },
+  });
+
   const insertAuditReason = useMutation({
     mutationFn: async ({ tableName, recordId, action, oldData, newData, reason }: { tableName: string; recordId: string; action: string; oldData?: any; newData?: any; reason: string }) => {
       const { error } = await supabase.from('audit_log').insert({
