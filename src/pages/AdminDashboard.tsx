@@ -1624,21 +1624,21 @@ function ApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
               <TableBody>
                 {filteredTravel.length === 0 ? (
                   <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">{t('admin.noTravelExpenses')}</TableCell></TableRow>
-                ) : filteredTravel.slice(0, 200).map((t: any) => (
-                  <TableRow key={t.id} className="hover:bg-muted/30">
-                    <TableCell className="font-medium">{t.users?.name ?? 'Unknown'}</TableCell>
-                    <TableCell className="text-muted-foreground">{t.projects?.name ?? '—'}</TableCell>
-                    <TableCell>{format(parseISO(t.date), 'd.M.yyyy')}</TableCell>
-                    <TableCell>{t.kilometers ?? 0} km</TableCell>
-                    <TableCell>€{Number(t.parking_cost ?? 0).toFixed(2)}</TableCell>
-                    <TableCell className="text-muted-foreground max-w-[200px] truncate">{t.description || '—'}</TableCell>
-                    <TableCell><StatusBadge status={t.status} /></TableCell>
+                ) : filteredTravel.slice(0, 200).map((tx: any) => (
+                  <TableRow key={tx.id} className="hover:bg-muted/30">
+                    <TableCell className="font-medium">{tx.users?.name ?? 'Unknown'}</TableCell>
+                    <TableCell className="text-muted-foreground">{tx.projects?.name ?? '—'}</TableCell>
+                    <TableCell>{format(parseISO(tx.date), 'd.M.yyyy')}</TableCell>
+                    <TableCell>{tx.kilometers ?? 0} km</TableCell>
+                    <TableCell>€{Number(tx.parking_cost ?? 0).toFixed(2)}</TableCell>
+                    <TableCell className="text-muted-foreground max-w-[200px] truncate">{tx.description || '—'}</TableCell>
+                    <TableCell><StatusBadge status={tx.status} /></TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-1">
                         <EditTravelExpenseDialog
-                          entry={t}
-                          isHistory={t.status !== 'pending'}
-                          onSave={(data) => admin.updateTravelExpense.mutate({ id: t.id, ...data })}
+                          entry={tx}
+                          isHistory={tx.status !== 'pending'}
+                          onSave={(data) => admin.updateTravelExpense.mutate({ id: tx.id, ...data })}
                           onAuditReason={(tableName, recordId, oldData, newData, reason) =>
                             admin.insertAuditReason.mutate({ tableName, recordId, action: 'ADMIN_EDIT', oldData, newData, reason })
                           }
@@ -1646,13 +1646,13 @@ function ApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
                         <DeleteEntryButton
                           isPending={admin.deleteTravelExpense.isPending}
                           onConfirm={() => {
-                            admin.deleteTravelExpense.mutate({ id: t.id }, {
-                              onSuccess: () => toast.success('✓'),
+                            admin.deleteTravelExpense.mutate({ id: tx.id }, {
+                              onSuccess: () => toast.success(t('admin.entryDeleted')),
                             });
                           }}
                         />
-                        {t.status === 'pending' && (
-                          <ApproveRejectButtons id={t.id} onApprove={(id, status) => admin.approveTravel.mutate({ id, status })} isPending={admin.approveTravel.isPending} />
+                        {tx.status === 'pending' && (
+                          <ApproveRejectButtons id={tx.id} onApprove={(id, status) => admin.approveTravel.mutate({ id, status })} isPending={admin.approveTravel.isPending} />
                         )}
                       </div>
                     </TableCell>
