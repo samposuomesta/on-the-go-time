@@ -1437,7 +1437,7 @@ function ApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
                           <span className="text-[10px] text-muted-foreground ml-1">(auto)</span>
                         )}
                       </TableCell>
-                      <TableCell className="font-medium">{te.end_time ? (Math.max(0, netMins) / 60).toFixed(1) + 'h' : '—'}</TableCell>
+                      <TableCell className="font-medium whitespace-nowrap">{te.end_time ? `${(Math.max(0, netMins) / 60).toFixed(1)}h (${Math.floor(Math.max(0, netMins) / 60)} h ${Math.max(0, netMins) % 60} min)` : '—'}</TableCell>
                       <TableCell className="text-muted-foreground">{te.projects?.name ?? '—'}</TableCell>
                       <TableCell><StatusBadge status={te.status} /></TableCell>
                       <TableCell className="text-right">
