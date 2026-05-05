@@ -1225,6 +1225,21 @@ function ApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
   const [bulkProcessing, setBulkProcessing] = useState(false);
 
   const employees = (admin.employees.data ?? []).filter((e: any) => canSeeUser(e.id));
+  const employeeById: Record<string, any> = Object.fromEntries(
+    (admin.employees.data ?? []).map((e: any) => [e.id, e])
+  );
+
+  // Compute effective break (manual + auto-lunch deduction per session) for an entry
+  const effectiveBreakMins = (te: any): number => {
+    const manual = te.break_minutes ?? 0;
+    if (!te.end_time) return manual;
+    const emp = employeeById[te.user_id];
+    if (!emp?.auto_subtract_lunch) return manual;
+    const rawHours = (new Date(te.end_time).getTime() - new Date(te.start_time).getTime()) / 3600000;
+    const threshold = Number(emp.lunch_threshold_hours ?? 6);
+    if (rawHours > threshold) return manual + 30;
+    return manual;
+  };
 
   // Use all records (not just pending) so filters and export cover everything
   const allTravel = (admin.allTravel.data ?? []).filter((t: any) => canSeeUser(t.user_id));
