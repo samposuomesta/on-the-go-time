@@ -931,11 +931,14 @@ function EditTimeEntryDialog({ entry, onSave }: { entry: any; onSave: (data: any
             <Label className="text-xs">{t("admin.breakLabel")}</Label>
             <Input type="number" min="0" value={breakMins} onChange={e => setBreakMins(e.target.value)} />
           </div>
-          {startTime && endTime && (
-            <div className="text-xs text-muted-foreground">
-              {t("admin.netHoursValue")}: {Math.max(0, (differenceInMinutes(new Date(endTime), new Date(startTime)) - Number(breakMins)) / 60).toFixed(1)}h
-            </div>
-          )}
+          {startTime && endTime && (() => {
+            const mins = Math.max(0, differenceInMinutes(new Date(endTime), new Date(startTime)) - Number(breakMins));
+            return (
+              <div className="text-xs text-muted-foreground">
+                {t("admin.netHoursValue")}: {(mins / 60).toFixed(1)}h ({Math.floor(mins / 60)} h {mins % 60} min)
+              </div>
+            );
+          })()}
           <Button className="w-full" onClick={() => {
             onSave({
               start_time: new Date(startTime).toISOString(),
