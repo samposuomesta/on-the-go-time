@@ -17,6 +17,8 @@ import { cn } from '@/lib/utils';
 import { EditTimeEntryDialog } from '@/components/entries/EditTimeEntryDialog';
 import { EditProjectHoursDialog } from '@/components/entries/EditProjectHoursDialog';
 import { EditExpenseDialog } from '@/components/entries/EditExpenseDialog';
+import { EditAbsenceDialog } from '@/components/entries/EditAbsenceDialog';
+import { EditVacationDialog } from '@/components/entries/EditVacationDialog';
 
 type DateRange = { from: Date; to: Date };
 
@@ -40,6 +42,8 @@ export default function MyEntries() {
   const [editTimeEntry, setEditTimeEntry] = useState<any>(null);
   const [editProjectHour, setEditProjectHour] = useState<any>(null);
   const [editExpense, setEditExpense] = useState<any>(null);
+  const [editAbsence, setEditAbsence] = useState<any>(null);
+  const [editVacation, setEditVacation] = useState<any>(null);
 
   const { data: timeEntries = [] } = useQuery({
     queryKey: ['time-entries', range.from.toISOString(), range.to.toISOString()],
@@ -335,7 +339,14 @@ export default function MyEntries() {
                           {format(parseISO(v.start_date), 'MMM d', { locale: dateLocale })} — {format(parseISO(v.end_date), 'MMM d, yyyy', { locale: dateLocale })}
                         </p>
                       </div>
-                      <Badge variant="outline" className="text-[10px] bg-primary/10 text-primary border-primary/30">Vacation</Badge>
+                      <div className="flex items-center gap-1.5">
+                        <Badge variant="outline" className="text-[10px] bg-primary/10 text-primary border-primary/30">Vacation</Badge>
+                        {v.status === 'pending' && (
+                          <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setEditVacation(v)}>
+                            <Pencil className="h-3.5 w-3.5" />
+                          </Button>
+                        )}
+                      </div>
                     </div>
                     {v.comment && <p className="text-xs text-muted-foreground mt-1">{v.comment}</p>}
                   </div>
@@ -352,9 +363,16 @@ export default function MyEntries() {
                           {format(parseISO(a.start_date), 'MMM d', { locale: dateLocale })}{a.start_date !== a.end_date ? ` — ${format(parseISO(a.end_date), 'MMM d, yyyy', { locale: dateLocale })}` : `, ${format(parseISO(a.start_date), 'yyyy')}`}
                         </p>
                       </div>
-                      <Badge variant="outline" className={cn("text-[10px]", a.type === 'sick' ? 'bg-destructive/10 text-destructive border-destructive/30' : 'bg-warning/10 text-warning border-warning/30')}>
-                        {a.type === 'sick' ? 'Sick' : 'Absence'}
-                      </Badge>
+                      <div className="flex items-center gap-1.5">
+                        <Badge variant="outline" className={cn("text-[10px]", a.type === 'sick' ? 'bg-destructive/10 text-destructive border-destructive/30' : 'bg-warning/10 text-warning border-warning/30')}>
+                          {a.type === 'sick' ? 'Sick' : 'Absence'}
+                        </Badge>
+                        {a.status === 'pending' && (
+                          <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setEditAbsence(a)}>
+                            <Pencil className="h-3.5 w-3.5" />
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -384,6 +402,20 @@ export default function MyEntries() {
           entry={editExpense}
           open={!!editExpense}
           onOpenChange={(open) => { if (!open) setEditExpense(null); }}
+        />
+      )}
+      {editAbsence && (
+        <EditAbsenceDialog
+          entry={editAbsence}
+          open={!!editAbsence}
+          onOpenChange={(open) => { if (!open) setEditAbsence(null); }}
+        />
+      )}
+      {editVacation && (
+        <EditVacationDialog
+          entry={editVacation}
+          open={!!editVacation}
+          onOpenChange={(open) => { if (!open) setEditVacation(null); }}
         />
       )}
     </div>

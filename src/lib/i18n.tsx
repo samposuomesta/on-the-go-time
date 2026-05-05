@@ -218,6 +218,11 @@ const translations = {
     'entries.rejected': 'Rejected',
     'entries.absences': 'Absences',
     'entries.noAbsences': 'No absences in this period',
+    'entries.editAbsence': 'Edit Absence',
+    'entries.editVacation': 'Edit Vacation Request',
+    'entries.startDate': 'Start Date',
+    'entries.endDate': 'End Date',
+    'entries.comment': 'Comment',
 
     // Update
     'update.available': 'Update available',
@@ -987,6 +992,11 @@ const translations = {
     'entries.rejected': 'Hylätty',
     'entries.absences': 'Poissaolot',
     'entries.noAbsences': 'Ei poissaoloja tällä jaksolla',
+    'entries.editAbsence': 'Muokkaa poissaoloa',
+    'entries.editVacation': 'Muokkaa lomapyyntöä',
+    'entries.startDate': 'Alkupäivä',
+    'entries.endDate': 'Loppupäivä',
+    'entries.comment': 'Kommentti',
 
     // Update
     'update.available': 'Päivitys saatavilla',
