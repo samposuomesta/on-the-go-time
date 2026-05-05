@@ -145,14 +145,17 @@ export function useWorkBank() {
       }
 
       const today = new Date();
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+      yesterday.setHours(23, 59, 59, 999);
 
-      if (calculationStart > today) {
+      if (calculationStart > yesterday) {
         setBalance(Math.round(startingBalance * 10) / 10);
         setLoading(false);
         return;
       }
 
-      const days = eachDayOfInterval({ start: calculationStart, end: today });
+      const days = eachDayOfInterval({ start: calculationStart, end: yesterday });
 
       let totalBalance = startingBalance;
 
