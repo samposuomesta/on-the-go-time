@@ -2541,6 +2541,7 @@ function EditEmployeeDialog({ employee, allEmployees, currentManagerIds, onSave,
               <div className="space-y-1.5">
                 <Label className="text-xs">{t("admin.ifDailyWorkExceeds")}</Label>
                 <Input type="text" inputMode="decimal" pattern="[0-9.,]*" value={lunchThreshold} onChange={(e) => setLunchThreshold(e.target.value.replace(/[^0-9.,]/g, ''))} />
+                <p className="text-xs text-muted-foreground">{t("admin.lunchThresholdDefault")}</p>
               </div>
             )}
           </div>
