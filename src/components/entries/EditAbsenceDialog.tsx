@@ -109,9 +109,26 @@ export function EditAbsenceDialog({ entry, open, onOpenChange }: Props) {
           )}
         </div>
         <DialogFooter className="flex justify-between sm:justify-between">
-          <Button variant="destructive" size="sm" onClick={() => deleteMutation.mutate()}>
-            {t('entries.delete')}
-          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive" size="sm">{t('entries.delete')}</Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>{t('entries.confirmDeleteTitle')}</AlertDialogTitle>
+                <AlertDialogDescription>{t('entries.confirmDeleteAbsence')}</AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>{t('entries.cancel')}</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => deleteMutation.mutate()}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  {t('entries.delete')}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
           <Button onClick={() => updateMutation.mutate()} className="bg-success text-success-foreground hover:bg-success/90">
             {t('entries.save')}
           </Button>
