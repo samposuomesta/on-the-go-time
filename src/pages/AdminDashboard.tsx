@@ -1477,6 +1477,14 @@ function ApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
                                 entry={te}
                                 onSave={(data) => admin.updateTimeEntry.mutate({ id: te.id, ...data })}
                               />
+                              <DeleteEntryButton
+                                isPending={admin.deleteTimeEntry.isPending}
+                                onConfirm={() => {
+                                  admin.deleteTimeEntry.mutate({ id: te.id }, {
+                                    onSuccess: () => toast.success(t('admin.entryDeleted')),
+                                  });
+                                }}
+                              />
                               <ApproveRejectButtons
                                 id={te.id}
                                 onApprove={(id, status) => admin.approveTimeEntry.mutate({ id, status })}
@@ -1484,14 +1492,24 @@ function ApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
                               />
                             </>
                           ) : (
-                            <EditTimeEntryHistoryDialog
-                              entry={te}
-                              isHistory
-                              onSave={(data) => admin.updateTimeEntry.mutate({ id: te.id, ...data })}
-                              onAuditReason={(tableName, recordId, oldData, newData, reason) =>
-                                admin.insertAuditReason.mutate({ tableName, recordId, action: 'ADMIN_EDIT', oldData, newData, reason })
-                              }
-                            />
+                            <>
+                              <EditTimeEntryHistoryDialog
+                                entry={te}
+                                isHistory
+                                onSave={(data) => admin.updateTimeEntry.mutate({ id: te.id, ...data })}
+                                onAuditReason={(tableName, recordId, oldData, newData, reason) =>
+                                  admin.insertAuditReason.mutate({ tableName, recordId, action: 'ADMIN_EDIT', oldData, newData, reason })
+                                }
+                              />
+                              <DeleteEntryButton
+                                isPending={admin.deleteTimeEntry.isPending}
+                                onConfirm={() => {
+                                  admin.deleteTimeEntry.mutate({ id: te.id }, {
+                                    onSuccess: () => toast.success(t('admin.entryDeleted')),
+                                  });
+                                }}
+                              />
+                            </>
                           )}
                         </div>
                       </TableCell>
