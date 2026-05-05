@@ -42,6 +42,8 @@ export default function MyEntries() {
   const [editTimeEntry, setEditTimeEntry] = useState<any>(null);
   const [editProjectHour, setEditProjectHour] = useState<any>(null);
   const [editExpense, setEditExpense] = useState<any>(null);
+  const [editAbsence, setEditAbsence] = useState<any>(null);
+  const [editVacation, setEditVacation] = useState<any>(null);
 
   const { data: timeEntries = [] } = useQuery({
     queryKey: ['time-entries', range.from.toISOString(), range.to.toISOString()],
