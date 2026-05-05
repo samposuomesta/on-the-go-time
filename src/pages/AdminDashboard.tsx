@@ -1425,7 +1425,12 @@ function ApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
                       <TableCell>{format(new Date(te.start_time), 'd.M.yyyy')}</TableCell>
                       <TableCell className="font-mono text-sm">{format(new Date(te.start_time), 'HH:mm')}</TableCell>
                       <TableCell className="font-mono text-sm">{te.end_time ? format(new Date(te.end_time), 'HH:mm') : '—'}</TableCell>
-                      <TableCell className="text-sm">{te.break_minutes ?? 0}min</TableCell>
+                      <TableCell className="text-sm">
+                        {breakMins}min
+                        {breakMins > (te.break_minutes ?? 0) && (
+                          <span className="text-[10px] text-muted-foreground ml-1">(auto)</span>
+                        )}
+                      </TableCell>
                       <TableCell className="font-medium">{te.end_time ? (Math.max(0, netMins) / 60).toFixed(1) + 'h' : '—'}</TableCell>
                       <TableCell className="text-muted-foreground">{te.projects?.name ?? '—'}</TableCell>
                       <TableCell><StatusBadge status={te.status} /></TableCell>
