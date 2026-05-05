@@ -218,6 +218,11 @@ const translations = {
     'entries.rejected': 'Rejected',
     'entries.absences': 'Absences',
     'entries.noAbsences': 'No absences in this period',
+    'entries.editAbsence': 'Edit Absence',
+    'entries.editVacation': 'Edit Vacation Request',
+    'entries.startDate': 'Start Date',
+    'entries.endDate': 'End Date',
+    'entries.comment': 'Comment',
 
     // Update
     'update.available': 'Update available',
