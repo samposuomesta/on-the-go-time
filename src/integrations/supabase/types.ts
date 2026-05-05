@@ -1506,6 +1506,7 @@ export type Database = {
       auth_user_company_id: { Args: never; Returns: string }
       auth_user_id: { Args: never; Returns: string }
       auth_user_role: { Args: never; Returns: string }
+      get_user_role: { Args: { _user_id: string }; Returns: string }
       is_member_of_team: { Args: { _team_id: string }; Returns: boolean }
       is_same_company_user: {
         Args: { _target_user_id: string }
