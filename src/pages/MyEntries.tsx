@@ -7,7 +7,7 @@ import { Link } from 'react-router-dom';
 import { exportTimeEntriesCSV, exportProjectHoursCSV, exportTravelExpensesCSV } from '@/lib/csv-export';
 import { supabase } from '@/integrations/supabase/client';
 import { useUserId } from '@/contexts/AuthContext';
-import { useTranslation } from '@/lib/i18n';
+import { useTranslation, getLocalizedField } from '@/lib/i18n';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Calendar } from '@/components/ui/calendar';
