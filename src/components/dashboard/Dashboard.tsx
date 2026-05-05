@@ -169,16 +169,16 @@ export function Dashboard() {
             <ActionButton
               icon={Play}
               label={t('dashboard.startWork')}
-              onClick={startWork}
+              onClick={guardClockAction(startWork)}
               variant="success"
-              disabled={!!activeEntry || loading}
+              disabled={!!activeEntry || loading || clockBusy}
             />
             <ActionButton
               icon={Square}
               label={t('dashboard.stopWork')}
-              onClick={stopWork}
+              onClick={guardClockAction(stopWork)}
               variant="destructive"
-              disabled={!activeEntry || loading}
+              disabled={!activeEntry || loading || clockBusy}
             />
           </div>
         </section>
