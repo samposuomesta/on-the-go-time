@@ -618,6 +618,7 @@ export function useAdminData() {
     allTravelExpenses: allTravel, projectHours: allHours,
     approveTravel, approveHours, approveAbsence, approveVacation, approveTimeEntry, updateTimeEntry,
     updateProjectHours, updateTravelExpense, insertAuditReason,
+    deleteTimeEntry, deleteProjectHours, deleteTravelExpense,
     updateEmployee, toggleProject, createProject, updateProject, createEmployee, deleteEmployee,
     createCompany, updateCompany,
     createReminder, updateReminder, toggleReminder, deleteReminder,
