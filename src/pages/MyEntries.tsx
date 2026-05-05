@@ -7,7 +7,7 @@ import { Link } from 'react-router-dom';
 import { exportTimeEntriesCSV, exportProjectHoursCSV, exportTravelExpensesCSV } from '@/lib/csv-export';
 import { supabase } from '@/integrations/supabase/client';
 import { useUserId } from '@/contexts/AuthContext';
-import { useTranslation } from '@/lib/i18n';
+import { useTranslation, getLocalizedField } from '@/lib/i18n';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Calendar } from '@/components/ui/calendar';
@@ -30,7 +30,7 @@ function StatusBadge({ status, t }: { status: string; t: (k: any) => string }) {
 
 export default function MyEntries() {
   const userId = useUserId();
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const dateLocale = useDateLocale();
   const now = new Date();
   const [range, setRange] = useState<DateRange>({
@@ -356,7 +356,7 @@ export default function MyEntries() {
                     <div className="flex justify-between items-start">
                       <div>
                         <div className="flex items-center gap-2">
-                          <p className="text-sm font-medium">{a.type === 'sick' ? 'Sick Leave' : (a.absence_reasons?.label || 'Absence')}</p>
+                          <p className="text-sm font-medium">{a.type === 'sick' ? t('dashboard.sickLeave') : (a.absence_reasons ? getLocalizedField(a.absence_reasons, 'label', language) : t('entries.absences'))}</p>
                           <StatusBadge status={a.status} t={t} />
                         </div>
                         <p className="text-xs text-muted-foreground mt-0.5">
@@ -365,7 +365,7 @@ export default function MyEntries() {
                       </div>
                       <div className="flex items-center gap-1.5">
                         <Badge variant="outline" className={cn("text-[10px]", a.type === 'sick' ? 'bg-destructive/10 text-destructive border-destructive/30' : 'bg-warning/10 text-warning border-warning/30')}>
-                          {a.type === 'sick' ? 'Sick' : 'Absence'}
+                          {a.type === 'sick' ? t('dashboard.sickLeave') : t('entries.absences')}
                         </Badge>
                         {a.status === 'pending' && (
                           <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setEditAbsence(a)}>
