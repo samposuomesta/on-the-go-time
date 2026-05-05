@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useUserId } from '@/contexts/AuthContext';
-import { format, eachDayOfInterval, isWeekend, startOfYear } from 'date-fns';
+import { format, eachDayOfInterval, isWeekend, startOfYear, parseISO } from 'date-fns';
 import { isFinnishHoliday } from '@/lib/finnish-holidays';
 
 interface UserSettings {
@@ -27,7 +27,7 @@ export function useWorkBank() {
     async function calculate() {
       const { data: user } = await supabase
         .from('users')
-        .select('daily_work_hours, auto_subtract_lunch, lunch_threshold_hours, contract_start_date')
+        .select('daily_work_hours, auto_subtract_lunch, lunch_threshold_hours, contract_start_date, company_id')
         .eq('id', userId)
         .single();
 
@@ -51,42 +51,83 @@ export function useWorkBank() {
         .eq('type', 'adjustment')
         .order('created_at', { ascending: false });
 
-      // If there's a "set balance" adjustment, use its date as calculation start
-      // and its value as the starting balance
       let startingBalance = 0;
       let calculationStart = settings.contract_start_date
         ? new Date(settings.contract_start_date)
         : startOfYear(new Date());
 
       if (adjustments && adjustments.length > 0) {
-        // Latest adjustment is the "set balance" reset point
         const latest = adjustments[0];
         startingBalance = Number(latest.hours);
-        // Start calculation from the day AFTER the adjustment
         const adjDate = new Date(latest.created_at);
         adjDate.setDate(adjDate.getDate() + 1);
         adjDate.setHours(0, 0, 0, 0);
         calculationStart = adjDate;
       }
 
-      const { data: entries } = await supabase
-        .from('time_entries')
-        .select('start_time, end_time, break_minutes, status')
-        .eq('user_id', userId)
-        .not('end_time', 'is', null)
-        .neq('status', 'rejected');
+      // Fetch time entries, absences, vacations, and absence reasons in parallel
+      const [entriesRes, absencesRes, vacationsRes, reasonsRes] = await Promise.all([
+        supabase
+          .from('time_entries')
+          .select('start_time, end_time, break_minutes, status')
+          .eq('user_id', userId)
+          .not('end_time', 'is', null)
+          .neq('status', 'rejected'),
+        supabase
+          .from('absences')
+          .select('start_date, end_date, reason_id, status')
+          .eq('user_id', userId)
+          .eq('status', 'approved'),
+        supabase
+          .from('vacation_requests')
+          .select('start_date, end_date, status')
+          .eq('user_id', userId)
+          .eq('status', 'approved'),
+        supabase
+          .from('absence_reasons')
+          .select('id, label, label_fi')
+          .eq('company_id', user.company_id),
+      ]);
 
-      if (!entries) {
-        setBalance(Math.round(startingBalance * 10) / 10);
-        setLoading(false);
-        return;
+      const entries = entriesRes.data ?? [];
+      const absences = absencesRes.data ?? [];
+      const vacations = vacationsRes.data ?? [];
+      const reasons = reasonsRes.data ?? [];
+
+      // Find the "Saldovapaa" (Time Bank free) reason id
+      const timeBankReasonIds = new Set(
+        reasons
+          .filter((r) => r.label === 'Time Bank free' || r.label_fi === 'Saldovapaa')
+          .map((r) => r.id)
+      );
+
+      // Build neutralize set: days when balance should NOT be reduced
+      const neutralizeDays = new Set<string>();
+
+      const addRange = (startStr: string, endStr: string, target: Set<string>) => {
+        try {
+          const s = parseISO(startStr);
+          const e = parseISO(endStr);
+          if (e < s) return;
+          for (const d of eachDayOfInterval({ start: s, end: e })) {
+            target.add(format(d, 'yyyy-MM-dd'));
+          }
+        } catch {
+          // ignore malformed dates
+        }
+      };
+
+      for (const v of vacations) {
+        addRange(v.start_date, v.end_date, neutralizeDays);
+      }
+      for (const a of absences) {
+        // Skip Saldovapaa: those days SHOULD deduct from the bank
+        if (a.reason_id && timeBankReasonIds.has(a.reason_id)) continue;
+        addRange(a.start_date, a.end_date, neutralizeDays);
       }
 
       const workedByDate: Record<string, number> = {};
 
-      // Lounas vähennetään PER SESSION (yksittäinen kirjautumisjakso),
-      // ei päivän yhteistunneista. Esim. kaksi 4h sessiota ei laukaise vähennystä,
-      // mutta yksi 7h yhtäjaksoinen sessio laukaisee.
       for (const entry of entries as TimeEntry[]) {
         if (!entry.end_time) continue;
         const dateKey = format(new Date(entry.start_time), 'yyyy-MM-dd');
@@ -105,7 +146,6 @@ export function useWorkBank() {
 
       const today = new Date();
 
-      // Only calculate from the baseline date forward
       if (calculationStart > today) {
         setBalance(Math.round(startingBalance * 10) / 10);
         setLoading(false);
@@ -118,8 +158,15 @@ export function useWorkBank() {
 
       for (const day of days) {
         const dateKey = format(day, 'yyyy-MM-dd');
-        const isWorkDay = !isWeekend(day) && !isFinnishHoliday(dateKey);
         const worked = workedByDate[dateKey] ?? 0;
+
+        if (neutralizeDays.has(dateKey)) {
+          // Approved non-Saldovapaa absence or approved vacation: no deduction
+          totalBalance += worked;
+          continue;
+        }
+
+        const isWorkDay = !isWeekend(day) && !isFinnishHoliday(dateKey);
 
         if (isWorkDay) {
           totalBalance += worked - settings.daily_work_hours;
