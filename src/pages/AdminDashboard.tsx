@@ -25,7 +25,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from '@/components/ui/dialog';
-import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction, AlertDialogCancel } from '@/components/ui/alert-dialog';
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction, AlertDialogCancel, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { Switch } from '@/components/ui/switch';
@@ -895,6 +895,35 @@ function EmployeesPanel({ admin, canSeeUser, isAdmin }: { admin: any; canSeeUser
 
 /* ===== APPROVALS (Working Hours + Travel + Project Hours) ===== */
 
+function DeleteEntryButton({ onConfirm, isPending }: { onConfirm: () => void; isPending?: boolean }) {
+  const { t } = useTranslation();
+  const [open, setOpen] = useState(false);
+  return (
+    <AlertDialog open={open} onOpenChange={setOpen}>
+      <AlertDialogTrigger asChild>
+        <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10" disabled={isPending}>
+          <Trash2 className="h-3.5 w-3.5" />
+        </Button>
+      </AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>{t('admin.deleteEntry')}</AlertDialogTitle>
+          <AlertDialogDescription>{t('admin.deleteEntryConfirm')}</AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+          <AlertDialogAction
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            onClick={() => { onConfirm(); setOpen(false); }}
+          >
+            {t('admin.deleteAction')}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+}
+
 function EditTimeEntryDialog({ entry, onSave }: { entry: any; onSave: (data: any) => void }) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
@@ -1448,6 +1477,14 @@ function ApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
                                 entry={te}
                                 onSave={(data) => admin.updateTimeEntry.mutate({ id: te.id, ...data })}
                               />
+                              <DeleteEntryButton
+                                isPending={admin.deleteTimeEntry.isPending}
+                                onConfirm={() => {
+                                  admin.deleteTimeEntry.mutate({ id: te.id }, {
+                                    onSuccess: () => toast.success(t('admin.entryDeleted')),
+                                  });
+                                }}
+                              />
                               <ApproveRejectButtons
                                 id={te.id}
                                 onApprove={(id, status) => admin.approveTimeEntry.mutate({ id, status })}
@@ -1455,14 +1492,24 @@ function ApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
                               />
                             </>
                           ) : (
-                            <EditTimeEntryHistoryDialog
-                              entry={te}
-                              isHistory
-                              onSave={(data) => admin.updateTimeEntry.mutate({ id: te.id, ...data })}
-                              onAuditReason={(tableName, recordId, oldData, newData, reason) =>
-                                admin.insertAuditReason.mutate({ tableName, recordId, action: 'ADMIN_EDIT', oldData, newData, reason })
-                              }
-                            />
+                            <>
+                              <EditTimeEntryHistoryDialog
+                                entry={te}
+                                isHistory
+                                onSave={(data) => admin.updateTimeEntry.mutate({ id: te.id, ...data })}
+                                onAuditReason={(tableName, recordId, oldData, newData, reason) =>
+                                  admin.insertAuditReason.mutate({ tableName, recordId, action: 'ADMIN_EDIT', oldData, newData, reason })
+                                }
+                              />
+                              <DeleteEntryButton
+                                isPending={admin.deleteTimeEntry.isPending}
+                                onConfirm={() => {
+                                  admin.deleteTimeEntry.mutate({ id: te.id }, {
+                                    onSuccess: () => toast.success(t('admin.entryDeleted')),
+                                  });
+                                }}
+                              />
+                            </>
                           )}
                         </div>
                       </TableCell>
@@ -1524,6 +1571,14 @@ function ApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
                             admin.insertAuditReason.mutate({ tableName, recordId, action: 'ADMIN_EDIT', oldData, newData, reason })
                           }
                         />
+                        <DeleteEntryButton
+                          isPending={admin.deleteProjectHours.isPending}
+                          onConfirm={() => {
+                            admin.deleteProjectHours.mutate({ id: h.id }, {
+                              onSuccess: () => toast.success(t('admin.entryDeleted')),
+                            });
+                          }}
+                        />
                         {h.status === 'pending' && (
                           <ApproveRejectButtons id={h.id} onApprove={(id, status) => admin.approveHours.mutate({ id, status })} isPending={admin.approveHours.isPending} />
                         )}
@@ -1569,27 +1624,35 @@ function ApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
               <TableBody>
                 {filteredTravel.length === 0 ? (
                   <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">{t('admin.noTravelExpenses')}</TableCell></TableRow>
-                ) : filteredTravel.slice(0, 200).map((t: any) => (
-                  <TableRow key={t.id} className="hover:bg-muted/30">
-                    <TableCell className="font-medium">{t.users?.name ?? 'Unknown'}</TableCell>
-                    <TableCell className="text-muted-foreground">{t.projects?.name ?? '—'}</TableCell>
-                    <TableCell>{format(parseISO(t.date), 'd.M.yyyy')}</TableCell>
-                    <TableCell>{t.kilometers ?? 0} km</TableCell>
-                    <TableCell>€{Number(t.parking_cost ?? 0).toFixed(2)}</TableCell>
-                    <TableCell className="text-muted-foreground max-w-[200px] truncate">{t.description || '—'}</TableCell>
-                    <TableCell><StatusBadge status={t.status} /></TableCell>
+                ) : filteredTravel.slice(0, 200).map((tx: any) => (
+                  <TableRow key={tx.id} className="hover:bg-muted/30">
+                    <TableCell className="font-medium">{tx.users?.name ?? 'Unknown'}</TableCell>
+                    <TableCell className="text-muted-foreground">{tx.projects?.name ?? '—'}</TableCell>
+                    <TableCell>{format(parseISO(tx.date), 'd.M.yyyy')}</TableCell>
+                    <TableCell>{tx.kilometers ?? 0} km</TableCell>
+                    <TableCell>€{Number(tx.parking_cost ?? 0).toFixed(2)}</TableCell>
+                    <TableCell className="text-muted-foreground max-w-[200px] truncate">{tx.description || '—'}</TableCell>
+                    <TableCell><StatusBadge status={tx.status} /></TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-1">
                         <EditTravelExpenseDialog
-                          entry={t}
-                          isHistory={t.status !== 'pending'}
-                          onSave={(data) => admin.updateTravelExpense.mutate({ id: t.id, ...data })}
+                          entry={tx}
+                          isHistory={tx.status !== 'pending'}
+                          onSave={(data) => admin.updateTravelExpense.mutate({ id: tx.id, ...data })}
                           onAuditReason={(tableName, recordId, oldData, newData, reason) =>
                             admin.insertAuditReason.mutate({ tableName, recordId, action: 'ADMIN_EDIT', oldData, newData, reason })
                           }
                         />
-                        {t.status === 'pending' && (
-                          <ApproveRejectButtons id={t.id} onApprove={(id, status) => admin.approveTravel.mutate({ id, status })} isPending={admin.approveTravel.isPending} />
+                        <DeleteEntryButton
+                          isPending={admin.deleteTravelExpense.isPending}
+                          onConfirm={() => {
+                            admin.deleteTravelExpense.mutate({ id: tx.id }, {
+                              onSuccess: () => toast.success(t('admin.entryDeleted')),
+                            });
+                          }}
+                        />
+                        {tx.status === 'pending' && (
+                          <ApproveRejectButtons id={tx.id} onApprove={(id, status) => admin.approveTravel.mutate({ id, status })} isPending={admin.approveTravel.isPending} />
                         )}
                       </div>
                     </TableCell>
