@@ -895,6 +895,35 @@ function EmployeesPanel({ admin, canSeeUser, isAdmin }: { admin: any; canSeeUser
 
 /* ===== APPROVALS (Working Hours + Travel + Project Hours) ===== */
 
+function DeleteEntryButton({ onConfirm, isPending }: { onConfirm: () => void; isPending?: boolean }) {
+  const { t } = useTranslation();
+  const [open, setOpen] = useState(false);
+  return (
+    <AlertDialog open={open} onOpenChange={setOpen}>
+      <AlertDialogTrigger asChild>
+        <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10" disabled={isPending}>
+          <Trash2 className="h-3.5 w-3.5" />
+        </Button>
+      </AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>{t('admin.deleteEntry')}</AlertDialogTitle>
+          <AlertDialogDescription>{t('admin.deleteEntryConfirm')}</AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+          <AlertDialogAction
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            onClick={() => { onConfirm(); setOpen(false); }}
+          >
+            {t('admin.deleteAction')}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+}
+
 function EditTimeEntryDialog({ entry, onSave }: { entry: any; onSave: (data: any) => void }) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
