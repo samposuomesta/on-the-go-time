@@ -17,6 +17,8 @@ import { cn } from '@/lib/utils';
 import { EditTimeEntryDialog } from '@/components/entries/EditTimeEntryDialog';
 import { EditProjectHoursDialog } from '@/components/entries/EditProjectHoursDialog';
 import { EditExpenseDialog } from '@/components/entries/EditExpenseDialog';
+import { EditAbsenceDialog } from '@/components/entries/EditAbsenceDialog';
+import { EditVacationDialog } from '@/components/entries/EditVacationDialog';
 
 type DateRange = { from: Date; to: Date };
 
