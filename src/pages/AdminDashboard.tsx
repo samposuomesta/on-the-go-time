@@ -1643,6 +1643,14 @@ function ApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
                             admin.insertAuditReason.mutate({ tableName, recordId, action: 'ADMIN_EDIT', oldData, newData, reason })
                           }
                         />
+                        <DeleteEntryButton
+                          isPending={admin.deleteTravelExpense.isPending}
+                          onConfirm={() => {
+                            admin.deleteTravelExpense.mutate({ id: t.id }, {
+                              onSuccess: () => toast.success('✓'),
+                            });
+                          }}
+                        />
                         {t.status === 'pending' && (
                           <ApproveRejectButtons id={t.id} onApprove={(id, status) => admin.approveTravel.mutate({ id, status })} isPending={admin.approveTravel.isPending} />
                         )}
