@@ -133,6 +133,7 @@ export function useTimeTracking() {
     toast.success('Work stopped!');
     setActiveEntry(null);
     setTodayCompleted(true);
+    await fetchActive();
   };
 
 
