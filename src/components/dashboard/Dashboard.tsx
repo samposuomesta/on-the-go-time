@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Play, Square, Clock, Car, ParkingCircle, Camera, 
@@ -55,6 +55,20 @@ export function Dashboard() {
   const [showAbsenceDialog, setShowAbsenceDialog] = useState(false);
   const [showSickConfirm, setShowSickConfirm] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [clockBusy, setClockBusy] = useState(false);
+  const lastClockClickRef = useRef<number>(0);
+
+  const guardClockAction = (fn: () => Promise<unknown> | unknown) => async () => {
+    const now = Date.now();
+    if (clockBusy || now - lastClockClickRef.current < 1500) return;
+    lastClockClickRef.current = now;
+    setClockBusy(true);
+    try {
+      await fn();
+    } finally {
+      setClockBusy(false);
+    }
+  };
 
   const isAdminOrManager = currentUser?.role === 'admin' || currentUser?.role === 'manager';
 
@@ -155,16 +169,16 @@ export function Dashboard() {
             <ActionButton
               icon={Play}
               label={t('dashboard.startWork')}
-              onClick={startWork}
+              onClick={guardClockAction(startWork)}
               variant="success"
-              disabled={!!activeEntry || loading}
+              disabled={!!activeEntry || loading || clockBusy}
             />
             <ActionButton
               icon={Square}
               label={t('dashboard.stopWork')}
-              onClick={stopWork}
+              onClick={guardClockAction(stopWork)}
               variant="destructive"
-              disabled={!activeEntry || loading}
+              disabled={!activeEntry || loading || clockBusy}
             />
           </div>
         </section>
