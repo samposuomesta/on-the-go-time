@@ -404,6 +404,20 @@ export default function MyEntries() {
           onOpenChange={(open) => { if (!open) setEditExpense(null); }}
         />
       )}
+      {editAbsence && (
+        <EditAbsenceDialog
+          entry={editAbsence}
+          open={!!editAbsence}
+          onOpenChange={(open) => { if (!open) setEditAbsence(null); }}
+        />
+      )}
+      {editVacation && (
+        <EditVacationDialog
+          entry={editVacation}
+          open={!!editVacation}
+          onOpenChange={(open) => { if (!open) setEditVacation(null); }}
+        />
+      )}
     </div>
   );
 }
