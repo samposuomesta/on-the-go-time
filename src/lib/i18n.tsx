@@ -757,7 +757,7 @@ const translations = {
     'employee.workBankAdjustment': 'Work Bank Balance',
     'employee.workBankAdjustmentHelp': 'Set the work bank balance before the current calculation period starts.',
     'employee.currentBankBalance': 'Current Balance',
-    'employee.setBalanceTo': 'Set balance to (hours)',
+    'employee.setBalanceTo': 'Set balance to (hh:mm)',
 
     // Common
     'common.save': 'Save Changes',
@@ -1538,7 +1538,7 @@ const translations = {
     'employee.workBankAdjustment': 'Tuntipankin saldo',
     'employee.workBankAdjustmentHelp': 'Aseta tuntipankin saldo ennen nykyisen laskentajakson alkua.',
     'employee.currentBankBalance': 'Nykyinen saldo',
-    'employee.setBalanceTo': 'Aseta saldoksi (tunnit)',
+    'employee.setBalanceTo': 'Aseta saldoksi (hh:mm)',
 
     // Common
     'common.save': 'Tallenna muutokset',

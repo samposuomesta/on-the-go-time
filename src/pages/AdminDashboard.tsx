@@ -32,7 +32,7 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
-import { cn, formatHoursMinutes } from '@/lib/utils';
+import { cn, formatHoursMinutes, parseHhMm, formatDecimalAsHhMm } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Separator } from '@/components/ui/separator';
@@ -839,11 +839,11 @@ function EmployeesPanel({ admin, canSeeUser, isAdmin }: { admin: any; canSeeUser
                           currentAdjustment={adjustmentSumByUser[emp.id] ?? 0}
                           onBankAdjust={(userId, hours) => {
                             admin.addBankAdjustment.mutate({ userId, hours });
-                            toast.success(`Work bank adjusted by ${hours > 0 ? '+' : ''}${hours}h`);
+                            toast.success(`Work bank adjusted by ${hours > 0 ? '+' : ''}${formatDecimalAsHhMm(hours)}`);
                           }}
                           onSetBankBalance={(userId, desiredBalance, effectiveDate) => {
                             admin.setBankBalance.mutate({ userId, desiredBalance, effectiveDate });
-                            toast.success(`Work bank balance set to ${desiredBalance}h (${format(parseISO(effectiveDate), 'd.M.yyyy')})`);
+                            toast.success(`Work bank balance set to ${desiredBalance >= 0 ? '+' : ''}${formatDecimalAsHhMm(desiredBalance)} (${format(parseISO(effectiveDate), 'd.M.yyyy')})`);
                           }}
                         />
                         <Button
@@ -2582,7 +2582,7 @@ function EditEmployeeDialog({ employee, allEmployees, currentManagerIds, onSave,
         setVacationDays(String(employee.annual_vacation_days ?? 25));
         setContractDate(employee.contract_start_date || '');
         setBankAdjustment('');
-        setBankSetValue(String(currentAdjustment));
+        setBankSetValue(currentAdjustment !== 0 ? formatDecimalAsHhMm(currentAdjustment) : '');
         setBankEffectiveDate(format(new Date(), 'yyyy-MM-dd'));
       }
     }}>
@@ -2625,12 +2625,12 @@ function EditEmployeeDialog({ employee, allEmployees, currentManagerIds, onSave,
                   <div className="flex-1">
                     <Label className="text-xs text-muted-foreground">{t('employee.currentBankBalance')}</Label>
                     <div className={cn("text-lg font-semibold", currentAdjustment >= 0 ? 'text-success' : 'text-destructive')}>
-                      {currentAdjustment >= 0 ? '+' : ''}{currentAdjustment.toFixed(1)}h
+                      {currentAdjustment >= 0 ? '+' : ''}{formatDecimalAsHhMm(currentAdjustment)}
                     </div>
                   </div>
                   <div className="flex-1 space-y-1">
                     <Label className="text-xs">{t('employee.setBalanceTo')}</Label>
-                    <Input type="number" step="0.5" value={bankSetValue} onChange={(e) => setBankSetValue(e.target.value)} placeholder="e.g. 5.0" />
+                    <Input type="text" inputMode="numeric" value={bankSetValue} onChange={(e) => setBankSetValue(e.target.value)} placeholder="1:45" />
                   </div>
                 </div>
                 <div className="space-y-1 mt-2">
@@ -2678,9 +2678,10 @@ function EditEmployeeDialog({ employee, allEmployees, currentManagerIds, onSave,
         </div>
         {(() => {
           const newVacationDays = parseInt(vacationDays) || 25;
-          const newBankBalance = bankSetValue !== '' ? parseFloat(bankSetValue) : currentAdjustment;
+          const parsedBank = parseHhMm(bankSetValue);
+          const newBankBalance = parsedBank !== null ? parsedBank : currentAdjustment;
           const vacationChanged = newVacationDays !== (employee.annual_vacation_days ?? 25);
-          const bankChanged = onSetBankBalance && bankSetValue !== '' && newBankBalance !== currentAdjustment;
+          const bankChanged = onSetBankBalance && parsedBank !== null && newBankBalance !== currentAdjustment;
           const needsConfirm = vacationChanged || bankChanged;
 
           const doSave = () => {
@@ -2717,11 +2718,11 @@ function EditEmployeeDialog({ employee, allEmployees, currentManagerIds, onSave,
                             <li>
                               <span className="font-medium">{t('employee.workBankAdjustment')}:</span>{' '}
                               <span className={cn(currentAdjustment >= 0 ? 'text-success' : 'text-destructive')}>
-                                {currentAdjustment >= 0 ? '+' : ''}{currentAdjustment.toFixed(1)}h
+                                {currentAdjustment >= 0 ? '+' : ''}{formatDecimalAsHhMm(currentAdjustment)}
                               </span>
                               {' → '}
                               <span className={cn('font-semibold', newBankBalance >= 0 ? 'text-success' : 'text-destructive')}>
-                                {newBankBalance >= 0 ? '+' : ''}{newBankBalance.toFixed(1)}h
+                                {newBankBalance >= 0 ? '+' : ''}{formatDecimalAsHhMm(newBankBalance)}
                               </span>
                             </li>
                           )}
