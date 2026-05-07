@@ -261,13 +261,13 @@ export default function AdminDashboard() {
             })}
           </div>
           <main className="p-4">
-            <AdminContent activeTab={activeTab} admin={admin} canSeeUser={canSeeUser} isManager={isManager} />
+            <AdminContent activeTab={activeTab} admin={admin} canSeeUser={canSeeUser} isManager={isManager} currentUserId={currentUserId} />
           </main>
         </div>
 
         {/* Desktop content */}
         <main className="hidden md:block flex-1 p-6 lg:p-8 overflow-auto max-w-6xl">
-          <AdminContent activeTab={activeTab} admin={admin} canSeeUser={canSeeUser} isManager={isManager} />
+          <AdminContent activeTab={activeTab} admin={admin} canSeeUser={canSeeUser} isManager={isManager} currentUserId={currentUserId} />
         </main>
       </div>
     </div>
@@ -1669,22 +1669,48 @@ function ApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: st
 
 /* ===== VACATION APPROVALS ===== */
 
-function VacationApprovalsPanel({ admin, canSeeUser }: { admin: any; canSeeUser: (id: string) => boolean }) {
+function VacationApprovalsPanel({ admin, canSeeUser, currentUserId }: { admin: any; canSeeUser: (id: string) => boolean; currentUserId: string | null }) {
+  const { t } = useTranslation();
+  const [onlyMineAndReports, setOnlyMineAndReports] = useState(false);
   const companies = admin.companies.data ?? [];
   const companyCountry = companies[0]?.country ?? undefined;
+  const userManagers = admin.userManagers.data ?? [];
 
-  const filteredEmployees = (admin.employees.data ?? []).filter((e: any) => canSeeUser(e.id));
-  const filteredVacations = (admin.vacationRequests.data ?? []).filter((v: any) => canSeeUser(v.user_id));
+  const myReportIds = useMemo(() => {
+    if (!currentUserId) return new Set<string>();
+    const ids = userManagers
+      .filter((um: any) => um.manager_id === currentUserId)
+      .map((um: any) => um.user_id);
+    return new Set<string>([currentUserId, ...ids]);
+  }, [currentUserId, userManagers]);
+
+  const inScope = (userId: string) =>
+    canSeeUser(userId) && (!onlyMineAndReports || myReportIds.has(userId));
+
+  const filteredEmployees = (admin.employees.data ?? []).filter((e: any) => inScope(e.id));
+  const filteredVacations = (admin.vacationRequests.data ?? []).filter((v: any) => inScope(v.user_id));
 
   return (
-    <VacationTimeline
-      employees={filteredEmployees}
-      vacationRequests={filteredVacations}
-      userManagers={admin.userManagers.data ?? []}
-      companyCountry={companyCountry}
-      onApprove={(id, status) => admin.approveVacation.mutate({ id, status })}
-      isPending={admin.approveVacation.isPending}
-    />
+    <div className="space-y-4">
+      <div className="flex items-center gap-3">
+        <Switch
+          id="only-mine-reports"
+          checked={onlyMineAndReports}
+          onCheckedChange={setOnlyMineAndReports}
+        />
+        <Label htmlFor="only-mine-reports" className="cursor-pointer">
+          {t('admin.onlyMineAndReports')}
+        </Label>
+      </div>
+      <VacationTimeline
+        employees={filteredEmployees}
+        vacationRequests={filteredVacations}
+        userManagers={userManagers}
+        companyCountry={companyCountry}
+        onApprove={(id, status) => admin.approveVacation.mutate({ id, status })}
+        isPending={admin.approveVacation.isPending}
+      />
+    </div>
   );
 }
 
