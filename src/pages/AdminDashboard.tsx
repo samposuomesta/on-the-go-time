@@ -841,9 +841,9 @@ function EmployeesPanel({ admin, canSeeUser, isAdmin }: { admin: any; canSeeUser
                             admin.addBankAdjustment.mutate({ userId, hours });
                             toast.success(`Work bank adjusted by ${hours > 0 ? '+' : ''}${hours}h`);
                           }}
-                          onSetBankBalance={(userId, desiredBalance) => {
-                            admin.setBankBalance.mutate({ userId, desiredBalance });
-                            toast.success(`Work bank balance set to ${desiredBalance}h`);
+                          onSetBankBalance={(userId, desiredBalance, effectiveDate) => {
+                            admin.setBankBalance.mutate({ userId, desiredBalance, effectiveDate });
+                            toast.success(`Work bank balance set to ${desiredBalance}h (${format(parseISO(effectiveDate), 'd.M.yyyy')})`);
                           }}
                         />
                         <Button
@@ -2543,7 +2543,7 @@ function EditEmployeeDialog({ employee, allEmployees, currentManagerIds, onSave,
   currentManagerIds: string[];
   onSave: (data: any, managerIds: string[]) => void;
   onBankAdjust?: (userId: string, hours: number) => void;
-  onSetBankBalance?: (userId: string, desiredBalance: number) => void;
+  onSetBankBalance?: (userId: string, desiredBalance: number, effectiveDate: string) => void;
   currentAdjustment?: number;
 }) {
   const { t } = useTranslation();
@@ -2558,6 +2558,7 @@ function EditEmployeeDialog({ employee, allEmployees, currentManagerIds, onSave,
   const [selectedManagers, setSelectedManagers] = useState<string[]>(currentManagerIds);
   const [bankAdjustment, setBankAdjustment] = useState('');
   const [bankSetValue, setBankSetValue] = useState('');
+  const [bankEffectiveDate, setBankEffectiveDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [confirmOpen, setConfirmOpen] = useState(false);
 
   const availableManagers = allEmployees.filter(
@@ -2582,6 +2583,7 @@ function EditEmployeeDialog({ employee, allEmployees, currentManagerIds, onSave,
         setContractDate(employee.contract_start_date || '');
         setBankAdjustment('');
         setBankSetValue(String(currentAdjustment));
+        setBankEffectiveDate(format(new Date(), 'yyyy-MM-dd'));
       }
     }}>
       <DialogTrigger asChild><Button size="icon" variant="ghost" className="h-8 w-8"><Pencil className="h-3.5 w-3.5" /></Button></DialogTrigger>
@@ -2631,6 +2633,13 @@ function EditEmployeeDialog({ employee, allEmployees, currentManagerIds, onSave,
                     <Input type="number" step="0.5" value={bankSetValue} onChange={(e) => setBankSetValue(e.target.value)} placeholder="e.g. 5.0" />
                   </div>
                 </div>
+                <div className="space-y-1 mt-2">
+                  <Label className="text-xs">Saldo voimassa päivämäärästä</Label>
+                  <DatePickerInput value={bankEffectiveDate} onChange={setBankEffectiveDate} className="w-full" />
+                  <p className="text-xs text-muted-foreground">
+                    Saldo asetetaan tämän päivän loppuun. Jälkeenpäin tehdyt merkinnät lisätään saldoon normaalisti.
+                  </p>
+                </div>
               </div>
             </div>
           )}
@@ -2677,7 +2686,7 @@ function EditEmployeeDialog({ employee, allEmployees, currentManagerIds, onSave,
           const doSave = () => {
             onSave({ role, employee_number: employeeNumber.trim() || null, contract_start_date: contractDate || null, annual_vacation_days: newVacationDays, daily_work_hours: parseFloat(dailyWorkHours.replace(',', '.')) || 7.5, auto_subtract_lunch: autoSubtractLunch, lunch_threshold_hours: parseFloat(lunchThreshold.replace(',', '.')) || 6 }, selectedManagers);
             if (bankChanged) {
-              onSetBankBalance!(employee.id, newBankBalance);
+              onSetBankBalance!(employee.id, newBankBalance, bankEffectiveDate);
             }
             setOpen(false);
           };
