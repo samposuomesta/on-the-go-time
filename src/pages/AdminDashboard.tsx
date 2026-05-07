@@ -841,9 +841,9 @@ function EmployeesPanel({ admin, canSeeUser, isAdmin }: { admin: any; canSeeUser
                             admin.addBankAdjustment.mutate({ userId, hours });
                             toast.success(`Work bank adjusted by ${hours > 0 ? '+' : ''}${hours}h`);
                           }}
-                          onSetBankBalance={(userId, desiredBalance) => {
-                            admin.setBankBalance.mutate({ userId, desiredBalance });
-                            toast.success(`Work bank balance set to ${desiredBalance}h`);
+                          onSetBankBalance={(userId, desiredBalance, effectiveDate) => {
+                            admin.setBankBalance.mutate({ userId, desiredBalance, effectiveDate });
+                            toast.success(`Work bank balance set to ${desiredBalance}h (${format(parseISO(effectiveDate), 'd.M.yyyy')})`);
                           }}
                         />
                         <Button
