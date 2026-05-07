@@ -1,4 +1,6 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format, parseISO } from 'date-fns';
 import { ArrowLeft, CalendarDays, CheckCircle2, XCircle, Clock } from 'lucide-react';
@@ -56,7 +58,19 @@ export default function AdminVacationApprovals() {
     },
   });
 
-  const requests = allRequests.filter((r: any) => canSeeUser(r.user_id));
+  const [onlyMineAndReports, setOnlyMineAndReports] = useState(false);
+
+  const myReportIds = useMemo(() => {
+    if (!currentUserId) return new Set<string>();
+    const ids = userManagers
+      .filter((um: any) => um.manager_id === currentUserId)
+      .map((um: any) => um.user_id);
+    return new Set<string>([currentUserId, ...ids]);
+  }, [currentUserId, userManagers]);
+
+  const requests = allRequests
+    .filter((r: any) => canSeeUser(r.user_id))
+    .filter((r: any) => !onlyMineAndReports || myReportIds.has(r.user_id));
 
   const approveVacation = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: 'approved' | 'rejected' }) => {
@@ -107,6 +121,16 @@ export default function AdminVacationApprovals() {
       </header>
 
       <main className="flex-1 p-4 lg:p-8 max-w-5xl mx-auto w-full space-y-6">
+        <div className="flex items-center gap-3">
+          <Switch
+            id="only-mine-reports"
+            checked={onlyMineAndReports}
+            onCheckedChange={setOnlyMineAndReports}
+          />
+          <Label htmlFor="only-mine-reports" className="cursor-pointer">
+            {t('admin.onlyMineAndReports')}
+          </Label>
+        </div>
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base lg:text-lg font-display flex items-center gap-2">
