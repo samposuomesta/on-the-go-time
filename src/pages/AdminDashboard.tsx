@@ -2639,6 +2639,7 @@ function EditEmployeeDialog({ employee, allEmployees, currentManagerIds, onSave,
                   <p className="text-xs text-muted-foreground">
                     {t('employee.balanceEffectiveDateHelp') || 'Saldo asetetaan tämän päivän loppuun. Jälkeenpäin tehdyt merkinnät lisätään saldoon normaalisti.'}
                   </p>
+                </div>
               </div>
             </div>
           )}
