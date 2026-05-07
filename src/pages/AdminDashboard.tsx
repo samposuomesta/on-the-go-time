@@ -274,7 +274,7 @@ export default function AdminDashboard() {
   );
 }
 
-function AdminContent({ activeTab, admin, canSeeUser, isManager }: { activeTab: string; admin: any; canSeeUser: (id: string) => boolean; isManager: boolean }) {
+function AdminContent({ activeTab, admin, canSeeUser, isManager, currentUserId }: { activeTab: string; admin: any; canSeeUser: (id: string) => boolean; isManager: boolean; currentUserId: string | null }) {
   switch (activeTab) {
     case 'statistics': return <StatisticsPanel admin={admin} canSeeUser={canSeeUser} />;
     case 'employees': return <EmployeesPanel admin={admin} canSeeUser={canSeeUser} isAdmin={!isManager} />;
