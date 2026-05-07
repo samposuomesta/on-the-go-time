@@ -283,7 +283,7 @@ function AdminContent({ activeTab, admin, canSeeUser, isManager }: { activeTab: 
     case 'weekly-goals': return <WeeklyGoalsAdminPanel />;
     case 'project-management': return <ProjectManagementPanel admin={admin} />;
     case 'absences': return <AbsencesPanel admin={admin} canSeeUser={canSeeUser} />;
-    case 'vacation-approvals': return <VacationApprovalsPanel admin={admin} canSeeUser={canSeeUser} />;
+    case 'vacation-approvals': return <VacationApprovalsPanel admin={admin} canSeeUser={canSeeUser} currentUserId={currentUserId} />;
     case 'companies': return isManager ? null : <CompaniesPanel admin={admin} />;
     
     case 'reminders': return <RemindersPanel admin={admin} />;
