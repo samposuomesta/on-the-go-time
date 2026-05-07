@@ -1538,7 +1538,7 @@ const translations = {
     'employee.workBankAdjustment': 'Tuntipankin saldo',
     'employee.workBankAdjustmentHelp': 'Aseta tuntipankin saldo ennen nykyisen laskentajakson alkua.',
     'employee.currentBankBalance': 'Nykyinen saldo',
-    'employee.setBalanceTo': 'Aseta saldoksi (tunnit)',
+    'employee.setBalanceTo': 'Aseta saldoksi (hh:mm)',
 
     // Common
     'common.save': 'Tallenna muutokset',
