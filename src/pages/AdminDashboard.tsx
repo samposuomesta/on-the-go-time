@@ -2543,7 +2543,7 @@ function EditEmployeeDialog({ employee, allEmployees, currentManagerIds, onSave,
   currentManagerIds: string[];
   onSave: (data: any, managerIds: string[]) => void;
   onBankAdjust?: (userId: string, hours: number) => void;
-  onSetBankBalance?: (userId: string, desiredBalance: number) => void;
+  onSetBankBalance?: (userId: string, desiredBalance: number, effectiveDate: string) => void;
   currentAdjustment?: number;
 }) {
   const { t } = useTranslation();
