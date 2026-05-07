@@ -2678,9 +2678,10 @@ function EditEmployeeDialog({ employee, allEmployees, currentManagerIds, onSave,
         </div>
         {(() => {
           const newVacationDays = parseInt(vacationDays) || 25;
-          const newBankBalance = bankSetValue !== '' ? parseFloat(bankSetValue) : currentAdjustment;
+          const parsedBank = parseHhMm(bankSetValue);
+          const newBankBalance = parsedBank !== null ? parsedBank : currentAdjustment;
           const vacationChanged = newVacationDays !== (employee.annual_vacation_days ?? 25);
-          const bankChanged = onSetBankBalance && bankSetValue !== '' && newBankBalance !== currentAdjustment;
+          const bankChanged = onSetBankBalance && parsedBank !== null && newBankBalance !== currentAdjustment;
           const needsConfirm = vacationChanged || bankChanged;
 
           const doSave = () => {
