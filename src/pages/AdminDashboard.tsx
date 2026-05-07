@@ -2558,6 +2558,7 @@ function EditEmployeeDialog({ employee, allEmployees, currentManagerIds, onSave,
   const [selectedManagers, setSelectedManagers] = useState<string[]>(currentManagerIds);
   const [bankAdjustment, setBankAdjustment] = useState('');
   const [bankSetValue, setBankSetValue] = useState('');
+  const [bankEffectiveDate, setBankEffectiveDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [confirmOpen, setConfirmOpen] = useState(false);
 
   const availableManagers = allEmployees.filter(
