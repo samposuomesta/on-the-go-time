@@ -2582,7 +2582,7 @@ function EditEmployeeDialog({ employee, allEmployees, currentManagerIds, onSave,
         setVacationDays(String(employee.annual_vacation_days ?? 25));
         setContractDate(employee.contract_start_date || '');
         setBankAdjustment('');
-        setBankSetValue('');
+        setBankSetValue(currentAdjustment !== 0 ? formatDecimalAsHhMm(currentAdjustment) : '');
         setBankEffectiveDate(format(new Date(), 'yyyy-MM-dd'));
       }
     }}>
