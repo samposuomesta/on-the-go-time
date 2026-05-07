@@ -2583,6 +2583,7 @@ function EditEmployeeDialog({ employee, allEmployees, currentManagerIds, onSave,
         setContractDate(employee.contract_start_date || '');
         setBankAdjustment('');
         setBankSetValue(String(currentAdjustment));
+        setBankEffectiveDate(format(new Date(), 'yyyy-MM-dd'));
       }
     }}>
       <DialogTrigger asChild><Button size="icon" variant="ghost" className="h-8 w-8"><Pencil className="h-3.5 w-3.5" /></Button></DialogTrigger>
