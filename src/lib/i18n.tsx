@@ -757,7 +757,7 @@ const translations = {
     'employee.workBankAdjustment': 'Work Bank Balance',
     'employee.workBankAdjustmentHelp': 'Set the work bank balance before the current calculation period starts.',
     'employee.currentBankBalance': 'Current Balance',
-    'employee.setBalanceTo': 'Set balance to (hours)',
+    'employee.setBalanceTo': 'Set balance to (hh:mm)',
 
     // Common
     'common.save': 'Save Changes',
