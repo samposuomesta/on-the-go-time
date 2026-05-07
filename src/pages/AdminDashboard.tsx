@@ -839,11 +839,11 @@ function EmployeesPanel({ admin, canSeeUser, isAdmin }: { admin: any; canSeeUser
                           currentAdjustment={adjustmentSumByUser[emp.id] ?? 0}
                           onBankAdjust={(userId, hours) => {
                             admin.addBankAdjustment.mutate({ userId, hours });
-                            toast.success(`Work bank adjusted by ${hours > 0 ? '+' : ''}${hours}h`);
+                            toast.success(`Work bank adjusted by ${hours > 0 ? '+' : ''}${formatDecimalAsHhMm(hours)}`);
                           }}
                           onSetBankBalance={(userId, desiredBalance, effectiveDate) => {
                             admin.setBankBalance.mutate({ userId, desiredBalance, effectiveDate });
-                            toast.success(`Work bank balance set to ${desiredBalance}h (${format(parseISO(effectiveDate), 'd.M.yyyy')})`);
+                            toast.success(`Work bank balance set to ${desiredBalance >= 0 ? '+' : ''}${formatDecimalAsHhMm(desiredBalance)} (${format(parseISO(effectiveDate), 'd.M.yyyy')})`);
                           }}
                         />
                         <Button
