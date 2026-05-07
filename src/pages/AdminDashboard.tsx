@@ -2718,11 +2718,11 @@ function EditEmployeeDialog({ employee, allEmployees, currentManagerIds, onSave,
                             <li>
                               <span className="font-medium">{t('employee.workBankAdjustment')}:</span>{' '}
                               <span className={cn(currentAdjustment >= 0 ? 'text-success' : 'text-destructive')}>
-                                {currentAdjustment >= 0 ? '+' : ''}{currentAdjustment.toFixed(1)}h
+                                {currentAdjustment >= 0 ? '+' : ''}{formatDecimalAsHhMm(currentAdjustment)}
                               </span>
                               {' → '}
                               <span className={cn('font-semibold', newBankBalance >= 0 ? 'text-success' : 'text-destructive')}>
-                                {newBankBalance >= 0 ? '+' : ''}{newBankBalance.toFixed(1)}h
+                                {newBankBalance >= 0 ? '+' : ''}{formatDecimalAsHhMm(newBankBalance)}
                               </span>
                             </li>
                           )}
