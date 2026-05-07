@@ -2633,6 +2633,12 @@ function EditEmployeeDialog({ employee, allEmployees, currentManagerIds, onSave,
                     <Input type="number" step="0.5" value={bankSetValue} onChange={(e) => setBankSetValue(e.target.value)} placeholder="e.g. 5.0" />
                   </div>
                 </div>
+                <div className="space-y-1 mt-2">
+                  <Label className="text-xs">{t('employee.balanceEffectiveDate') || 'Saldo voimassa päivämäärästä'}</Label>
+                  <DatePickerInput value={bankEffectiveDate} onChange={setBankEffectiveDate} className="w-full" />
+                  <p className="text-xs text-muted-foreground">
+                    {t('employee.balanceEffectiveDateHelp') || 'Saldo asetetaan tämän päivän loppuun. Jälkeenpäin tehdyt merkinnät lisätään saldoon normaalisti.'}
+                  </p>
               </div>
             </div>
           )}
