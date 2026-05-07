@@ -2625,12 +2625,12 @@ function EditEmployeeDialog({ employee, allEmployees, currentManagerIds, onSave,
                   <div className="flex-1">
                     <Label className="text-xs text-muted-foreground">{t('employee.currentBankBalance')}</Label>
                     <div className={cn("text-lg font-semibold", currentAdjustment >= 0 ? 'text-success' : 'text-destructive')}>
-                      {currentAdjustment >= 0 ? '+' : ''}{currentAdjustment.toFixed(1)}h
+                      {currentAdjustment >= 0 ? '+' : ''}{formatDecimalAsHhMm(currentAdjustment)}
                     </div>
                   </div>
                   <div className="flex-1 space-y-1">
                     <Label className="text-xs">{t('employee.setBalanceTo')}</Label>
-                    <Input type="number" step="0.5" value={bankSetValue} onChange={(e) => setBankSetValue(e.target.value)} placeholder="e.g. 5.0" />
+                    <Input type="text" inputMode="numeric" value={bankSetValue} onChange={(e) => setBankSetValue(e.target.value)} placeholder="1:45" />
                   </div>
                 </div>
                 <div className="space-y-1 mt-2">
