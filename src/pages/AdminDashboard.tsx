@@ -2634,10 +2634,10 @@ function EditEmployeeDialog({ employee, allEmployees, currentManagerIds, onSave,
                   </div>
                 </div>
                 <div className="space-y-1 mt-2">
-                  <Label className="text-xs">{t('employee.balanceEffectiveDate') || 'Saldo voimassa päivämäärästä'}</Label>
+                  <Label className="text-xs">Saldo voimassa päivämäärästä</Label>
                   <DatePickerInput value={bankEffectiveDate} onChange={setBankEffectiveDate} className="w-full" />
                   <p className="text-xs text-muted-foreground">
-                    {t('employee.balanceEffectiveDateHelp') || 'Saldo asetetaan tämän päivän loppuun. Jälkeenpäin tehdyt merkinnät lisätään saldoon normaalisti.'}
+                    Saldo asetetaan tämän päivän loppuun. Jälkeenpäin tehdyt merkinnät lisätään saldoon normaalisti.
                   </p>
                 </div>
               </div>
