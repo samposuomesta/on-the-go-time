@@ -566,9 +566,13 @@ export function useAdminData() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-all-work-bank'] }),
   });
 
-  // Set absolute work bank balance
+  // Set absolute work bank balance as of a chosen effective date.
+  // The work bank hook treats the day AFTER the adjustment's created_at as
+  // the start of the new calculation period, so we set created_at to the
+  // end of `effectiveDate`. Any time entries on/before that date are
+  // "absorbed" into the supplied balance.
   const setBankBalance = useMutation({
-    mutationFn: async ({ userId, desiredBalance }: { userId: string; desiredBalance: number }) => {
+    mutationFn: async ({ userId, desiredBalance, effectiveDate }: { userId: string; desiredBalance: number; effectiveDate: string }) => {
       // Delete all existing adjustments for this user
       const { error: delError } = await supabase
         .from('work_bank_transactions')
@@ -577,15 +581,16 @@ export function useAdminData() {
         .eq('type', 'adjustment' as any);
       if (delError) throw delError;
 
-      // Insert single adjustment with the desired balance value
-      // The work bank calculation adds this to the computed balance from entries
-      // So we need: adjustment = desiredBalance - computedBalanceFromEntries
-      // But since we just deleted all adjustments, we insert the raw desired offset
+      // Build end-of-day timestamp for the effective date (local time is fine;
+      // useWorkBank only uses the date part to roll forward by one day).
+      const createdAt = new Date(`${effectiveDate}T23:59:59`).toISOString();
+
       const { error: insError } = await supabase.from('work_bank_transactions').insert({
         user_id: userId,
         hours: desiredBalance,
         type: 'adjustment' as any,
-      });
+        created_at: createdAt,
+      } as any);
       if (insError) throw insError;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-all-work-bank'] }),
